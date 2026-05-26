@@ -11,6 +11,11 @@
         [ngClass]="{'active': activeTab === 'approved'}" (click)="switchTab('approved')">
         Finalized requests
       </button>
+
+      <button type="button" class="btn btn-outline-primary btn-sm mx-2 my-1"
+        [ngClass]="{'active': activeTab === 'custom'}" (click)="switchTab('custom')">
+        Custom skill requests
+      </button>
     
     </div>
 
@@ -576,6 +581,67 @@
 
           <pagination-controls *ngIf="totalRows > 0" class="my-pagination" [id]="'sm-approved'"
             (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom skill requests tab -->
+    <div *ngIf="!detail && activeTab==='custom'">
+      <p *ngIf="customError" class="text-danger small mb-2">{{ customError }}</p>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="overflow-auto">
+            <table class="table table-sm skill-matrix-approve-requests__sort-table">
+              <thead class="thead-light">
+                <tr>
+                  <th scope="col" class="info-label">Sr No.</th>
+                  <th scope="col" class="info-label">Employee</th>
+                  <th scope="col" class="info-label">Designation</th>
+                  <th scope="col" class="info-label">Skill name</th>
+                  <th scope="col" class="info-label">Category</th>
+                  <th scope="col" class="info-label">Status</th>
+                  <th scope="col" class="info-label">Submitted</th>
+                  <th scope="col" class="info-label">Decision</th>
+                  <th scope="col" class="info-label">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="customLoading">
+                  <td colspan="9" class="text-center info-label">Loading…</td>
+                </tr>
+                <tr *ngIf="!customLoading && (!customRows || customRows.length === 0)">
+                  <td colspan="9" class="text-center info-label">No details to display...</td>
+                </tr>
+                <tr *ngFor="let r of customRows | paginate: { id: 'sm-custom-skill-requests', itemsPerPage: customPageSize, currentPage: customPage, totalItems: customTotal }; let i = index">
+                  <th scope="row" class="info-label">{{ customPageSize * (customPage - 1) + i + 1 }}</th>
+                  <td style="font-weight:600;color:var(--color-text-primary)">{{ r.requestedByName }}</td>
+                  <td>{{ r.designation || '—' }}</td>
+                  <td>{{ r.skillName }}</td>
+                  <td>{{ r.categoryName || '—' }}</td>
+                  <td>
+                    <span class="bdg" [ngClass]="customRequestStatusBadgeClass(r.status)">{{ customRequestStatusLabel(r.status) }}</span>
+                  </td>
+                  <td>{{ r.createdAt ? (r.createdAt | date:'dd-MMM-yyyy') : '—' }}</td>
+                  <td>
+                    <span *ngIf="r.status === 'approved'">{{ r.approvedSkillType || 'Approved' }}</span>
+                    <span *ngIf="r.status !== 'approved'">{{ r.decisionComment || '—' }}</span>
+                  </td>
+                  <td class="text-nowrap">
+                    <ng-container *ngIf="r.actionEnabled; else customDecisionState">
+                      <button type="button" class="btn btn-sm btn-outline-success mr-1" (click)="approveCustomSkill(r)">Approve</button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" (click)="rejectCustomSkill(r)">Reject</button>
+                    </ng-container>
+                    <ng-template #customDecisionState>
+                      <span class="text-muted small">{{ r.decisionComment || '—' }}</span>
+                    </ng-template>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <pagination-controls *ngIf="customTotal > 0" class="my-pagination" [id]="'sm-custom-skill-requests'"
+            (pageChange)="handleCustomPageChange($event)"></pagination-controls>
         </div>
       </div>
     </div>

@@ -1,14 +1,19 @@
-.button{
-    width: 85px;
+.trv-approve-subnav .btn {
+  min-width: 7rem;
 }
-.text-danger {
-    color: red;
-  }
-  
-  .text-success {
-    color: green;
-  }
-  
-  .text-warning {
-    color: yellow;
-  }
+
+.trv-approve-table {
+  width: 100%;
+  table-layout: auto;
+  min-width: 100%;
+}
+
+.trv-view-ticket-btn {
+  min-width: 2.25rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.trv-approve-action-cell .btn + .btn {
+  margin-left: 0.35rem;
+}

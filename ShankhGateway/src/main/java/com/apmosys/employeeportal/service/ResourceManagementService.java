@@ -4634,7 +4634,7 @@ public class ResourceManagementService {
 
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 				response.setServiceResponse(
-						"Project StartDate/EndDate updated successfully, from Team Name - " + findTeam.getTeamName());
+						"Employee's StartDate/EndDate updated successfully, for Team Name - " + findTeam.getTeamName());
 			} else {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				response.setServiceResponse("Resource not found for given employeeTeamMapId");

@@ -909,7 +909,8 @@ dateRange: string; type: string; count: string;
   }
 
   editIndex: number = -1;
-  billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'InternalRNDProducts', 'TNM'];
+  billableTypes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts', 'Monitoring'];
+  billableTypeBoxes: string[] = ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts', 'Monitoring'];
   updateBillableType(employee: any, template: TemplateRef<any>) {
     const updatedBillable = employee.billableType === 'TNM' ? 'Yes' : 'No';
 
@@ -968,13 +969,24 @@ dateRange: string; type: string; count: string;
   projectSummary: any = {};
 
   /** Align with Employee 360: total = previous work years + tenure since DOJ (see EmployeeService.calculateTotalExperience). */
+  private resolveDateOfJoiningForReport(employee: any): string | null {
+    const raw = employee?.dateOfJoining ?? employee?.date_of_joining;
+    if (raw == null || String(raw).trim() === '') {
+      return null;
+    }
+    const parsed = moment(raw, [AppComponent.DATE_FORMAT, 'YYYY-MM-DD', moment.ISO_8601], true);
+    return parsed.isValid() ? parsed.format(AppComponent.DATE_FORMAT) : String(raw).trim();
+  }
+
   private applyExperienceForReport(employee: any): void {
     if (!employee) {
       return;
     }
+    const dateOfJoining = this.resolveDateOfJoiningForReport(employee);
+    employee.dateOfJoining = dateOfJoining;
     const isFresher = (employee.experience || '').toString().toLowerCase() === 'fresher';
     const previousYears = isFresher ? 0 : Number(employee.totalExperience ?? 0);
-    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, employee.dateOfJoining);
+    employee.totalExperience = this.employeeService.calculateTotalExperience(previousYears, dateOfJoining);
   }
 
   getEmployeeReportData() {
@@ -2040,7 +2052,7 @@ onSearchClientProject(searchData: any) {
     let queryObj = new Query();
     queryObj.queryList = queryObjList;
     queryObj.empId = this.currentUser.empId;
-
+    queryObj.subFeatureName = 'Employee Report';
     if (queryObjList == '') {
       queryObjList= [{ column: "Employment Status", operator: "!=", value: "InActive", conjunction: "" }];
     } else {

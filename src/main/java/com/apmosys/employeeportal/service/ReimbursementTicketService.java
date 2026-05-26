@@ -42,6 +42,7 @@ import com.apmosys.employeeportal.dto.ReimbursementTicketClaimInputDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketStageActionDTO;
 import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixDTO;
 import com.apmosys.employeeportal.dto.ReimbursementApprovalMatrixDTO.ReimbursementApprovalMatrixLevelDTO;
+import com.apmosys.employeeportal.dto.ProjectIdNameClientDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
@@ -119,7 +120,7 @@ public class ReimbursementTicketService {
 	@Value("${reimbursement.ticket-id.zone:Asia/Kolkata}")
 	private String reimbursementTicketIdZone;
 
-	/** Sentinel project id for Business Development manual "Others" line (not a real projects.project_id). */
+	/** Sentinel project id for manual "Others" line (not a real projects.project_id). */
 	public static final long REIMBURSEMENT_PROJECT_OTHERS_ID = -1L;
 
 	private static String normEmail(String e) {
@@ -294,19 +295,101 @@ public class ReimbursementTicketService {
 		return "—";
 	}
 
+	private static final String EMAIL_BRAND = "#1B3461";
+	private static final String EMAIL_MUTED = "#64748B";
+	private static final String EMAIL_BORDER = "#E2E8F0";
+
+	private String resolveClaimClientName(ReimbursementTicketClaim c) {
+		if (c == null) {
+			return "Not specified";
+		}
+		if (StringUtils.hasText(c.getClientName())) {
+			return c.getClientName().trim();
+		}
+		if (c.getClientId() != null) {
+			Client cl = clientsRepository.findByClientId(c.getClientId());
+			if (cl != null && StringUtils.hasText(cl.getClientName())) {
+				return cl.getClientName().trim();
+			}
+		}
+		if (c.getProjectId() != null) {
+			Project p = projectRepository.findByProjectId(c.getProjectId().intValue());
+			if (p != null) {
+				if (StringUtils.hasText(p.getClientName())) {
+					return p.getClientName().trim();
+				}
+				if (p.getClientId() != null) {
+					Client cl = clientsRepository.findByClientId(p.getClientId());
+					if (cl != null && StringUtils.hasText(cl.getClientName())) {
+						return cl.getClientName().trim();
+					}
+				}
+			}
+		}
+		return "Not specified";
+	}
+
+	private String friendlyClaimStatusLabel(String status) {
+		if (!StringUtils.hasText(status)) {
+			return "—";
+		}
+		switch (status) {
+		case ReimbursementTicketClaim.STATUS_PENDING_APPROVAL:
+			return "Pending approval";
+		case ReimbursementTicketClaim.STATUS_PENDING_HOD:
+			return "Pending HOD";
+		case ReimbursementTicketClaim.STATUS_PENDING_HR:
+			return "Pending HR";
+		case ReimbursementTicketClaim.STATUS_PENDING_FINANCE:
+			return "Pending finance";
+		case ReimbursementTicketClaim.STATUS_PAID:
+			return "Paid";
+		case ReimbursementTicketClaim.STATUS_LEVEL_REJECTED:
+		case ReimbursementTicketClaim.STATUS_HOD_REJECTED:
+		case ReimbursementTicketClaim.STATUS_HR_REJECTED:
+		case ReimbursementTicketClaim.STATUS_FINANCE_REJECTED:
+			return "Rejected";
+		default:
+			return status.replace('_', ' ');
+		}
+	}
+
+	private String formatMailRupee(java.math.BigDecimal amount) {
+		if (amount == null) {
+			return "—";
+		}
+		/** Rs. avoids ₹ rendering as ? in Outlook and older mail clients. */
+		return "Rs. " + String.format(Locale.ENGLISH, "%,.2f", amount);
+	}
+
 	private String claimSummaryHtml(ReimbursementTicket ticket) {
+		String th = "padding:10px 12px;background:" + EMAIL_BRAND + ";color:#ffffff;font-size:12px;font-weight:600;text-align:left;";
+		String td = "padding:10px 12px;border-bottom:1px solid " + EMAIL_BORDER + ";font-size:13px;color:#334155;vertical-align:top;";
 		StringBuilder sb = new StringBuilder();
-		sb.append("<table border='1' cellpadding='4' cellspacing='0'><tr><th>Claim</th><th>Type</th><th>Project</th><th>Client</th><th>Amount</th><th>Status</th><th>Purpose</th></tr>");
-		for (ReimbursementTicketClaim c : ticket.getClaims().stream().sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo))
-				.collect(Collectors.toList())) {
+		sb.append("<table width='100%' cellpadding='0' cellspacing='0' style='border:1px solid ")
+				.append(EMAIL_BORDER).append(";border-radius:6px;border-collapse:separate;overflow:hidden;'>");
+		sb.append("<tr><th style='").append(th).append("'>#</th><th style='").append(th)
+				.append("'>Type</th><th style='").append(th).append("'>Project</th><th style='").append(th)
+				.append("'>Client</th><th style='").append(th).append("'>Amount</th><th style='").append(th)
+				.append("'>Status</th><th style='").append(th).append("'>Purpose</th></tr>");
+		boolean alt = false;
+		for (ReimbursementTicketClaim c : ticket.getClaims().stream()
+				.sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo)).collect(Collectors.toList())) {
 			String proj = StringUtils.hasText(c.getProjectName()) ? c.getProjectName()
-					: (c.getProjectId() != null ? ("#" + c.getProjectId()) : "—");
-			String client = StringUtils.hasText(c.getClientName()) ? c.getClientName() : "—";
-			sb.append("<tr><td>").append(c.getLineNo()).append("</td><td>").append(esc(c.getExpenditureType()))
-					.append("</td><td>").append(esc(shorten(proj, 60))).append("</td><td>").append(esc(shorten(client, 40)))
-					.append("</td><td>").append(c.getAmount())
-					.append("</td><td>").append(esc(c.getClaimStatus()))
-					.append("</td><td>").append(esc(shorten(c.getPurpose(), 80))).append("</td></tr>");
+					: (c.getProjectId() != null ? ("Project #" + c.getProjectId()) : "Not specified");
+			String rowBg = alt ? "background:#F8FAFC;" : "background:#ffffff;";
+			alt = !alt;
+			sb.append("<tr><td style='").append(td).append(rowBg).append("'>").append(c.getLineNo()).append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("'>").append(esc(c.getExpenditureType()))
+					.append("</td><td style='").append(td).append(rowBg).append("'>").append(esc(shorten(proj, 55)))
+					.append("</td><td style='").append(td).append(rowBg).append("'>")
+					.append(esc(shorten(resolveClaimClientName(c), 45))).append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("font-weight:600;'>")
+					.append(esc(formatMailRupee(c.getAmount()))).append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("'>")
+					.append(esc(friendlyClaimStatusLabel(c.getClaimStatus()))).append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("'>").append(esc(shorten(c.getPurpose(), 80)))
+					.append("</td></tr>");
 		}
 		sb.append("</table>");
 		return sb.toString();
@@ -323,7 +406,7 @@ public class ReimbursementTicketService {
 		if (s == null) {
 			return "";
 		}
-		return s.length() <= max ? s : s.substring(0, max) + "…";
+		return s.length() <= max ? s : s.substring(0, Math.max(0, max - 3)) + "...";
 	}
 
 	private void sendMailSafe(String to, String cc, String subject, String html) {
@@ -331,11 +414,156 @@ public class ReimbursementTicketService {
 			if (!StringUtils.hasText(to)) {
 				return;
 			}
-			String ccUse = StringUtils.hasText(cc) ? cc : workflowHrMail;
-			mailService.sendMailWithCC(to, ccUse, subject, html);
+			if (StringUtils.hasText(cc)) {
+				mailService.sendMailWithCC(to.trim(), cc.trim(), subject, html);
+			} else {
+				mailService.sendMail(to.trim(), subject, html);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	private String submitterCc(ReimbursementTicket ticket) {
+		return ticket != null && StringUtils.hasText(ticket.getEmail()) ? ticket.getEmail().trim() : null;
+	}
+
+	private String matrixTicketSummaryHtml(ReimbursementTicket ticket) {
+		String label = "padding:6px 0;font-size:12px;color:" + EMAIL_MUTED + ";width:140px;vertical-align:top;";
+		String value = "padding:6px 0;font-size:14px;color:#0F172A;font-weight:500;vertical-align:top;";
+		StringBuilder sb = new StringBuilder();
+		sb.append("<table width='100%' cellpadding='0' cellspacing='0' style='background:#F8FAFC;border:1px solid ")
+				.append(EMAIL_BORDER).append(";border-radius:8px;padding:4px 16px;margin:0 0 20px 0;'>");
+		appendSummaryRow(sb, label, value, "Ticket ID", esc(ticketDisplayRef(ticket)));
+		appendSummaryRow(sb, label, value, "Status", esc(displayTicketStatus(ticket)));
+		appendSummaryRow(sb, label, value, "Employee",
+				esc(StringUtils.hasText(ticket.getFullName()) ? ticket.getFullName().trim() : "—"));
+		sb.append("</table>");
+		return sb.toString();
+	}
+
+	private void appendSummaryRow(StringBuilder sb, String labelStyle, String valueStyle, String label, String value) {
+		sb.append("<tr><td style='").append(labelStyle).append("'>").append(esc(label)).append("</td><td style='")
+				.append(valueStyle).append("'>").append(value == null ? "" : value).append("</td></tr>");
+	}
+
+	private String reimbursementEmailWrapper(String headerRightLabel, String greetingHtml, String introHtml,
+			String ticketSummaryHtml, String claimsSectionTitle, String claimsTableHtml, String extraSectionHtml,
+			String ctaLine) {
+		StringBuilder inner = new StringBuilder();
+		inner.append("<p style='margin:0 0 8px 0;font-size:16px;color:#0F172A;'>").append(greetingHtml).append("</p>");
+		inner.append("<p style='margin:0 0 20px 0;font-size:14px;line-height:1.5;color:#475569;'>").append(introHtml)
+				.append("</p>");
+		inner.append(ticketSummaryHtml);
+		if (StringUtils.hasText(extraSectionHtml)) {
+			inner.append(extraSectionHtml);
+		}
+		inner.append("<p style='margin:0 0 10px 0;font-size:13px;font-weight:600;color:").append(EMAIL_BRAND)
+				.append(";'>").append(esc(claimsSectionTitle)).append("</p>");
+		inner.append(claimsTableHtml);
+		if (StringUtils.hasText(ctaLine)) {
+			inner.append(
+					"<p style='margin:20px 0 0 0;padding:14px 16px;background:#EFF6FF;border-left:4px solid ")
+					.append(EMAIL_BRAND)
+					.append(";border-radius:4px;font-size:13px;line-height:1.5;color:#1E3A5F;'>")
+					.append(ctaLine).append("</p>");
+		}
+		return "<!DOCTYPE html><html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head>"
+				+ "<body style='margin:0;padding:0;background:#F1F5F9;font-family:Segoe UI,Helvetica,Arial,sans-serif;'>"
+				+ "<table width='100%' cellpadding='0' cellspacing='0' style='background:#F1F5F9;padding:28px 16px;'><tr><td align='center'>"
+				+ "<table width='600' cellpadding='0' cellspacing='0' style='max-width:600px;width:100%;background:#ffffff;border-radius:10px;overflow:hidden;border:1px solid "
+				+ EMAIL_BORDER + ";'>"
+				+ "<tr><td style='background:" + EMAIL_BRAND + ";padding:18px 24px;'>"
+				+ "<table width='100%' cellpadding='0' cellspacing='0'><tr>"
+				+ "<td align='left' style='font-size:17px;font-weight:700;color:#ffffff;letter-spacing:0.2px;'>iShine Reimbursement</td>"
+				+ "<td align='right' style='font-size:13px;font-weight:600;color:#ffffff;white-space:nowrap;'>"
+				+ esc(headerRightLabel) + "</td></tr></table></td></tr>"
+				+ "<tr><td style='padding:20px 24px 24px 24px;'>" + inner
+				+ "</td></tr>"
+				+ "<tr><td style='padding:16px 24px;background:#F8FAFC;border-top:1px solid " + EMAIL_BORDER
+				+ ";font-size:11px;color:" + EMAIL_MUTED + ";line-height:1.5;'>"
+				+ "This is an automated message from iShine. Please do not reply to this email.<br>"
+				+ "Regards,<br><strong>ApMoSys Technologies</strong> &middot; iShine HRMS"
+				+ "</td></tr></table></td></tr></table></body></html>";
+	}
+
+	private String matrixTicketHeaderHtml(ReimbursementTicket ticket) {
+		return matrixTicketSummaryHtml(ticket);
+	}
+
+	private String styledRemarksBlock(String label, String remarks) {
+		if (!StringUtils.hasText(remarks)) {
+			return "";
+		}
+		return "<div style='margin:0 0 20px 0;padding:12px 16px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:6px;'>"
+				+ "<span style='display:block;font-size:12px;font-weight:600;color:#92400E;margin-bottom:4px;'>"
+				+ esc(label) + "</span>"
+				+ "<span style='font-size:14px;color:#78350F;line-height:1.5;'>" + esc(remarks.trim()) + "</span></div>";
+	}
+
+	/** TO current approver(s) or finance; CC submitter on every matrix workflow step. */
+	private void sendMatrixApproverNotification(ReimbursementTicket ticket, String introLine) {
+		if (!matrixWorkflowService.usesMatrixWorkflow(ticket)) {
+			return;
+		}
+		String employeeCc = submitterCc(ticket);
+		String stage = ticket.getWorkflowStage();
+		String approverName;
+		List<String> toEmails;
+
+		if (ReimbursementTicket.STAGE_PENDING_FINANCE.equals(stage)) {
+			toEmails = List.of(workflowFinanceMail);
+			approverName = lookupEmployeeNameByEmail(workflowFinanceMail);
+			if (!StringUtils.hasText(approverName)) {
+				approverName = "Finance Team";
+			}
+		} else if (ReimbursementTicket.STAGE_PENDING_LEVEL.equals(stage)) {
+			toEmails = matrixWorkflowService.notifyEmailsForCurrentLevelAll(ticket);
+			approverName = matrixWorkflowService.notifyApproverDisplayName(ticket);
+		} else {
+			return;
+		}
+		if (toEmails == null || toEmails.isEmpty()) {
+			return;
+		}
+		String to = String.join(",", toEmails);
+		String subj = "Reimbursement " + ticketDisplayRef(ticket) + " – Action Required";
+		String headerRight = "Action Required";
+		String body = reimbursementEmailWrapper(headerRight, "Dear <strong>" + esc(approverName) + "</strong>,",
+				esc(introLine), matrixTicketSummaryHtml(ticket), "Claim details", claimSummaryHtml(ticket), null,
+				"Please sign in to <strong>iShine</strong> and open <strong>Reimbursements &rarr; Approve Reimbursements</strong> to review this ticket.");
+		sendMailSafe(to, employeeCc, subj, body);
+	}
+
+	/** TO submitter when ticket is closed, rejected, or paid (matrix workflow). */
+	private void sendMatrixSubmitterStatusNotification(ReimbursementTicket ticket, String introLine,
+			String extraHtml) {
+		if (!matrixWorkflowService.usesMatrixWorkflow(ticket) || !StringUtils.hasText(ticket.getEmail())) {
+			return;
+		}
+		String subj = "Reimbursement " + ticketDisplayRef(ticket) + " – " + displayTicketStatus(ticket);
+		String extra = extraHtml != null ? extraHtml : "";
+		String body = reimbursementEmailWrapper(displayTicketStatus(ticket),
+				"Dear <strong>" + esc(ticket.getFullName()) + "</strong>,", esc(introLine),
+				matrixTicketSummaryHtml(ticket), "Claim details", claimSummaryHtml(ticket), extra, null);
+		sendMailSafe(ticket.getEmail().trim(), null, subj, body);
+	}
+
+	/**
+	 * After submit or level decision: notify next approver (CC employee), or finance, or employee-only on terminal
+	 * states.
+	 */
+	private void notifyAfterMatrixWorkflowTransition(ReimbursementTicket ticket, String introForApprover,
+			String introForSubmitterIfTerminal, String terminalExtraHtml) {
+		if (!matrixWorkflowService.usesMatrixWorkflow(ticket)) {
+			return;
+		}
+		String stage = ticket.getWorkflowStage();
+		if (ReimbursementTicket.STAGE_REJECTED.equals(stage) || ReimbursementTicket.STAGE_PAID.equals(stage)) {
+			sendMatrixSubmitterStatusNotification(ticket, introForSubmitterIfTerminal, terminalExtraHtml);
+			return;
+		}
+		sendMatrixApproverNotification(ticket, introForApprover);
 	}
 
 	/** Project from team / timesheet mapping (employee_team_mapping → teams → projects). */
@@ -500,20 +728,8 @@ public class ReimbursementTicketService {
 		}
 	}
 
-	private boolean isBusinessDevelopmentDepartment(String deptName) {
-		if (!StringUtils.hasText(deptName)) {
-			return false;
-		}
-		String n = deptName.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
-		return n.contains("business development");
-	}
-
 	private boolean showOthersProjectOption(Long empId) {
-		if (empId == null) {
-			return false;
-		}
-		String dept = employeeRepository.getDepartment(empId);
-		return isBusinessDevelopmentDepartment(dept);
+		return empId != null;
 	}
 
 	private void addOthersRowIfApplicable(List<Map<String, Object>> projects, boolean showOthers) {
@@ -612,7 +828,7 @@ public class ReimbursementTicketService {
 	}
 
 	/**
-	 * All rows from {@code clients} (via JPA) for BD "Others" claim line — not client_locations join.
+	 * All rows from {@code clients} (via JPA) for "Others" claim line — not client_locations join.
 	 */
 	@Transactional(readOnly = true)
 	public ServiceResponse fetchReimbursementClientsFromMaster() {
@@ -656,10 +872,6 @@ public class ReimbursementTicketService {
 		}
 		long eid = empId.longValue();
 		if (c.getProjectId().longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
-			String dept = employeeRepository.getDepartment(eid);
-			if (!isBusinessDevelopmentDepartment(dept)) {
-				throw new IllegalArgumentException("Claim " + index + ": \"Others\" is only available for Business Development.");
-			}
 			if (!StringUtils.hasText(c.getOthersProjectName()) || c.getOthersProjectName().trim().isEmpty()) {
 				throw new IllegalArgumentException("Claim " + index + ": enter the project name for Others.");
 			}
@@ -792,20 +1004,18 @@ public class ReimbursementTicketService {
 			ReimbursementTicket saved = ticketRepository.save(ticket);
 			audit(saved.getTicketId(), null, req.getEmpId(), req.getEmail(), "TICKET_SUBMITTED", null);
 
-			String ccHrFinance = workflowHrMail + "," + workflowFinanceMail;
-			String notifyTo = matrixWorkflowService.usesMatrixWorkflow(saved)
-					? matrixWorkflowService.notifyEmailForCurrentLevel(saved)
-					: saved.getHodEmail();
-			String notifyName = matrixWorkflowService.usesMatrixWorkflow(saved) ? "Approver" : saved.getHodName();
-			String subj = "Reimbursement ticket " + ticketDisplayRef(saved) + " – action required";
-			String body = "<p>Dear " + esc(notifyName) + ",</p>"
-					+ "<p><strong>Ticket ID:</strong> " + esc(ticketDisplayRef(saved)) + "<br>"
-					+ "<strong>Status:</strong> " + esc(displayTicketStatus(saved)) + "</p>"
-					+ "<p>An employee has submitted a reimbursement ticket for your review.</p>"
-					+ claimSummaryHtml(saved)
-					+ "<p>Regards,<br/>IShine</p>";
-			if (StringUtils.hasText(notifyTo)) {
-				sendMailSafe(notifyTo, ccHrFinance, subj, body);
+			if (matrixWorkflowService.usesMatrixWorkflow(saved)) {
+				notifyAfterMatrixWorkflowTransition(saved,
+						"A new reimbursement ticket has been submitted. Please review and approve at your approval level.",
+						null, null);
+			} else {
+				String subj = "Reimbursement " + ticketDisplayRef(saved) + " – Action Required";
+				String body = reimbursementEmailWrapper("Action Required",
+						"Dear <strong>" + esc(saved.getHodName()) + "</strong>,",
+						"An employee has submitted a reimbursement ticket for your review.",
+						matrixTicketSummaryHtml(saved), "Claim details", claimSummaryHtml(saved), null,
+						"Please sign in to <strong>iShine</strong> and open <strong>Reimbursements &rarr; Approve Reimbursements</strong>.");
+				sendMailSafe(saved.getHodEmail(), submitterCc(saved), subj, body);
 			}
 
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -1008,27 +1218,20 @@ public class ReimbursementTicketService {
 			}
 			ticketRepository.save(ticket);
 
-			String notifyTo = matrixWorkflowService.notifyEmailForCurrentLevel(ticket);
-			String ccLine = workflowHrMail + "," + workflowFinanceMail;
+			String approverIntro;
+			String submitterIntro = null;
+			String terminalExtra = null;
 			if (ReimbursementTicket.STAGE_PENDING_FINANCE.equals(ticket.getWorkflowStage())) {
-				notifyTo = workflowFinanceMail;
+				approverIntro = "All configured approval levels are complete. Please process this ticket for payment.";
+			} else if (ReimbursementTicket.STAGE_PENDING_LEVEL.equals(ticket.getWorkflowStage())) {
+				approverIntro = "The previous approval level is complete. This ticket is now pending your approval.";
+			} else if (ReimbursementTicket.STAGE_REJECTED.equals(ticket.getWorkflowStage())) {
+				approverIntro = null;
+				submitterIntro = "Your reimbursement ticket has been rejected. Please review the claim details below.";
+			} else {
+				approverIntro = "Your reimbursement ticket has been updated.";
 			}
-			String subj = "Reimbursement ticket " + ticketDisplayRef(ticket) + " – " + displayTicketStatus(ticket);
-			String body = "<p>Dear " + esc(ticket.getFullName()) + ",</p>"
-					+ "<p><strong>Ticket ID:</strong> " + esc(ticketDisplayRef(ticket)) + "<br>"
-					+ "<strong>Status:</strong> " + esc(displayTicketStatus(ticket)) + "</p>"
-					+ claimSummaryHtml(ticket)
-					+ "<p>Regards,<br/>IShine</p>";
-			sendMailSafe(ticket.getEmail(), ccLine, subj, body);
-			if (StringUtils.hasText(notifyTo)
-					&& ReimbursementTicket.STAGE_PENDING_LEVEL.equals(ticket.getWorkflowStage())) {
-				String approverSubj = "Reimbursement ticket " + ticketDisplayRef(ticket) + " – action required";
-				String approverBody = "<p>A reimbursement ticket requires your approval.</p>"
-						+ "<p><strong>Ticket ID:</strong> " + esc(ticketDisplayRef(ticket)) + "</p>"
-						+ claimSummaryHtml(ticket)
-						+ "<p>Regards,<br/>IShine</p>";
-				sendMailSafe(notifyTo, ccLine, approverSubj, approverBody);
-			}
+			notifyAfterMatrixWorkflowTransition(ticket, approverIntro, submitterIntro, terminalExtra);
 
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			resp.setServiceResponse(toViewMap(ticket));
@@ -1268,19 +1471,28 @@ public class ReimbursementTicketService {
 			audit(ticket.getTicketId(), null, action.getActorEmpId(), action.getActorEmail(),
 					"FINANCE_" + act, action.getRemarks());
 
-			String ccHodHr = ticket.getHodEmail() + "," + workflowHrMail;
-			String subj = "Reimbursement ticket " + ticketDisplayRef(ticket) + " – " + displayTicketStatus(ticket);
-			String body = "<p>Dear " + esc(ticket.getFullName()) + ",</p>"
-					+ "<p><strong>Ticket ID:</strong> " + esc(ticketDisplayRef(ticket)) + "<br>"
-					+ "<strong>Status:</strong> " + esc(displayTicketStatus(ticket)) + "</p>"
-					+ ("REJECTED".equals(act)
-							? "<p><strong>Finance remarks:</strong> " + esc(action.getRemarks()) + "</p>"
-							: ("PAID".equals(act)
-									? "<p><strong>Finance / approval notes:</strong> " + esc(action.getRemarks()) + "</p>"
-									: ""))
-					+ claimSummaryHtml(ticket)
-					+ "<p>Regards,<br/>IShine</p>";
-			sendMailSafe(ticket.getEmail(), ccHodHr, subj, body);
+			if (matrixWorkflowService.usesMatrixWorkflow(ticket)) {
+				String extra = styledRemarksBlock("PAID".equals(act) ? "Payment notes" : "Finance remarks",
+						action.getRemarks());
+				String submitterIntro = "PAID".equals(act)
+						? "Your reimbursement ticket has been marked as paid by Finance."
+						: "Your reimbursement ticket has been rejected by Finance.";
+				notifyAfterMatrixWorkflowTransition(ticket, null, submitterIntro, extra);
+			} else {
+				String ccHodHr = ticket.getHodEmail() + "," + workflowHrMail;
+				String subj = "Reimbursement ticket " + ticketDisplayRef(ticket) + " – " + displayTicketStatus(ticket);
+				String body = "<p>Dear " + esc(ticket.getFullName()) + ",</p>"
+						+ matrixTicketHeaderHtml(ticket)
+						+ ("REJECTED".equals(act)
+								? "<p><strong>Finance remarks:</strong> " + esc(action.getRemarks()) + "</p>"
+								: ("PAID".equals(act)
+										? "<p><strong>Finance / approval notes:</strong> " + esc(action.getRemarks())
+												+ "</p>"
+										: ""))
+						+ claimSummaryHtml(ticket)
+						+ "<p>Regards,<br/>IShine</p>";
+				sendMailSafe(ticket.getEmail(), ccHodHr, subj, body);
+			}
 
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			resp.setServiceResponse(toViewMap(ticket));
@@ -1427,9 +1639,10 @@ public class ReimbursementTicketService {
 							|| !t.getWorkflowStage().equalsIgnoreCase(filter.getWorkflowStage().trim()))) {
 				return false;
 			}
-			if (filter.getEmployeeEmpId() != null && t.getEmpId() != null
-					&& t.getEmpId().longValue() != filter.getEmployeeEmpId().longValue()) {
-				return false;
+			if (filter.getEmployeeEmpId() != null) {
+				if (t.getEmpId() == null || filter.getEmployeeEmpId().longValue() != t.getEmpId().longValue()) {
+					return false;
+				}
 			}
 			if (hasClaimLevelFilters(filter)) {
 				boolean any = t.getClaims().stream().anyMatch(c -> claimMatchesClaimFilters(c, filter));
@@ -1458,13 +1671,13 @@ public class ReimbursementTicketService {
 	}
 
 	/** Mixed approved/paid and rejected claim lines, including matrix LEVEL_REJECTED. */
-	private boolean ticketHasPartialApprovalOutcome(ReimbursementTicket t) {
+	private boolean ticketHasPartialApprovalOutcome(ReimbursementTicket t, ReimbursementDashboardFilterDTO filter) {
 		if ("Partial".equals(aggregateLevel1ApproverStatus(t))
 				|| "Partial".equals(aggregateLevel2ApproverStatus(t))) {
 			return true;
 		}
-		List<ReimbursementTicketClaim> claims = t.getClaims();
-		if (claims == null || claims.isEmpty()) {
+		List<ReimbursementTicketClaim> claims = claimsForMetrics(t, filter).collect(Collectors.toList());
+		if (claims.isEmpty()) {
 			return false;
 		}
 		boolean anyRejected = claims.stream().anyMatch(c -> isRejectedClaimStatus(c.getClaimStatus()));
@@ -1497,6 +1710,50 @@ public class ReimbursementTicketService {
 			return true;
 		}
 		return matrixWorkflowService.isActorInApprovalChain(t, empId, email);
+	}
+
+	/**
+	 * Org-wide dashboard: SuperAdmin/Admin, HR/finance workflow mailboxes, users with dashboard/approve
+	 * reimbursement access ({@link ReimbursementDashboardFilterDTO#getDashboardFullScope()}), or job role
+	 * from session/DB — not only tickets where the actor is in the approval chain.
+	 */
+	private boolean isPrivilegedDashboardActor(ReimbursementDashboardFilterDTO filter) {
+		if (filter == null) {
+			return false;
+		}
+		if (Boolean.TRUE.equals(filter.getDashboardFullScope())) {
+			return true;
+		}
+		if (isPrivilegedDashboardRoleLabel(filter.getActorEmployeeRole())) {
+			return true;
+		}
+		if (StringUtils.hasText(filter.getActorEmail())) {
+			String email = normEmail(filter.getActorEmail());
+			if (email.equals(normEmail(workflowHrMail)) || email.equals(normEmail(workflowFinanceMail))) {
+				return true;
+			}
+		}
+		if (filter.getActorEmpId() == null) {
+			return false;
+		}
+		try {
+			Employee e = employeeRepository.findByEmpId(filter.getActorEmpId());
+			if (e != null && isPrivilegedDashboardRoleLabel(e.getRole())) {
+				return true;
+			}
+			String jobRole = employeeRepository.getEmployeeRoleByEmpId(filter.getActorEmpId());
+			return isPrivilegedDashboardRoleLabel(jobRole);
+		} catch (Exception ignore) {
+			return false;
+		}
+	}
+
+	private static boolean isPrivilegedDashboardRoleLabel(String role) {
+		if (!StringUtils.hasText(role)) {
+			return false;
+		}
+		String norm = role.trim().replaceAll("\\s+", "").toLowerCase(Locale.ROOT);
+		return "superadmin".equals(norm) || "admin".equals(norm) || "administrator".equals(norm);
 	}
 
 	private static boolean isRejectedClaimStatus(String st) {
@@ -1981,6 +2238,23 @@ public class ReimbursementTicketService {
 		pids.addAll(paidByPid.keySet());
 		pids.addAll(pendByPid.keySet());
 		pids.addAll(rejByPid.keySet());
+		Set<Integer> projectIdsNeedingMasterName = new HashSet<>();
+		for (Long pid : pids) {
+			String lbl = labelByPid.get(pid);
+			if (!StringUtils.hasText(lbl) || lbl.startsWith("Project #")) {
+				if (pid != null && pid <= Integer.MAX_VALUE) {
+					projectIdsNeedingMasterName.add(pid.intValue());
+				}
+			}
+		}
+		if (!projectIdsNeedingMasterName.isEmpty()) {
+			for (com.apmosys.employeeportal.dto.ProjectIdAndNameDTO dto : projectRepository
+					.findProjectIdAndNameByProjectIdIn(projectIdsNeedingMasterName)) {
+				if (dto.getProjectId() != null && StringUtils.hasText(dto.getProjectName())) {
+					labelByPid.put(dto.getProjectId().longValue(), dto.getProjectName().trim());
+				}
+			}
+		}
 		List<Map<String, Object>> rows = new ArrayList<>();
 		for (Long pid : pids) {
 			Map<String, Object> row = new LinkedHashMap<>();
@@ -2053,6 +2327,23 @@ public class ReimbursementTicketService {
 		return false;
 	}
 
+	/** Dashboard grouping for rejection-by-channel charts and KPIs. */
+	private static String rejectionChannelKey(String claimStatus) {
+		if (ReimbursementTicketClaim.STATUS_HOD_REJECTED.equals(claimStatus)) {
+			return "HOD";
+		}
+		if (ReimbursementTicketClaim.STATUS_LEVEL_REJECTED.equals(claimStatus)) {
+			return "Matrix (approval level)";
+		}
+		if (ReimbursementTicketClaim.STATUS_HR_REJECTED.equals(claimStatus)) {
+			return "HR";
+		}
+		if (ReimbursementTicketClaim.STATUS_FINANCE_REJECTED.equals(claimStatus)) {
+			return "Finance";
+		}
+		return "Other";
+	}
+
 	private static String dashboardRejectionLevelLabel(String claimStatus) {
 		if (ReimbursementTicketClaim.STATUS_HOD_REJECTED.equals(claimStatus)) {
 			return "HOD L1";
@@ -2122,8 +2413,10 @@ public class ReimbursementTicketService {
 				toTs = null;
 			}
 
-			List<ReimbursementTicket> actorScoped = allActive.stream()
-					.filter(t -> ticketVisibleToDashboardActor(t, filter)).collect(Collectors.toList());
+			final boolean privilegedActor = isPrivilegedDashboardActor(filter);
+			List<ReimbursementTicket> actorScoped = privilegedActor ? allActive
+					: allActive.stream().filter(t -> ticketVisibleToDashboardActor(t, filter))
+							.collect(Collectors.toList());
 			List<ReimbursementTicket> tickets = actorScoped.stream()
 					.filter(t -> ticketMatchesDashboardFilters(t, filter, fromTs, toTs)).collect(Collectors.toList());
 
@@ -2151,10 +2444,13 @@ public class ReimbursementTicketService {
 					.filter(c -> ReimbursementTicketClaim.STATUS_PENDING_FINANCE.equals(c.getClaimStatus())
 							|| ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 					.count();
-			long partialApprovalTickets = tickets.stream().filter(this::ticketHasPartialApprovalOutcome).count();
+			long partialApprovalTickets = tickets.stream().filter(t -> ticketHasPartialApprovalOutcome(t, filter))
+					.count();
 
 			long pendingHod = tickets.stream()
 					.filter(t -> ReimbursementTicket.STAGE_PENDING_HOD.equals(t.getWorkflowStage())).count();
+			long pendingApproval = tickets.stream()
+					.filter(t -> ReimbursementTicket.STAGE_PENDING_LEVEL.equals(t.getWorkflowStage())).count();
 			long pendingHr = tickets.stream()
 					.filter(t -> ReimbursementTicket.STAGE_PENDING_HR.equals(t.getWorkflowStage())).count();
 			long pendingFin = tickets.stream()
@@ -2288,6 +2584,13 @@ public class ReimbursementTicketService {
 
 			Map<String, Long> rejectionsByExpenditureType = new LinkedHashMap<>();
 			Map<String, Long> rejectionReasonBuckets = new LinkedHashMap<>();
+			Map<String, Long> rejectionByChannel = new LinkedHashMap<>();
+			rejectionByChannel.put("HOD", 0L);
+			rejectionByChannel.put("Matrix (approval level)", 0L);
+			rejectionByChannel.put("HR", 0L);
+			rejectionByChannel.put("Finance", 0L);
+			Map<String, Long> rejectionByDepartment = new HashMap<>();
+			Map<String, BigDecimal> rejectionAmountByDepartment = new HashMap<>();
 			List<Map<String, Object>> rejectionLog = new ArrayList<>();
 			for (ReimbursementTicket t : tickets) {
 				claimsForMetrics(t, filter).forEach(c -> {
@@ -2296,6 +2599,15 @@ public class ReimbursementTicketService {
 					}
 					String et = c.getExpenditureType() != null ? c.getExpenditureType() : "Unknown";
 					rejectionsByExpenditureType.merge(et, 1L, Long::sum);
+					String ch = rejectionChannelKey(c.getClaimStatus());
+					rejectionByChannel.merge(ch, 1L, Long::sum);
+					String dept = t.getDepartment() != null ? t.getDepartment().trim() : "";
+					if (!StringUtils.hasText(dept)) {
+						dept = "Unknown";
+					}
+					rejectionByDepartment.merge(dept, 1L, Long::sum);
+					BigDecimal lineAmt = c.getAmount() != null ? c.getAmount() : BigDecimal.ZERO;
+					rejectionAmountByDepartment.merge(dept, lineAmt, BigDecimal::add);
 					String reason = dashboardRejectionReason(t, c);
 					if (!StringUtils.hasText(reason)) {
 						reason = "(no reason)";
@@ -2306,6 +2618,7 @@ public class ReimbursementTicketService {
 						row.put("ticketId", t.getTicketId());
 						row.put("ticketNo", t.getTicketNo());
 						row.put("employeeName", t.getFullName());
+						row.put("department", StringUtils.hasText(t.getDepartment()) ? t.getDepartment() : "—");
 						row.put("expenditureType", et);
 						row.put("amount", c.getAmount());
 						row.put("rejectedBy", dashboardRejectionActorLabel(t, c));
@@ -2316,11 +2629,27 @@ public class ReimbursementTicketService {
 					}
 				});
 			}
+			List<Map<String, Object>> rejectionByDepartmentTop = rejectionByDepartment.entrySet().stream()
+					.sorted((a, b) -> Long.compare(b.getValue(), a.getValue())).limit(12).map(e -> {
+						Map<String, Object> m = new LinkedHashMap<>();
+						m.put("department", e.getKey());
+						m.put("rejectedLines", e.getValue());
+						m.put("rejectedAmount", rejectionAmountByDepartment.getOrDefault(e.getKey(), BigDecimal.ZERO));
+						return m;
+					}).collect(Collectors.toList());
+
+			Map<String, Long> claimStatusLineCounts = new TreeMap<>();
+			for (ReimbursementTicket t : tickets) {
+				claimsForMetrics(t, filter).forEach(c -> {
+					String st = c.getClaimStatus() != null ? c.getClaimStatus() : "UNKNOWN";
+					claimStatusLineCounts.merge(st, 1L, Long::sum);
+				});
+			}
 
 			List<Map<String, Object>> ticketRows = tickets.stream()
 					.sorted(Comparator.comparing(ReimbursementTicket::getSubmittedOn,
 							Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-					.limit(150).map(this::toViewMap).collect(Collectors.toList());
+					.limit(150).map(t -> toViewMap(t, filter)).collect(Collectors.toList());
 
 			long submittedTotal = tickets.size();
 			long l1Reviewed = tickets.stream()
@@ -2332,6 +2661,48 @@ public class ReimbursementTicketService {
 			long l3Reviewed = tickets.stream().filter(this::financeLevelEngaged).count();
 			long paidClosed = tickets.stream().filter(t -> ReimbursementTicket.STAGE_PAID.equals(t.getWorkflowStage()))
 					.count();
+
+			Map<String, Long> stageCountRaw = tickets.stream()
+					.collect(Collectors.groupingBy(
+							t -> t.getWorkflowStage() != null ? t.getWorkflowStage() : "UNKNOWN",
+							Collectors.counting()));
+			LinkedHashMap<String, Long> workflowStageTicketCounts = new LinkedHashMap<>();
+			for (String stg : Arrays.asList(ReimbursementTicket.STAGE_PENDING_HOD, ReimbursementTicket.STAGE_PENDING_LEVEL,
+					ReimbursementTicket.STAGE_PENDING_HR, ReimbursementTicket.STAGE_PENDING_FINANCE,
+					ReimbursementTicket.STAGE_PAID, ReimbursementTicket.STAGE_REJECTED)) {
+				workflowStageTicketCounts.put(stg, stageCountRaw.getOrDefault(stg, 0L));
+			}
+			stageCountRaw.entrySet().stream().filter(e -> !workflowStageTicketCounts.containsKey(e.getKey()))
+					.sorted(Map.Entry.<String, Long>comparingByKey(String.CASE_INSENSITIVE_ORDER))
+					.forEach(e -> workflowStageTicketCounts.put(e.getKey(), e.getValue()));
+
+			long matrixTicketCount = tickets.stream().filter(matrixWorkflowService::usesMatrixWorkflow).count();
+			long legacyTicketCount = tickets.size() - matrixTicketCount;
+			Map<Integer, Long> pendingMatrixLevelRaw = new TreeMap<>();
+			for (ReimbursementTicket t : tickets) {
+				if (!matrixWorkflowService.usesMatrixWorkflow(t)
+						|| !ReimbursementTicket.STAGE_PENDING_LEVEL.equals(t.getWorkflowStage())) {
+					continue;
+				}
+				int ord = t.getCurrentLevelOrder() != null ? t.getCurrentLevelOrder() : 1;
+				pendingMatrixLevelRaw.merge(ord, 1L, Long::sum);
+			}
+			LinkedHashMap<String, Long> pendingMatrixByLevel = new LinkedHashMap<>();
+			pendingMatrixLevelRaw.forEach((ord, cnt) -> pendingMatrixByLevel.put("Level " + ord, cnt));
+
+			List<ReimbursementTicket> matrixTickets = tickets.stream().filter(matrixWorkflowService::usesMatrixWorkflow)
+					.collect(Collectors.toList());
+			long mSubmitted = matrixTickets.size();
+			long mPastMatrixQueue = matrixTickets.stream()
+					.filter(t -> !ReimbursementTicket.STAGE_PENDING_LEVEL.equals(t.getWorkflowStage())).count();
+			long mFinanceEngaged = matrixTickets.stream().filter(this::financeLevelEngaged).count();
+			long mPaidClosed = matrixTickets.stream()
+					.filter(t -> ReimbursementTicket.STAGE_PAID.equals(t.getWorkflowStage())).count();
+			Map<String, Object> approvalFunnelMatrix = new LinkedHashMap<>();
+			approvalFunnelMatrix.put("submitted", mSubmitted);
+			approvalFunnelMatrix.put("pastMatrixQueue", mPastMatrixQueue);
+			approvalFunnelMatrix.put("financeEngaged", mFinanceEngaged);
+			approvalFunnelMatrix.put("paidClosed", mPaidClosed);
 
 			List<String> departmentOptions = new ArrayList<>();
 			Set<String> deptNormSeen = new HashSet<>();
@@ -2350,32 +2721,41 @@ public class ReimbursementTicketService {
 				}
 			}
 			Set<String> expenditureTypes = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+			List<ExpenditureType> expenditureMaster = expenditureTypeRepository.findAll();
+			if (expenditureMaster != null) {
+				for (ExpenditureType et : expenditureMaster) {
+					if (et != null && StringUtils.hasText(et.getExpenditureTypeName())) {
+						expenditureTypes.add(et.getExpenditureTypeName().trim());
+					}
+				}
+			}
 			Set<String> displayStatuses = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 			Set<String> workflowStages = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-			List<Map<String, Object>> projectOptions = new ArrayList<>();
-			Set<Long> projectIdsSeen = new HashSet<>();
 			for (ReimbursementTicket t : actorScoped) {
 				displayStatuses.add(displayTicketStatus(t));
 				if (t.getWorkflowStage() != null) {
 					workflowStages.add(t.getWorkflowStage());
 				}
-				if (t.getClaims() != null) {
-					for (ReimbursementTicketClaim c : t.getClaims()) {
-						if (c.getExpenditureType() != null && StringUtils.hasText(c.getExpenditureType())) {
-							expenditureTypes.add(c.getExpenditureType().trim());
-						}
-						if (c.getProjectId() != null && !projectIdsSeen.contains(c.getProjectId())) {
-							projectIdsSeen.add(c.getProjectId());
-							Map<String, Object> po = new LinkedHashMap<>();
-							po.put("projectId", c.getProjectId());
-							po.put("projectName", c.getProjectName() != null ? c.getProjectName()
-									: String.valueOf(c.getProjectId()));
-							projectOptions.add(po);
-						}
+			}
+			/** Project filter dropdown: all rows from {@code projects} table (includes {@code clientId} for UI scoping). */
+			List<Map<String, Object>> projectOptions = new ArrayList<>();
+			List<ProjectIdNameClientDTO> allProjects = projectRepository.findAllProjectIdNameAndClient();
+			if (allProjects != null) {
+				for (ProjectIdNameClientDTO p : allProjects) {
+					if (p == null || p.getProjectId() == null) {
+						continue;
 					}
+					Map<String, Object> po = new LinkedHashMap<>();
+					po.put("projectId", p.getProjectId());
+					po.put("clientId", p.getClientId());
+					String pn = p.getProjectName();
+					po.put("projectName",
+							StringUtils.hasText(pn) ? pn.trim() : ("Project " + p.getProjectId()));
+					projectOptions.add(po);
 				}
 			}
-			projectOptions.sort(Comparator.comparing(m -> String.valueOf(m.get("projectName"))));
+			projectOptions.sort(Comparator.comparing(m -> String.valueOf(m.get("projectName")),
+					Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)));
 			Map<Integer, String> clientNameJpql = loadClientNamesFromClientsJpql();
 			Map<Integer, String> clientNameClaims = collectClientNamesFromTicketClaims(actorScoped);
 			List<Map<String, Object>> clientOptions = new ArrayList<>();
@@ -2440,6 +2820,7 @@ public class ReimbursementTicketService {
 			dash.put("pipelinePendingAmount", pipelinePendingAmt);
 			dash.put("employeeLeaderboard", employeeLeaderboard);
 			dash.put("pendingHodTickets", pendingHod);
+			dash.put("pendingApprovalTickets", pendingApproval);
 			dash.put("pendingHrTickets", pendingHr);
 			dash.put("pendingFinanceTickets", pendingFin);
 			dash.put("departmentSpending", byDept);
@@ -2459,8 +2840,16 @@ public class ReimbursementTicketService {
 			dash.put("projectEmployeeStack", buildProjectEmployeeStackPack(tickets, filter, 8, 6));
 			dash.put("rejectionsByExpenditureType", rejectionsByExpenditureType);
 			dash.put("rejectionReasonBuckets", rejectionReasonBuckets);
+			dash.put("rejectionByChannel", rejectionByChannel);
+			dash.put("rejectionByDepartmentTop", rejectionByDepartmentTop);
 			dash.put("rejectionLog", rejectionLog);
+			dash.put("claimStatusLineCounts", claimStatusLineCounts);
 			dash.put("ticketRows", ticketRows);
+			dash.put("workflowStageTicketCounts", workflowStageTicketCounts);
+			dash.put("matrixTicketCount", matrixTicketCount);
+			dash.put("legacyTicketCount", legacyTicketCount);
+			dash.put("pendingMatrixByLevel", pendingMatrixByLevel);
+			dash.put("approvalFunnelMatrix", approvalFunnelMatrix);
 			dash.put("approvalFunnel", new LinkedHashMap<String, Object>() {
 				private static final long serialVersionUID = 1L;
 				{
@@ -2478,17 +2867,18 @@ public class ReimbursementTicketService {
 			filterOptions.put("workflowStages", new ArrayList<>(workflowStages));
 			filterOptions.put("projects", projectOptions);
 			filterOptions.put("clients", clientOptions);
+			/** Employee filter dropdown: all active rows from {@code employee} table (not limited to tickets in scope). */
 			List<Map<String, Object>> employeeOptions = new ArrayList<>();
-			Set<String> empOptKeys = new HashSet<>();
-			for (ReimbursementTicket t : actorScoped) {
-				if (t.getEmpId() == null) {
-					continue;
-				}
-				String ek = t.getEmpId().toString();
-				if (empOptKeys.add(ek)) {
+			List<Employee> activeEmployees = employeeRepository.findAllActiveEmployeesObject();
+			if (activeEmployees != null) {
+				for (Employee emp : activeEmployees) {
+					if (emp == null || emp.getEmpId() == null) {
+						continue;
+					}
 					Map<String, Object> eo = new LinkedHashMap<>();
-					eo.put("empId", t.getEmpId().longValue());
-					eo.put("fullName", t.getFullName());
+					eo.put("empId", emp.getEmpId().longValue());
+					String nm = emp.getName();
+					eo.put("fullName", StringUtils.hasText(nm) ? nm : ("Employee " + emp.getEmpId()));
 					employeeOptions.add(eo);
 				}
 			}
@@ -2497,6 +2887,9 @@ public class ReimbursementTicketService {
 			filterOptions.put("employees", employeeOptions);
 			dash.put("filterOptions", filterOptions);
 			dash.put("alerts", alerts);
+			List<Map<String, Object>> activeApprovalMatrices = buildActiveApprovalMatricesForOverview();
+			dash.put("activeApprovalMatrices", activeApprovalMatrices);
+			dash.put("activeApprovalMatrixCount", activeApprovalMatrices.size());
 
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			resp.setServiceResponse(dash);
@@ -2506,6 +2899,36 @@ public class ReimbursementTicketService {
 			resp.setServiceError(e.getMessage());
 		}
 		return resp;
+	}
+
+	/** Active reimbursement approval matrices from config (for dashboard overview). */
+	private List<Map<String, Object>> buildActiveApprovalMatricesForOverview() {
+		List<Map<String, Object>> out = new ArrayList<>();
+		ServiceResponse sr = reimbursementApprovalMatrixService.getAllApprovalMatrices();
+		if (!ServiceResponse.STATUS_SUCCESS.equals(sr.getServiceStatus()) || sr.getServiceResponse() == null) {
+			return out;
+		}
+		@SuppressWarnings("unchecked")
+		List<ReimbursementApprovalMatrixDTO> matrices = (List<ReimbursementApprovalMatrixDTO>) sr.getServiceResponse();
+		for (ReimbursementApprovalMatrixDTO dto : matrices) {
+			if (dto == null || dto.getMatrixId() == null) {
+				continue;
+			}
+			List<String> flowParts = new ArrayList<>();
+			if (dto.getLevels() != null) {
+				for (ReimbursementApprovalMatrixLevelDTO lvl : dto.getLevels()) {
+					flowParts.add(reimbursementApprovalMatrixService.formatLevelLabel(lvl));
+				}
+			}
+			flowParts.add("Finance");
+			Map<String, Object> row = new LinkedHashMap<>();
+			row.put("matrixId", dto.getMatrixId());
+			row.put("matrixName", StringUtils.hasText(dto.getName()) ? dto.getName().trim() : ("Matrix " + dto.getMatrixId()));
+			row.put("levelCount", dto.getLevels() != null ? dto.getLevels().size() : 0);
+			row.put("approvalFlowSummary", String.join(" → ", flowParts));
+			out.add(row);
+		}
+		return out;
 	}
 
 	private List<Map<String, Object>> buildApprovalLevelsForTicket(ReimbursementTicket t) {
@@ -2592,7 +3015,7 @@ public class ReimbursementTicketService {
 			return "Approver pool";
 		}
 		if ("SPECIFIC_IN_SCOPE".equals(lvl.getRouting())) {
-			return "Specific approver";
+			return "—";
 		}
 		return "—";
 	}
@@ -2629,8 +3052,31 @@ public class ReimbursementTicketService {
 		}
 	}
 
+	/**
+	 * Claim lines shown on dashboard ticket lifecycle rows: all lines unless project / client / claim-type filters
+	 * are active, in which case only matching lines are included (same scope as other dashboard metrics).
+	 */
+	private List<ReimbursementTicketClaim> claimsForDashboardLifecycleRow(ReimbursementTicket t,
+			ReimbursementDashboardFilterDTO filter) {
+		if (t.getClaims() == null || t.getClaims().isEmpty()) {
+			return Collections.emptyList();
+		}
+		if (filter == null || !hasClaimLevelFilters(filter)) {
+			return t.getClaims();
+		}
+		return claimsForMetrics(t, filter)
+				.sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo,
+						Comparator.nullsLast(Comparator.naturalOrder())))
+				.collect(Collectors.toList());
+	}
+
 	private Map<String, Object> toViewMap(ReimbursementTicket t) {
+		return toViewMap(t, null);
+	}
+
+	private Map<String, Object> toViewMap(ReimbursementTicket t, ReimbursementDashboardFilterDTO filter) {
 		Map<String, Object> m = new LinkedHashMap<>();
+		List<ReimbursementTicketClaim> rowClaims = claimsForDashboardLifecycleRow(t, filter);
 		List<Map<String, Object>> approvalLevels = buildApprovalLevelsForTicket(t);
 		m.put("ticketId", t.getTicketId());
 		m.put("ticketNo", t.getTicketNo());
@@ -2657,23 +3103,24 @@ public class ReimbursementTicketService {
 		m.put("submittedOn", t.getSubmittedOn());
 		m.put("financeRejectReason", t.getFinanceRejectReason());
 		m.put("paidOn", t.getPaidOn());
-		BigDecimal total = t.getClaims().stream().map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
+		BigDecimal total = rowClaims.stream().map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		m.put("totalClaimAmount", total);
-		BigDecimal paidClaimAmount = t.getClaims().stream()
+		BigDecimal paidClaimAmount = rowClaims.stream()
 				.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus()))
 				.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		m.put("paidClaimAmount", paidClaimAmount);
-		List<Map<String, Object>> rejectedLines = buildRejectedClaimBreakdown(t);
+		List<Map<String, Object>> rejectedLines = buildRejectedClaimBreakdown(t, rowClaims);
 		m.put("rejectedClaimLines", rejectedLines);
 		m.put("rejectionSummaryText", buildRejectionSummaryText(rejectedLines));
-		m.put("payableApprovedAmount", t.getClaims().stream()
+		m.put("payableApprovedAmount", rowClaims.stream()
 				.filter(c -> ReimbursementTicketClaim.STATUS_PAID.equals(c.getClaimStatus())
 						|| ReimbursementTicketClaim.STATUS_PENDING_FINANCE.equals(c.getClaimStatus()))
 				.map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
 				.reduce(BigDecimal.ZERO, BigDecimal::add));
-		List<Map<String, Object>> claimViews = t.getClaims().stream().sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo))
+		List<Map<String, Object>> claimViews = rowClaims.stream()
+				.sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo))
 				.map(c -> {
 					Map<String, Object> cm = new LinkedHashMap<>();
 					cm.put("claimId", c.getClaimId());
@@ -2713,16 +3160,17 @@ public class ReimbursementTicketService {
 		return m;
 	}
 
-	private List<Map<String, Object>> buildRejectedClaimBreakdown(ReimbursementTicket t) {
+	private List<Map<String, Object>> buildRejectedClaimBreakdown(ReimbursementTicket t,
+			List<ReimbursementTicketClaim> claims) {
 		List<Map<String, Object>> out = new ArrayList<>();
-		if (t.getClaims() == null) {
+		if (claims == null || claims.isEmpty()) {
 			return out;
 		}
 		String hodName = StringUtils.hasText(t.getHodName()) ? t.getHodName() : "Head of department";
 		String hrName = lookupEmployeeNameByEmail(workflowHrMail);
 		String finName = lookupEmployeeNameByEmail(workflowFinanceMail);
 		String finReason = t.getFinanceRejectReason();
-		for (ReimbursementTicketClaim c : t.getClaims().stream()
+		for (ReimbursementTicketClaim c : claims.stream()
 				.sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo, Comparator.nullsLast(Comparator.naturalOrder())))
 				.collect(Collectors.toList())) {
 			String st = c.getClaimStatus();

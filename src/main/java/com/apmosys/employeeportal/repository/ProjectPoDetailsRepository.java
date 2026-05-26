@@ -316,6 +316,11 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
     List<ProjectPoDetails> findByProjectIdAndPrevPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
 
     List<ProjectPoDetails> findByProjectIdAndNextPOInAndActiveTrue(Integer projectId, Set<Long> poIds);
+    
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM ProjectPoDetails p WHERE p.poId IN :poIds")
+    void deleteByPoIds(@Param("poIds") List<Long> poIds);
 
 
         // @Query(value = "",nativeQuery = true)

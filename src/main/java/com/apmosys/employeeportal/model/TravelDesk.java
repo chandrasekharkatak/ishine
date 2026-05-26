@@ -135,8 +135,17 @@ public class TravelDesk {
 	
 	private Long ticketDocId;
 	private Long kycDocumentId;
-	
-	
 
+	@Column(name = "project_id")
+	private Long projectId;
+
+	@Column(name = "project_name", length = 500)
+	private String projectName;
+
+	@Column(name = "client_id")
+	private Integer clientId;
+
+	@Column(name = "client_name", length = 512)
+	private String clientName;
 
 }

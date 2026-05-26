@@ -1,4 +1,4 @@
-import { LOCALE_ID, NgModule, isDevMode } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -166,6 +166,8 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
+import { TravelApprovalMatrixConfigComponent } from './configuration/travel-approval-matrix-config/travel-approval-matrix-config.component';
+import { TravelTicketModalComponent } from './travel-allowance/travel-ticket-modal/travel-ticket-modal.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { RoMonthYearFieldComponent } from './user-timesheet/hr-dashboard/ro-month-year-field/ro-month-year-field.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
@@ -217,6 +219,7 @@ import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.com
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -245,6 +248,9 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { InterviewTrackerComponent } from './interview-tracker/interview-tracker.component';
+import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
+import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
@@ -253,7 +259,6 @@ import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-d
 import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ResizableDirective } from './resizable.directive';
-import { ServiceWorkerModule } from '@angular/service-worker';
 
 registerLocaleData(localeGb);
 
@@ -389,6 +394,8 @@ registerLocaleData(localeGb);
     TravelConfigComponent,
     ReimbursmentConfigComponent,
     ReimbursementRuleSetConfigComponent,
+    TravelApprovalMatrixConfigComponent,
+    TravelTicketModalComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,
     TeamEmployeeTimesheetViewComponent,
@@ -432,6 +439,10 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
+    QuizSubmit,
+    InterviewTrackerComponent,
+    InterviewListComponent,
+    ScheduleInterviewComponent,
     RmgProjectConfigComponent,
     MyTableComponent,
     RmgModalHostComponent,
@@ -475,6 +486,7 @@ registerLocaleData(localeGb);
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
+    MatDividerModule,
     MatExpansionModule,
     NgxPaginationModule,
     NgxEditorModule,
@@ -498,13 +510,7 @@ registerLocaleData(localeGb);
     MatSidenavModule,
     // MatMomentDateModule
     ExperienceDurationPipe,
-    NgxEditorModule,
-    ServiceWorkerModule.register('ngsw-worker.js', {
-      enabled: !isDevMode(),
-      // Register the ServiceWorker as soon as the application is stable
-      // or after 30 seconds (whichever comes first).
-      registrationStrategy: 'registerWhenStable:30000'
-    })
+    NgxEditorModule
   ],
   providers: [
     DatePipe,

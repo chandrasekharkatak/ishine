@@ -16,7 +16,7 @@ export class SkillMatrixApproveRequestsComponent implements OnInit, OnDestroy {
   error: string | null = null;
   status: string = '';
 
-  activeTab: 'requests' | 'byskill' | 'approved' | 'done' = 'requests';
+  activeTab: 'requests' | 'byskill' | 'approved' | 'done' | 'custom' = 'requests';
 
   page = 1;
   readonly pageSize = 15;
@@ -101,6 +101,13 @@ export class SkillMatrixApproveRequestsComponent implements OnInit, OnDestroy {
   doneSortActive: string | null = null;
   doneSortDirection: SortDirection = '';
 
+  customLoading = false;
+  customError: string | null = null;
+  customRows: any[] = [];
+  customPage = 1;
+  readonly customPageSize = 15;
+  customTotal = 0;
+
   private filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private skillMatrixService: SkillMatrixService) { }
@@ -143,16 +150,146 @@ export class SkillMatrixApproveRequestsComponent implements OnInit, OnDestroy {
     }
   }
 
-  switchTab(t: 'requests' | 'byskill' | 'approved' | 'done'): void {
+  switchTab(t: 'requests' | 'byskill' | 'approved' | 'done' | 'custom'): void {
     this.activeTab = t;
     this.detail = null;
     this.page = 1;
     if (t === 'byskill') {
       this.svPage = 1;
       this.loadSkillView(false);
+    } else if (t === 'custom') {
+      this.customPage = 1;
+      this.loadCustomRequests(false);
     } else {
       this.loadQueue(true);
     }
+  }
+
+  customRequestStatusLabel(v: any): string {
+    const s = String(v ?? '').trim().toLowerCase();
+    if (!s) return 'Pending';
+    if (s === 'approved') return 'Approved';
+    if (s === 'rejected') return 'Rejected';
+    return 'Pending';
+  }
+
+  customRequestStatusBadgeClass(v: any): string {
+    const s = String(v ?? '').trim().toLowerCase();
+    if (s === 'approved') return 'b-gr';
+    if (s === 'rejected') return 'b-re';
+    return 'b-am';
+  }
+
+  handleCustomPageChange(p: number): void {
+    this.customPage = p;
+    this.loadCustomRequests(true);
+  }
+
+  approveCustomSkill(row: any): void {
+    if (!row?.requestId) {
+      return;
+    }
+    Swal.fire({
+      title: 'Approve custom skill request',
+      html:
+        `<div style="text-align:left">` +
+        `<div style="margin:0 0 14px 0;padding:12px 14px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc">` +
+        `<div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:#64748b;margin-bottom:4px">Requested skill</div>` +
+        `<div style="font-size:16px;font-weight:700;color:#0f172a;line-height:1.3">${String(row.skillName || '')}</div>` +
+        `<div style="font-size:12px;color:#475569;margin-top:4px">Choose how this skill should be added to the Skill Matrix master.</div>` +
+        `</div>` +
+        `<label style="display:block;font-size:13px;font-weight:600;color:#0f172a;margin-bottom:8px">Skill type <span style="color:#b42318">*</span></label>` +
+        `<select id="smCustomSkillType" class="swal2-select" style="display:flex;width:100%;margin:0;height:44px;border-radius:10px">` +
+        `<option value="">Select skill type</option>` +
+        `<option value="Required">Required</option>` +
+        `<option value="Optional">Optional</option>` +
+        `</select>` +
+        `</div>`,
+      showCancelButton: true,
+      confirmButtonText: 'Approve & add',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#193d8a',
+      focusConfirm: false,
+      preConfirm: () => {
+        const skillType = String((document.getElementById('smCustomSkillType') as HTMLSelectElement | null)?.value || '').trim();
+        if (!skillType) {
+          Swal.showValidationMessage('Please select Required or Optional.');
+          return;
+        }
+        return { skillType };
+      }
+    }).then((result) => {
+      if (!result.isConfirmed || !result.value) {
+        return;
+      }
+      this.skillMatrixService
+        .decideCustomSkillRequest(Number(row.requestId), {
+          decision: 'approved',
+          skillType: result.value.skillType,
+          comment: null
+        })
+        .pipe(first())
+        .subscribe({
+          next: (res: any) => {
+            if (res?.serviceStatus === 'Success') {
+              Swal.fire({ icon: 'success', title: 'Approved', text: 'The skill has been added to the master list.' });
+              this.loadCustomRequests(true);
+            } else {
+              Swal.fire({ icon: 'error', title: 'Could not approve', text: res?.serviceResponse || 'Unexpected response.' });
+            }
+          },
+          error: () => {
+            Swal.fire({ icon: 'error', title: 'Could not approve', text: 'Please try again.' });
+          }
+        });
+    });
+  }
+
+  rejectCustomSkill(row: any): void {
+    if (!row?.requestId) {
+      return;
+    }
+    Swal.fire({
+      title: `Reject ${row.skillName}?`,
+      input: 'textarea',
+      inputPlaceholder: 'Reason for rejection',
+      inputAttributes: { 'aria-label': 'Reason for rejection' },
+      showCancelButton: true,
+      confirmButtonText: 'Reject',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#b42318',
+      preConfirm: (value) => {
+        const comment = String(value || '').trim();
+        if (!comment) {
+          Swal.showValidationMessage('Reason is required.');
+          return;
+        }
+        return comment;
+      }
+    }).then((result) => {
+      if (!result.isConfirmed || !result.value) {
+        return;
+      }
+      this.skillMatrixService
+        .decideCustomSkillRequest(Number(row.requestId), {
+          decision: 'rejected',
+          comment: result.value
+        })
+        .pipe(first())
+        .subscribe({
+          next: (res: any) => {
+            if (res?.serviceStatus === 'Success') {
+              Swal.fire({ icon: 'success', title: 'Rejected', text: 'The custom skill request has been rejected.' });
+              this.loadCustomRequests(true);
+            } else {
+              Swal.fire({ icon: 'error', title: 'Could not reject', text: res?.serviceResponse || 'Unexpected response.' });
+            }
+          },
+          error: () => {
+            Swal.fire({ icon: 'error', title: 'Could not reject', text: 'Please try again.' });
+          }
+        });
+    });
   }
 
   toggleSearch(): void {
@@ -966,6 +1103,32 @@ export class SkillMatrixApproveRequestsComponent implements OnInit, OnDestroy {
         this.svRows = [];
         this.svTotal = 0;
         this.svError = 'Could not load data right now. Please try again.';
+      }
+    });
+  }
+
+  private loadCustomRequests(silent: boolean): void {
+    if (!silent) {
+      this.customLoading = true;
+    }
+    this.customError = null;
+    this.skillMatrixService.getCustomSkillRequests(this.customPage - 1, this.customPageSize).pipe(first()).subscribe({
+      next: (res: any) => {
+        this.customLoading = false;
+        if (res?.serviceStatus !== 'Success' || !Array.isArray(res.serviceResponse)) {
+          this.customRows = [];
+          this.customTotal = 0;
+          this.customError = res?.serviceResponse || 'Unexpected response';
+          return;
+        }
+        this.customRows = res.serviceResponse;
+        this.customTotal = res.totalElements != null ? Number(res.totalElements) : this.customRows.length;
+      },
+      error: () => {
+        this.customLoading = false;
+        this.customRows = [];
+        this.customTotal = 0;
+        this.customError = 'Could not load custom skill requests right now. Please try again.';
       }
     });
   }

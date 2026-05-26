@@ -35,6 +35,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public Employee findByEmail(String email);
 
+	@Query(value = "SELECT * FROM employee WHERE LOWER(email) LIKE LOWER(CONCAT(:localPartPrefix, '%')) LIMIT 1", nativeQuery = true)
+	Employee findFirstByEmailLocalPartIgnoreCase(@Param("localPartPrefix") String localPartPrefix);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByEmpId(Long empId);
 
@@ -1103,6 +1106,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
+
+    @Query(nativeQuery = true, value = "SELECT DISTINCT e.emp_id FROM employee e "
+            + "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+            + "WHERE e.employmentstatus != 'InActive' AND jr.dept_id IN :deptIds")
+    List<Long> findActiveEmpIdsByDepartmentIds(@Param("deptIds") List<Long> deptIds);
     
     
     @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
@@ -1213,7 +1221,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " CASE WHEN p.po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS project_type, DATE(p.start_date) \n"
 			+ " from projects p \n"
 			+ " inner join teams t on t.project_id = p.project_id  \n"
-			+ " where p.po_project_type is not null and TRIM(p.po_project_type) != '' and (p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL) and p.active = 'true' and t.is_active = 'Y' ")
+			+ " where (p.internal_project_type = 'InternalRNDProducts' OR p.po_project_type is not null) and p.active = 'true' and t.is_active = 'Y' ")
 	List<Object[]> getAllProjectsThatAreNotBench();
     
 //    @Modifying

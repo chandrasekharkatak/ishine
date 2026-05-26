@@ -10,7 +10,6 @@
             <i class="fa-solid fa-user"></i>&nbsp;{{currentUserName}}
           </a>
           <div class="dropdown-menu dropdown-menu-right user-menu" aria-labelledby="user-dropdown">
-            <a class="dropdown-item" (click)="LmsRedirection()"><i class="fa-solid fa-right-from-bracket"></i>&nbsp;LMS</a>
             <a class="dropdown-item" (click)="openChangePassword(change_password)"><i
                 class="fa-solid fa-right-from-bracket"></i>&nbsp;Change Password</a>
             <a class="dropdown-item" (click)="userLogout()"><i
@@ -28,6 +27,21 @@
     <ng-container *ngTemplateOutlet="drawerTemplate"></ng-container>
   </mat-sidenav>
 </mat-sidenav-container>
+
+<button
+  *ngIf="shouldShowGrievanceFab()"
+  type="button"
+  class="grievance-fab"
+  [class.grievance-fab--with-quick-menu]="hasQuickMenuAccess()"
+  [class.grievance-fab--menu-open]="hasQuickMenuAccess() && openMenu"
+  [matTooltip]="grievanceFabTooltip()"
+  matTooltipPosition="left"
+  (click)="openGrievanceLauncher()"
+  aria-label="Raise grievance"
+>
+  <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+  <span class="grievance-fab__text">Grievance</span>
+</button>
 
 <div class="quick-menu-layer" aria-label="Quick navigation menu">
       <button mat-fab color="accent" (click)="clickMenu()" class="menu-button" [class.mat-elevation-z2]="!isOver"

@@ -51,6 +51,14 @@ public class TravelDeskDTO {
 	    private Integer serialNo;
 	    private String finalReimbursementStatus;
 	    private Long kycDocumentId;
-	
-	    
+
+	    private Long projectId;
+	    private String projectName;
+	    private Integer clientId;
+	    private String clientName;
+	    /** Manual project name when projectId is -1 (Others). */
+	    private String othersProjectName;
+	    /** Client picker when projectId is -1 (Others). */
+	    private Integer othersClientId;
+
 }
