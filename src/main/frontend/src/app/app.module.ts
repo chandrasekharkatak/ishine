@@ -259,12 +259,15 @@ import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-d
 import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ResizableDirective } from './resizable.directive';
-
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { DdMmYyyyDateAdapter, DD_MM_YYYY_FORMATS } from './dd-mm-yyyy-date-adapter';
+import { AclConfigComponent } from 'src/app/configuration/acl-config/acl-config.component';
 registerLocaleData(localeGb);
 
 
 @NgModule({
   declarations: [
+    AclConfigComponent,
     AppComponent,
     SidenavComponent,
     BodyComponent,
@@ -519,6 +522,9 @@ registerLocaleData(localeGb);
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: DateAdapter, useClass: DdMmYyyyDateAdapter, deps: [MAT_DATE_LOCALE] },
+    { provide: MAT_DATE_FORMATS, useValue: DD_MM_YYYY_FORMATS },  
   ],
   bootstrap: [AppComponent]
 })

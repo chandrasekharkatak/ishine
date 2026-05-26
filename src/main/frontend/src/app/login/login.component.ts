@@ -604,6 +604,9 @@ this.user.otp = encryptedOtp;
         tab.tabName = userMap.tabName;
         tab.tabRouteName = userMap.tabRouteName;
         tab.tabIcon = userMap.tabIcon;
+        tab.tabGroup = userMap.tabGroup;
+        tab.groupSequence = userMap.groupSequence;
+        tab.groupIcon = userMap.groupIcon;
 
         tabList.push(tab);
       }

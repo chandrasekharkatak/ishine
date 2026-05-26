@@ -24,6 +24,10 @@ public class TabMaster {
 	private String tabIcon;
 	
 	private Integer tabSequence;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "group_id")
+	private TabGroupMaster tabGroup;
 
 	public Long getTabId() {
 		return tabId;
@@ -58,9 +62,17 @@ public class TabMaster {
 	}
 
 	
-
+	public TabGroupMaster getTabGroup() {
+		return tabGroup; 
+		}
+	
+    public void setTabGroup(TabGroupMaster tabGroup) { 
+    	this.tabGroup = tabGroup; 
+    	}
 	
 	
-	
+    public String getGroupIcon() {
+        return this.tabGroup != null ? this.tabGroup.getGroupIcon() : null;
+    }
 
 }
