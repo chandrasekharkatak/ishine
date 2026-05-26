@@ -136,7 +136,7 @@ private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing 
     this.hoveredGroup = null;
     this.groupedMenuItems.forEach(g => g.isExpanded = false);
   }
-  
+
   constructor(private authenticationService: AuthenticationService,
     private breadcrumbService: BreadcrumbService,
   private router: Router,
@@ -340,6 +340,8 @@ onPanelMouseEnter(): void {
       console.log('Routing is disabled because firstTimeLogin is false');
     }else{
       this.breadcrumbService.setBreadcrumbSubject(null);
+
+      //this.closeAllFloatingPanels();
 
       this.groupedMenuItems.forEach((group) => {
         if (group !== targetGroup) {
