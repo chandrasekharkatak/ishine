@@ -17562,7 +17562,7 @@ public class ResourceManagementService {
 			Map<Long, LocalDate> empEndDateMap = new HashMap<>();
 
 			ishineToPoHelperMethods.getTimesheetMinMaxDateMap(allMappedEmpIds, startDate, endDate, dto.getIshineProjectId(), minDateMap, maxDateMap);
-			empEndDateMap = ishineToPoHelperMethods.getMaxEndDatePerEmployee(allMappedEmpIds,dto.getPoId());
+			empEndDateMap = ishineToPoHelperMethods.getMaxEndDatePerEmployee(allMappedEmpIds,ishineToPoRequest.getPoId());
 
 			for (IshineToPoEmployeeDTO emp : employees) {
 				Long ishineId = emp.getIshineEmpId();
@@ -17626,9 +17626,14 @@ public class ResourceManagementService {
 				// Condition: endDate is non-null (deboarded), endDate falls in leave dates, and leave count > 1
 				LocalDate deboarDate = emp.getEmpEndDate();
 				boolean onLeaveWhenDeboarded = deboarDate != null
-				        && leaves.contains(deboarDate)
-				        && leaves.size() > 1;
+            	&& !leaves.isEmpty()
+            	&& (
+                (leaves.contains(deboarDate) && leaves.size() > 1)
+                || leaves.stream().max(Comparator.naturalOrder()).get().isAfter(deboarDate)
+            	);
 				emp.setIsEmployeeOnLeaveWhenDeboarded(onLeaveWhenDeboarded);
+
+				
 
 			}
 
