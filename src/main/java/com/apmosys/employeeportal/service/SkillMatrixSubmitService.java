@@ -118,6 +118,9 @@ public class SkillMatrixSubmitService {
 	private JdbcTemplate jdbcTemplate;
 
 	@Autowired
+	private SkillMatrixNotificationService skillMatrixNotificationService;
+
+	@Autowired
 	private SkillDomainMasterRepository skillDomainMasterRepository;
 
 	@Autowired
@@ -1262,6 +1265,7 @@ public class SkillMatrixSubmitService {
 				hodId != null ? hodId : 0L,
 				hodName != null ? hodName : "HOD",
 				nextRound);
+		skillMatrixNotificationService.notifyManagerReviewRequired(submissionId);
 	}
 
 	public List<SkillMatrixMySubmissionListDTO> listMySubmissions(Long empId) {
@@ -2021,6 +2025,12 @@ public class SkillMatrixSubmitService {
 						approvalId);
 				jdbcTemplate.update("UPDATE skillmatrix_assessment_submission SET status='approved', approved_at=NOW() WHERE submission_id=?",
 						submissionId);
+				skillMatrixNotificationService.notifyEmployeeStatus(
+						submissionId,
+						"Approved",
+						"Your Skill Matrix submission has been approved.",
+						"Approver remarks",
+						body != null ? body.getOverallComment() : null);
 			} else {
 				jdbcTemplate.update(
 						"UPDATE skillmatrix_assessment_approval SET manager_approved='yes', hod_approved='pending', final_status='pending', manager_comment=?, updated_at=NOW() WHERE id=?",
@@ -2028,6 +2038,7 @@ public class SkillMatrixSubmitService {
 				// Manager approved → move to HOD (Level-2). Final status remains pending.
 				jdbcTemplate.update("UPDATE skillmatrix_assessment_submission SET status='under_review' WHERE submission_id=?",
 						submissionId);
+				skillMatrixNotificationService.notifyHodReviewRequired(submissionId, body != null ? body.getOverallComment() : null);
 			}
 		} else {
 			// Any manager rejection stops workflow.
@@ -2036,6 +2047,16 @@ public class SkillMatrixSubmitService {
 					body != null ? body.getOverallComment() : null, approvalId);
 			jdbcTemplate.update("UPDATE skillmatrix_assessment_submission SET status='rejected', approved_at=NOW() WHERE submission_id=?",
 					submissionId);
+			String statusLabel = hasSentBack ? "Changes Requested" : "Rejected";
+			String introLine = hasSentBack
+					? "Your Skill Matrix submission has been sent back by your Manager. Please review the remarks and resubmit."
+					: "Your Skill Matrix submission has been rejected by your Manager.";
+			skillMatrixNotificationService.notifyEmployeeStatus(
+					submissionId,
+					statusLabel,
+					introLine,
+					"Manager remarks",
+					body != null ? body.getOverallComment() : null);
 		}
 	}
 
@@ -2173,6 +2194,12 @@ public class SkillMatrixSubmitService {
 					body != null ? body.getComment() : null, approvalId);
 			jdbcTemplate.update("UPDATE skillmatrix_assessment_submission SET status='approved', approved_at=NOW() WHERE submission_id=?",
 					submissionId);
+			skillMatrixNotificationService.notifyEmployeeStatus(
+					submissionId,
+					"Approved",
+					"Your Skill Matrix submission has been approved by the Department HOD.",
+					"HOD remarks",
+					body != null ? body.getComment() : null);
 		} else {
 			if (body == null || !StringUtils.hasText(body.getComment())) {
 				throw new IllegalArgumentException("comment is required.");
@@ -2187,6 +2214,12 @@ public class SkillMatrixSubmitService {
 					body != null ? body.getComment() : null, approvalId);
 			jdbcTemplate.update("UPDATE skillmatrix_assessment_submission SET status='rejected', approved_at=NOW() WHERE submission_id=?",
 					submissionId);
+			skillMatrixNotificationService.notifyEmployeeStatus(
+					submissionId,
+					"Rejected",
+					"Your Skill Matrix submission has been rejected by the Department HOD.",
+					"HOD remarks",
+					body != null ? body.getComment() : null);
 		}
 	}
 
@@ -2711,6 +2744,9 @@ public class SkillMatrixSubmitService {
 			return ps;
 		}, keyHolder);
 		Number id = keyHolder.getKey();
+		if (id != null) {
+			skillMatrixNotificationService.notifyCustomSkillRequestPending(id.longValue());
+		}
 		return loadCustomSkillRequestRow(id != null ? id.longValue() : null);
 	}
 
@@ -2782,6 +2818,10 @@ public class SkillMatrixSubmitService {
 					"UPDATE skillmatrix_custom_skill_request SET status='approved', approved_skill_type=?, decision_comment=?, "
 							+ "created_skill_id=?, decided_at=NOW(), updated_at=NOW() WHERE id=?",
 					skillType, comment, saved.getSkillId(), requestId);
+			skillMatrixNotificationService.notifyCustomSkillRequestStatus(
+					requestId,
+					"Approved",
+					"Your custom skill request has been approved by the HOD and added to the Skill Matrix master.");
 		} else if ("rejected".equals(decision)) {
 			if (!StringUtils.hasText(comment)) {
 				throw new IllegalArgumentException("Comment is required when rejecting a custom skill request.");
@@ -2789,6 +2829,10 @@ public class SkillMatrixSubmitService {
 			jdbcTemplate.update(
 					"UPDATE skillmatrix_custom_skill_request SET status='rejected', decision_comment=?, decided_at=NOW(), updated_at=NOW() WHERE id=?",
 					comment, requestId);
+			skillMatrixNotificationService.notifyCustomSkillRequestStatus(
+					requestId,
+					"Rejected",
+					"Your custom skill request has been rejected by the HOD.");
 		} else {
 			throw new IllegalArgumentException("decision must be approved or rejected.");
 		}
