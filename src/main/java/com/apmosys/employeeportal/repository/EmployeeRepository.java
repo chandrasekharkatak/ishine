@@ -5000,7 +5000,7 @@ public List<Object[]> fetchInActivePOListOfProject(
 			+ "		         FROM employee e \n"
 			+ "		         INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
 			+ "		         INNER JOIN department d ON jr.dept_id = d.dept_id \n"
-			+ "		         WHERE e.employmentstatus != 'Inactive'  and e.emp_id not in (1,2,3,4,5,6)\n"
+			+ "		         WHERE e.employmentstatus != 'Inactive'\n"
 			+ "		         ORDER BY e.name",
 	        nativeQuery = true)
 	List<Object[]> getAllActiveEmployeesForAssignment();
