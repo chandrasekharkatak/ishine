@@ -2819,7 +2819,11 @@ storePreviousStatus(){
         this.teamList = selectedProject.teamList;
         this.showTeamDropdown = true;
         if (selectedProject.teamList.length === 1) {
-          this.employeeObj.defaultTeamId = selectedProject.teamList[0].teamId;
+          const teamId = selectedProject.teamList[0].teamId;
+          this.employeeObj.defaultTeamId = teamId;
+          this.onTeamChange(teamId);
+        } else if (this.employeeObj.defaultTeamId) {
+          this.syncEmployeeRoleDropdownForSelectedTeam();
         }
       }
       if (this.defaultProjectUpdationProjectType && this.defaultProjectUpdationProjectType && !this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
@@ -2833,14 +2837,17 @@ storePreviousStatus(){
 
   onTeamChange(selectedTeamId: any) {
     this.resetCascade('TEAM');
-    const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
     this.employeeObj.defaultTeamId = selectedTeamId;
-    if (selectedTeam) {
-      this.showEmployeeRoleDropdown = true;
+    if (this.syncEmployeeRoleDropdownForSelectedTeam()) {
       this.employeeObj.defaultTeamEmployeeRole = [];
-    } else {
-      this.showEmployeeRoleDropdown = false;
     }
+  }
+
+  /** Employee Role dropdown is gated by showEmployeeRoleDropdown; set true when a valid team is selected. */
+  private syncEmployeeRoleDropdownForSelectedTeam(): boolean {
+    const selectedTeam = this.teamList?.find(t => t.teamId === this.employeeObj?.defaultTeamId);
+    this.showEmployeeRoleDropdown = !!selectedTeam;
+    return !!selectedTeam;
   }
 
   // getAllEmployeeList() {
