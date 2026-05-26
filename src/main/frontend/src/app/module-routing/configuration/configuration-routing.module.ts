@@ -22,7 +22,7 @@ import { TimesheetConfigComponent } from 'src/app/configuration/timesheet-config
 import { TravelConfigComponent } from 'src/app/configuration/travel-config/travel-config.component';
 import { UploadPoliciesComponent } from 'src/app/configuration/upload-policies/upload-policies.component';
 import { TrainingConfigComponent } from 'src/app/configuration/training-config/training-config.component';
-
+import { AclConfigComponent } from 'src/app/configuration/acl-config/acl-config.component';
 const routes: Routes = [
   {
     path: '', component: ConfigurationComponent,
@@ -48,6 +48,7 @@ const routes: Routes = [
       { path: 'timesheet-config', component: TimesheetConfigComponent },
       { path: 'skill-certfication-config', component: SkillCertfificationConfigComponent },
       { path: 'training-config', component: TrainingConfigComponent },
+      { path: 'acl-config', component: AclConfigComponent },
     ]
   }
 ];

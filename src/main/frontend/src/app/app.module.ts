@@ -261,11 +261,13 @@ import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ResizableDirective } from './resizable.directive';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { DdMmYyyyDateAdapter, DD_MM_YYYY_FORMATS } from './dd-mm-yyyy-date-adapter';
+import { AclConfigComponent } from 'src/app/configuration/acl-config/acl-config.component';
 registerLocaleData(localeGb);
 
 
 @NgModule({
   declarations: [
+    AclConfigComponent,
     AppComponent,
     SidenavComponent,
     BodyComponent,

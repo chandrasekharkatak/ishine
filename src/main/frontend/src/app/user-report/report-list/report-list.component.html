@@ -8,8 +8,8 @@
       *ngIf="userMapping.timesheet_report && !isAccounts" [ngClass]="{'active' : isTimesheetReportTable}"
       (click)="showTimesheetReportTable()">View Timesheet
       Report</button>
-    <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
-      *ngIf="userMapping.acl && !isAccounts" (click)="showAccessControlListTable()">ACL(Access Control List)</button>
+    <!-- <button type="button" class="btn btn-outline-primary btn-sm mx-1" [ngClass]="{'active' : isAccessControlListTable}"
+      *ngIf="userMapping.acl && !isAccounts" (click)="showAccessControlListTable()">ACL(Access Control List)</button> -->
       <!-- button removed cause view timesheet report has all data -->
 <!--    <button type="button" class="btn btn-outline-primary btn-sm mx-1" *ngIf="!isAccounts"
       [ngClass]="{'active' : isLeaveTimesheetReportTable}" (click)="showLeaveTimesheetReportTable(); onLeaveTimesheetReportClick()">Leave Timesheet
