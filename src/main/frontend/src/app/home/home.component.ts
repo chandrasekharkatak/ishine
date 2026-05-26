@@ -214,7 +214,9 @@ rejectedCount = 0;
   leaveRejectionReasonList: any[] = [];
 selectedRejectionIds: number[] = [];
 showOtherRemarks = false;
-
+showBirthdayPopup = false;
+showAnniversaryPopup = false;
+showRewardsPopup = false;
   zoomScale = 1;
   zoomLevel = 100;
 
@@ -707,7 +709,7 @@ resetRejectModalData() {
     this.detailModalRef?.close();
   }
   acknowledgeRepeatedOffendeNoticePolicy(): void {
-    if (this.isSavingConsent) return; 
+    if (this.isSavingConsent) return;
     this.employeeService.saveDefaulterConsent(this.currentUser.empId)
       .subscribe((res: any) => {
 
@@ -1625,7 +1627,7 @@ resetRejectModalData() {
                 ) + '%';
 
               clone.showWorkingHoursInHomePage = this.convertFromDecimalToMinutes(clone.totalWorkingHours);
-              
+
               this.timesheetDetails.push(clone);
 
               if (clone.status === 'Pending') pendingCount++;
