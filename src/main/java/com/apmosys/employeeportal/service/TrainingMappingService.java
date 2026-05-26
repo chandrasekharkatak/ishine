@@ -41,6 +41,10 @@ public class TrainingMappingService {
         apiLogInfo.setApiUrl("/api/training/" + trainingId + "/excludable-employees");
         apiLogInfo.setLogLevel("INFO");
 
+        StringBuilder logBuilder = new StringBuilder();
+        logBuilder.append("Training ID: ").append(trainingId);
+        logBuilder.append(", Dept IDs: ").append(deptIds);
+
         try {
             List<Object[]> rows;
 
@@ -122,13 +126,6 @@ public class TrainingMappingService {
                 request.getExcludedEmployeeIds() : new ArrayList<>()
             );
 
-            Set<Long> allIds;
-            if (request.getAllEmployeeIds() != null && !request.getAllEmployeeIds().isEmpty()) {
-                allIds = new HashSet<>(request.getAllEmployeeIds());
-            } else {
-                allIds = new HashSet<>(mappingRepo.findAllEmpIdsByTrainingId(trainingId.intValue()));
-            }
-
             Timestamp now = Timestamp.from(Instant.now());
 
             Map<Long, EmployeeTrainingMapping> existingMap = mappingRepo
@@ -140,8 +137,6 @@ public class TrainingMappingService {
                     ));
 
             List<EmployeeTrainingMapping> toSave = new ArrayList<>();
-
-            //handle excluded employees
             for (Long empId : excludedIds) {
                 if (existingMap.containsKey(empId)) {
                     EmployeeTrainingMapping existing = existingMap.get(empId);
@@ -162,35 +157,20 @@ public class TrainingMappingService {
                     toSave.add(m);
                 }
             }
-
-            // handle included employees
-            for (Long empId : allIds) {
-                if (!excludedIds.contains(empId)) {
-                    if (existingMap.containsKey(empId)) {
-                        EmployeeTrainingMapping existing = existingMap.get(empId);
-                        if (!"true".equals(existing.getActiveStatus())) {
-                            existing.setActiveStatus("true");
-                            existing.setUpdatedBy(request.getUpdatedBy());
-                            existing.setUpdatedOn(now);
-                            toSave.add(existing);
-                        }
-                    } else {
-                        EmployeeTrainingMapping m = new EmployeeTrainingMapping();
-                        m.setTrainingMaster(training);
-                        m.setEmpId(empId);
-                        m.setActiveStatus("true");
-                        m.setCreatedBy(request.getUpdatedBy());
-                        m.setUpdatedBy(request.getUpdatedBy());
-                        m.setUpdatedOn(now);
-                        toSave.add(m);
-                    }
+            for (Map.Entry<Long, EmployeeTrainingMapping> entry : existingMap.entrySet()) {
+                if (!excludedIds.contains(entry.getKey()) && "false".equals(entry.getValue().getActiveStatus())) {
+                    EmployeeTrainingMapping existing = entry.getValue();
+                    existing.setActiveStatus("true");
+                    existing.setUpdatedBy(request.getUpdatedBy());
+                    existing.setUpdatedOn(now);
+                    toSave.add(existing);
                 }
             }
 
             if (!toSave.isEmpty()) mappingRepo.saveAll(toSave);
 
             apiLogInfo.setApiResponse("Processed " + toSave.size() + " records. Excluded: "
-                    + excludedIds.size() + ", Included: " + (allIds.size() - excludedIds.size()));
+                    + excludedIds.size());
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 
         } catch (Exception e) {
