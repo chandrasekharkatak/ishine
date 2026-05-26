@@ -3833,6 +3833,11 @@ return empId;
 	                // =============================================
 
 	                if (allPoSuccess) {
+	                	
+	                	 clientService.updateProjectAfterSuccessfulSync(
+	                	            project,
+	                	            projectDto
+	                	    );
 
 	                    totalProjectsProcessed++;
 
