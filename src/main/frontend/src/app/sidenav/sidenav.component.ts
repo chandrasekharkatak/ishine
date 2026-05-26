@@ -1,4 +1,4 @@
-import { Component, EventEmitter, HostListener, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, OnDestroy, OnInit, Output,ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { User } from '../models/user';
 import { AuthenticationService } from '../services/authentication.service';
@@ -53,10 +53,94 @@ private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing 
       this.onToggleSideNav.emit({collapsed: this.collapsed, screenWidth: this.screenWidth});
     }
   }
+  // @HostListener('document:mousemove', ['$event'])
+  // onGlobalMouseMove(event: MouseEvent): void {
+  //   // Only run this execution logic if a popup panel is currently hovered/active and sidebar is collapsed
+  //   if (!this.hoveredGroup || this.collapsed) {
+  //     return;
+  //   }
 
+  //   const target = event.target as HTMLElement;
+  //   const nativeEl = this.elementRef.nativeElement;
+
+  //   // Check if the moving cursor is inside the core sidebar element OR over the position:fixed floating popup panel
+  //   const isInsideComponent = nativeEl.contains(target) || target.closest('.floating-group-panel');
+
+  //   if (!isInsideComponent) {
+  //     // If the cursor is completely outside, trigger the close timer sequence if it's not already running
+  //     if (!this.closeTimer) {
+  //       this.closeTimer = setTimeout(() => {
+  //         this.hoveredGroup = null;
+  //         this.closeTimer = null;
+  //       }, 120); // Aligns with your standard mouseleave delay
+  //     }
+  //   } else {
+  //     // If the cursor moves back inside the safe zones, clear any active close countdowns immediately
+  //     if (this.closeTimer) {
+  //       clearTimeout(this.closeTimer);
+  //       this.closeTimer = null;
+  //     }
+  //   }
+  // }
+
+  // CHANGED: Consolidated onPanelMouseLeave, onGroupMouseLeave, and onGlobalMouseMove into a single clean engine
+@HostListener('document:mousemove', ['$event'])
+  onGlobalMouseMove(event: MouseEvent): void {
+    // Check if any panel is visible via hover or an explicit accordion expansion flag
+    const hasActivePanel = this.hoveredGroup || this.groupedMenuItems.some(g => g.isExpanded);
+    if (!hasActivePanel || this.collapsed) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    const nativeEl = this.elementRef.nativeElement;
+    const isInsideComponent = nativeEl.contains(target) || target.closest('.floating-group-panel');
+
+    if (!isInsideComponent) {
+      if (!this.closeTimer) {
+        this.closeTimer = setTimeout(() => {
+          this.closeAllFloatingPanels();
+        }, 120);
+      }
+    } else {
+      if (this.closeTimer) {
+        clearTimeout(this.closeTimer);
+        this.closeTimer = null;
+      }
+    }
+  }
+
+  // CHANGED: Closes panels immediately if clicking anywhere outside the navbar area
+  @HostListener('document:click', ['$event'])
+  onGlobalClick(event: MouseEvent): void {
+    const hasActivePanel = this.hoveredGroup || this.groupedMenuItems.some(g => g.isExpanded);
+    if (!hasActivePanel || this.collapsed) {
+      return;
+    }
+
+    const target = event.target as HTMLElement;
+    const nativeEl = this.elementRef.nativeElement;
+    const isInsideComponent = nativeEl.contains(target) || target.closest('.floating-group-panel');
+
+    if (!isInsideComponent) {
+      if (this.closeTimer) {
+        clearTimeout(this.closeTimer);
+        this.closeTimer = null;
+      }
+      this.closeAllFloatingPanels();
+    }
+  }
+
+  // CHANGED: Added helper function to completely clear out popup states uniformly
+  private closeAllFloatingPanels(): void {
+    this.hoveredGroup = null;
+    this.groupedMenuItems.forEach(g => g.isExpanded = false);
+  }
+  
   constructor(private authenticationService: AuthenticationService,
     private breadcrumbService: BreadcrumbService,
-  private router: Router){
+  private router: Router,
+   private elementRef: ElementRef){
   }
 
    ngOnInit(): void {
@@ -169,17 +253,17 @@ onGroupMouseEnter(group: NavGroup, el: HTMLElement): void {
     }
 }
 
-onGroupMouseLeave(): void {
-    this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
-}
+// onGroupMouseLeave(): void {
+//     this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
+// }
 
 onPanelMouseEnter(): void {
     if (this.closeTimer) { clearTimeout(this.closeTimer); this.closeTimer = null; }
 }
 
-onPanelMouseLeave(): void {
-    this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
-}
+// onPanelMouseLeave(): void {
+//     this.closeTimer = setTimeout(() => { this.hoveredGroup = null; }, 120);
+// }
 
   //   toggleGroup(group: NavGroup): void {
   //      if (group.items.length === 1) return;

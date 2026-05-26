@@ -13,12 +13,8 @@
 
             <li class="nav-group" *ngFor="let group of groupedMenuItems" #groupRef>
 
-                <!-- ============================================
-                     COLLAPSED (narrow) sidebar
-                     ============================================ -->
                 <ng-container *ngIf="!collapsed">
 
-                    <!-- Single item: direct icon link, no panel -->
                     <ng-container *ngIf="group.items.length === 1">
                         <a class="sidenav-nav-link single-collapsed-link"
                            [routerLink]="firstTimeLogin === 'false' ? [group.items[0].tabRouteName] : null"
@@ -30,14 +26,12 @@
                         </a>
                     </ng-container>
 
-                    <!-- Multiple items: icon button triggers floating panel -->
-                  <ng-container *ngIf="group.items.length > 1">
+                    <ng-container *ngIf="group.items.length > 1">
 
                       <div class="nav-group-header-collapsed"
                           [ngClass]="{'panel-open': group.isExpanded || hoveredGroup === group || isGroupActive(group)}"
                           (click)="toggleGroup(group, groupRef)"
                           (mouseenter)="onGroupMouseEnter(group, groupRef)"
-                          (mouseleave)="onGroupMouseLeave()"
                           [title]="group.groupLabel">
                           <i class="sidenav-link-icon" [ngClass]="group.groupIcon"></i>
                       </div>
@@ -45,8 +39,7 @@
                       <div class="floating-group-panel"
                           *ngIf="group.isExpanded || hoveredGroup === group"
                           [style.top.px]="hoveredGroupTop"
-                          (mouseenter)="onPanelMouseEnter()"
-                          (mouseleave)="onPanelMouseLeave()">
+                          (mouseenter)="onPanelMouseEnter()">
                           <div class="floating-group-label">{{ group.groupLabel }}</div>
                           <ul class="floating-group-list">
                               <li *ngFor="let data of group.items" [title]="data.tabName">
@@ -68,12 +61,8 @@
 
                 </ng-container>
 
-                <!-- ============================================
-                     EXPANDED (wide) sidebar
-                     ============================================ -->
                 <ng-container *ngIf="collapsed">
 
-                    <!-- Single item: label + link row -->
                     <ng-container *ngIf="group.items.length === 1">
 
                         <div class="nav-group-header single-group-label">
@@ -96,7 +85,6 @@
 
                     </ng-container>
 
-                    <!-- Multiple items: collapsible group with chevron toggle -->
                     <ng-container *ngIf="group.items.length > 1">
 
                         <div class="nav-group-header"
