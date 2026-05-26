@@ -74,6 +74,21 @@ export class SkillMatrixService {
     return this.http.post(`${this.baseUrl}api/skill-matrix/submit-for-review/propose-skill`, body);
   }
 
+  getCustomSkillRequests(page: number, size: number): Observable<any> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get(`${this.baseUrl}api/skill-matrix/approve-requests/custom-skill-requests`, { params });
+  }
+
+  decideCustomSkillRequest(
+    requestId: number,
+    body: { decision: 'approved' | 'rejected'; skillType?: 'Required' | 'Optional' | null; comment?: string | null }
+  ): Observable<any> {
+    return this.http.post(
+      `${this.baseUrl}api/skill-matrix/approve-requests/custom-skill-requests/${encodeURIComponent(String(requestId))}/decision`,
+      body
+    );
+  }
+
   getSubmitProjectHistory(): Observable<any> {
     return this.http.get(`${this.baseUrl}api/skill-matrix/submit-for-review/projects`);
   }

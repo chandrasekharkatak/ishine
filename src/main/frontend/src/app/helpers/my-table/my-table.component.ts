@@ -12,6 +12,7 @@ import { ValidationService } from 'src/app/services/validation.service';
 import { environment } from 'src/environments/environment';
 import { Page } from 'src/app/models/page';
 import { firstValueFrom } from 'rxjs';
+import { Feature } from 'src/app/models/feature';
 
 export interface ColumnConfig {
   field: string;
@@ -55,6 +56,7 @@ export class MyTableComponent {
   @Input() defaultSubTableCellMergeColumn!: string;
   @Input() mergeRowData: boolean = false;
   @Input() isLastColumnAction: boolean = true;
+  @Input() feature = '';
 
   @Output() action = new EventEmitter<TableAction>();
 
@@ -63,6 +65,7 @@ export class MyTableComponent {
 
   currentUser: User;
   pageObj: Page = new Page;
+  userMapping: any = {};
 
   private baseUrl: any = environment.baseUrl;
 
@@ -104,6 +107,7 @@ export class MyTableComponent {
   }
 
   async ngOnInit() {
+    this.mapSubFeatureFlag();
     this.hiddenChildCells = new Set();
     if ((this.apiUrl == undefined || this.apiUrl == null) && this.subTableData != undefined && this.subTableData != null) {
       this.data = this.subTableData;
@@ -121,6 +125,13 @@ export class MyTableComponent {
     if (this.filterStateService.projectReportFilters) {
       this.filterStateService.projectReportFilters = {};
     }
+  }
+    
+  private mapSubFeatureFlag() {
+    let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
+    featureMap.subFeatures?.forEach(sub => {
+      this.userMapping[sub.subFeatureName.replaceAll(' ', '_').toLowerCase()] = sub.isActive;
+    });
   }
 
   createSearchableColumnList() {

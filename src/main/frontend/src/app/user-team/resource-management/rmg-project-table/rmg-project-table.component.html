@@ -6,7 +6,7 @@
                 <i class="mr-1 "
                     [ngClass]="{ 'bi bi-search' : !isProjectSearchEnabled, 'bi bi-x': isProjectSearchEnabled}"></i>
             </button>
-            <button class="btn text-accent small d-flex align-items-center" matButton
+            <button class="btn text-accent small d-flex align-items-center" matButton *ngIf="!(userMapping.rmg_read_only)"
                 [matMenuTriggerFor]="downloadMenu">
                 <i class="bi bi-download mr-1"></i>Export
             </button>

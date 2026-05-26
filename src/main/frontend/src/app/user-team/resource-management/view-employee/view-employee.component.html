@@ -1,7 +1,8 @@
 <ng-container
     *ngIf="catagory != 'Not Mapped' && catagory != 'Exception' && catagory != 'OnBench' && catagory != 'Without Billability' && catagory != 'Unfilled Timesheet Projects' && catagory != 'Internal'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+                    style="display: flex;
                     justify-content: left;
                     max-width: fit-content;
                     padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -268,7 +269,8 @@ matSort (matSortChange)="sortData($event)"
 </ng-container>
 <ng-container *ngIf="catagory === 'Not Mapped'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+        style="display: flex;
         justify-content: left;
         max-width: fit-content;
         padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -362,7 +364,8 @@ matSort (matSortChange)="sortData($event)"
 
     <div class="row md-2">
 
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+        style="display: flex;
         justify-content: left;
         max-width: fit-content;
         padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -516,7 +519,8 @@ matSort (matSortChange)="sortData($event)"
 
 <ng-container *ngIf="catagory === 'OnBench'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+                    style="display: flex;
                     justify-content: left;
                     max-width: fit-content;
                     padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -718,7 +722,8 @@ matSort (matSortChange)="sortData($event)"
 
 <ng-container *ngIf="catagory === 'Without Billability'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+        style="display: flex;
         justify-content: left;
         max-width: fit-content;
         padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -806,7 +811,8 @@ matSort (matSortChange)="sortData($event)"
 
 <ng-container *ngIf="catagory === 'Unfilled Timesheet Projects'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+        style="display: flex;
         justify-content: left;
         max-width: fit-content;
         padding: 5px; border: 2px solid #053885;border-radius: 20%;">
@@ -1003,7 +1009,8 @@ matSort (matSortChange)="sortData($event)"
 <ng-container
     *ngIf="catagory === 'Internal'">
     <div class="row md-2">
-        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" style="display: flex;
+        <div class="col-md-2 m-2" [hidden]="allEmployeeData.length == 0 && catagory" *ngIf="!(userMapping.employee_report_read_only)"
+                    style="display: flex;
                     justify-content: left;
                     max-width: fit-content;
                     padding: 5px; border: 2px solid #053885;border-radius: 20%;">

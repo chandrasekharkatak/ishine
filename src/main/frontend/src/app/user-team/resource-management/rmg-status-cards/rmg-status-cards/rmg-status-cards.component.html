@@ -296,7 +296,7 @@
                             [ngClass]="{ 'fa fa-search' : !isProjectSearchEnabled, 'fa-solid fa-xmark': isProjectSearchEnabled}"></i>
                     </button> &nbsp;&nbsp;
                     <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu"
-                        *ngIf="projectDetailsList.length > 0">
+                        *ngIf="projectDetailsList.length > 0 && !(userMapping.rmg_read_only)">
                         <em class="fa fa-download"></em></button>
                     <mat-menu #downloadMenu="matMenu">
                         <button mat-menu-item (click)="exportPageProjectDetailsToExcel(projectDetailsList)">
@@ -584,7 +584,7 @@
             [defaultSortColumn]="projectDetailsDefaultSortColumn" [isRowExpandable]="true"
             [extraParams]="projectDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
             [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
-            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
+            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="" [feature]="feature">
         </app-my-table>
         <!-- <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>
@@ -603,7 +603,7 @@
             [defaultSortColumn]="employeeDetailsDefaultSortColumn" [isRowExpandable]="true"
             [extraParams]="employeeDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
             [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
-            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="">
+            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="" [feature]="feature">
         </app-my-table>
         <!-- <div class="modal-actions">
             <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeEmployeeDetailsModal()">Cancel</button>

@@ -1,0 +1,413 @@
+<div class="rmbtm-header">
+  <div class="rmbtm-header__title">
+    <div class="rmbtm-kicker">{{ viewOnly ? 'View travel ticket' : 'Travel ticket' }}</div>
+    <div class="rmbtm-title-row">
+      <h5 class="rmbtm-title mb-0">{{ ticket?.ticketNo || ('#' + ticket?.ticketId) }}</h5>
+      <span class="rmbtm-pill rmbtm-pill--status">{{ ticket?.displayStatus | rmbCamelDisplay }}</span>
+      <span class="rmbtm-pill rmbtm-pill--stage">Workflow · {{ ticket?.workflowStage | rmbCamelDisplay }}</span>
+    </div>
+  </div>
+  <div class="rmbtm-header__actions">
+    <button
+      type="button"
+      class="rmbtm-history"
+      aria-label="View approval history and comments"
+      title="Approval history &amp; comments"
+      (click)="openAuditHistoryModal()">
+      <i class="fa fa-history" aria-hidden="true"></i>
+    </button>
+    <button type="button" class="rmbtm-close" aria-label="Close" (click)="activeModal.dismiss()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>
+
+<div class="modal-body trv-page" *ngIf="ticket">
+  <div class="rmbtm-meta">
+    <div class="rmbtm-meta__row">
+      <div class="rmbtm-meta__item">
+        <div class="rmbtm-meta__label">Full Name</div>
+        <div class="rmbtm-meta__value">
+          {{ ticket?.fullName | rmbCamelDisplay }}<span *ngIf="ticket?.employeementId != null" class="rmbtm-meta__muted"> ({{ ticket?.employeementId }})</span>
+        </div>
+      </div>
+      <div class="rmbtm-meta__item rmbtm-meta__item--right">
+        <div class="rmbtm-meta__label">Submitted</div>
+        <div class="rmbtm-meta__value">{{ ticket?.submittedOn | date:'medium' }}</div>
+      </div>
+      <div class="rmbtm-meta__item rmbtm-meta__item--right">
+        <div class="rmbtm-meta__label">Requests On Ticket</div>
+        <div class="rmbtm-meta__value rmbtm-meta__value--total">{{ ticket?.lineCount || (ticket?.lines?.length || 0) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rmbtm-table-wrap mb-3">
+    <div class="table-responsive">
+    <table class="table table-sm rmbtm-table mb-0" [class.rmbtm-table--admin]="isTravelAdminStage">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Request Type</th>
+          <th>Trip</th>
+          <th>Mode</th>
+          <th>Class</th>
+          <th>Project</th>
+          <th>Client</th>
+          <th>Route</th>
+          <th>Request Status</th>
+          <th>Purpose</th>
+          <th>KYC docs</th>
+          <th>Booking proof</th>
+          <th *ngIf="isTravelAdminStage" class="rmbtm-col-booking-ref">Booking ref</th>
+          <th *ngIf="showBookingAmountColumn" class="rmbtm-col-amount">Amount</th>
+          <th *ngIf="isTravelAdminStage" class="rmbtm-col-upload">Upload</th>
+          <th *ngIf="isDecisionStage">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of ticket?.lines; let i = index"
+            [class.rmbtm-claim-row--muted]="isDecisionStage && !decisionForClaim(c.lineId)">
+          <td>{{ c.lineNo || (i + 1) }}</td>
+          <td>{{ c.requestType | rmbCamelDisplay }}</td>
+          <td class="small text-nowrap">{{ tripTypeLabel(c) }}</td>
+          <td class="small text-nowrap">{{ travelModeLabel(c) }}</td>
+          <td class="small text-nowrap">{{ travelClassLabel(c) }}</td>
+          <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
+          <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
+          <td class="small">{{ routeLabel(c) | rmbCamelDisplay }}</td>
+          <td class="text-nowrap">
+            <span class="rmbtm-status"
+              [ngClass]="{
+                'rmbtm-status--rejected': isRejectedStatus(c.lineStatus),
+                'rmbtm-status--pending': !isRejectedStatus(c.lineStatus) && ('' + c.lineStatus).includes('PENDING'),
+                'rmbtm-status--paid': ('' + c.lineStatus) === 'FULFILLED'
+              }">
+              {{ lineStatusLabel(c) | rmbCamelDisplay }}
+            </span>
+            <button
+              *ngIf="isRejectedStatus(c.lineStatus)"
+              type="button"
+              class="rmbtm-info-btn"
+              title="View rejection reason"
+              (click)="openRejectionInfo(c)">
+              <i class="fa fa-info-circle" aria-hidden="true"></i>
+            </button>
+          </td>
+          <td class="small">{{ (c.purpose || '—') | rmbCamelDisplay }}</td>
+          <td class="text-nowrap">
+            <button
+              type="button"
+              class="btn btn-sm rmbtm-proof-btn"
+              [disabled]="!c.docIds?.length"
+              (click)="openProofsModal(c)">
+              <i class="fa fa-paperclip mr-1" aria-hidden="true"></i>
+              KYC docs ({{ c.docIds?.length || 0 }})
+            </button>
+          </td>
+          <td class="text-nowrap">
+            <button
+              type="button"
+              class="btn btn-sm rmbtm-proof-btn"
+              [disabled]="bookingProofCount(c) === 0"
+              (click)="openProofsModal(c, 'booking')">
+              <i class="fa fa-ticket mr-1" aria-hidden="true"></i>
+              Booking ({{ bookingProofCount(c) }})
+            </button>
+          </td>
+          <td *ngIf="isTravelAdminStage" class="small rmbtm-col-booking-ref">
+            <ng-container *ngIf="c.lineStatus === 'PENDING_ADMIN' && fulfillmentForLine(c.lineId) as ff; else bookedRef">
+              <input
+                type="text"
+                class="form-control form-control-sm rmbtm-booking-ref-input"
+                [(ngModel)]="ff.bookingReference"
+                placeholder="PNR / voucher" />
+            </ng-container>
+            <ng-template #bookedRef>
+              <span class="text-muted">{{ c.bookingReference || '—' }}</span>
+            </ng-template>
+          </td>
+          <td *ngIf="showBookingAmountColumn" class="small rmbtm-col-amount">
+            <ng-container *ngIf="c.lineStatus === 'PENDING_ADMIN' && fulfillmentForLine(c.lineId) as ff; else bookedAmount">
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                class="form-control form-control-sm rmbtm-booking-amount-input"
+                [(ngModel)]="ff.bookingAmount"
+                placeholder="Cost" />
+            </ng-container>
+            <ng-template #bookedAmount>
+              <span class="text-muted">{{ bookingAmountLabel(c.bookingAmount) }}</span>
+            </ng-template>
+          </td>
+          <td *ngIf="isTravelAdminStage" class="rmbtm-col-upload">
+            <ng-container *ngIf="c.lineStatus === 'PENDING_ADMIN' && fulfillmentForLine(c.lineId) as ff">
+              <div class="rmbtm-upload-cell">
+                <label class="btn btn-sm btn-outline-primary mb-0 rmbtm-upload-btn" title="Upload booking proof">
+                  <i class="fa fa-upload" aria-hidden="true"></i>
+                  <span class="ml-1">Upload</span>
+                  <input type="file" class="d-none" (change)="onBookingProofSelected(c, $event)" />
+                </label>
+                <span class="rmbtm-upload-count" *ngIf="ff.adminProofDocIds?.length">{{ ff.adminProofDocIds.length }} file(s)</span>
+              </div>
+            </ng-container>
+            <span *ngIf="c.lineStatus !== 'PENDING_ADMIN'" class="text-muted">—</span>
+          </td>
+          <td *ngIf="isDecisionStage" class="text-nowrap rmb-claim-actions">
+            <ng-container *ngIf="decisionForClaim(c.lineId) as dec; else noClaimAction">
+              <button
+                type="button"
+                class="rmbtm-icon-btn"
+                [ngClass]="dec?.approved === true ? 'rmbtm-icon-btn--ok' : 'rmbtm-icon-btn--ok-outline'"
+                title="approve"
+                (click)="openApproveReason(c)">
+                <i class="fa fa-check" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                class="rmbtm-icon-btn ml-1"
+                [ngClass]="dec?.approved === false ? 'rmbtm-icon-btn--no' : 'rmbtm-icon-btn--no-outline'"
+                title="reject"
+                (click)="openRejectReason(c)">
+                <i class="fa fa-times" aria-hidden="true"></i>
+              </button>
+            </ng-container>
+            <ng-template #noClaimAction>
+              <span class="text-muted small">—</span>
+            </ng-template>
+          </td>
+        </tr>
+        <tr *ngIf="!ticket?.lines?.length">
+          <td [attr.colspan]="isDecisionStage ? 13 : ((isTravelAdminStage ? 14 : 12) + (showBookingAmountColumn ? 1 : 0))" class="text-center text-muted">No requests on this ticket.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div *ngIf="isDecisionStage && pendingDecisionCount() > 1" class="rmbtm-bulk-bar">
+    <div class="rmbtm-bulk-bar__copy">
+      <strong>{{ pendingDecisionCount() }} request(s)</strong> need a decision at this stage.
+      Use <strong>Approve all</strong> or <strong>Reject all</strong>, or decide each request below.
+      <span class="rmbtm-bulk-bar__note">If every request is rejected, the ticket closes as rejected and the employee must submit a new Travel Ticket.</span>
+    </div>
+    <div class="rmbtm-bulk-bar__actions">
+      <button type="button" class="btn btn-sm btn-success rmbtm-bulk-btn" (click)="openApproveAllReason()">
+        <i class="fa fa-check mr-1" aria-hidden="true"></i>Approve all
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger rmbtm-bulk-btn" (click)="openRejectAllReason()">
+        <i class="fa fa-times mr-1" aria-hidden="true"></i>Reject all
+      </button>
+    </div>
+  </div>
+
+  <div class="rmbtm-footer"
+    [class.rmbtm-footer--actions-only]="!isTravelAdminStage && !(isDecisionStage && rejectedCount() > 0)">
+    <div class="rmbtm-footer__summary" *ngIf="isDecisionStage && rejectedCount() > 0">
+      <div class="rmbtm-footer__sub">
+        {{ rejectedCount() }} rejected
+      </div>
+    </div>
+
+    <div class="rmbtm-footer__actions">
+      <button
+        *ngIf="isDecisionStage"
+        type="button"
+        class="btn btn-primary rmbtm-submit-btn"
+        [disabled]="ensureDecisions().length === 0"
+        (click)="submitDecisions()">
+        <i class="fa fa-paper-plane mr-1" aria-hidden="true"></i>Submit
+      </button>
+
+      <div *ngIf="isTravelAdminStage" class="rmbtm-finance-actions">
+        <div class="rmbtm-finance-field">
+          <label class="rmbtm-finance-label" for="rmbAdminAction">Travel Admin decision</label>
+          <select
+            id="rmbAdminAction"
+            class="form-control rmbtm-finance-select"
+            [(ngModel)]="ticket._adminAction"
+            (ngModelChange)="onAdminActionChange($event)">
+            <option value="BOOKED">Mark as booked</option>
+            <option value="REJECTED">Reject ticket</option>
+          </select>
+        </div>
+        <div class="rmbtm-finance-field rmbtm-finance-field--grow" *ngIf="ticket._adminAction === 'REJECTED'">
+          <label class="rmbtm-finance-label" for="rmbAdminRemarks">
+            Rejection reason <span class="rmbtm-finance-req" aria-hidden="true">*</span>
+          </label>
+          <textarea
+            id="rmbAdminRemarks"
+            class="form-control rmbtm-finance-textarea"
+            rows="2"
+            [(ngModel)]="ticket._adminRemarks"
+            placeholder="Brief reason shown to the employee"></textarea>
+        </div>
+        <p class="rmbtm-admin-hint w-100 mb-0" *ngIf="ticket._adminAction !== 'REJECTED' && !canMarkAsBooked()">
+          Enter amount and upload booking proof for each line, then submit to mark as booked.
+        </p>
+        <button
+          type="button"
+          class="btn btn-primary rmbtm-submit-btn rmbtm-finance-submit"
+          [disabled]="!canSubmitTravelAdmin()"
+          (click)="submitTravelAdminAction()">
+          <i class="fa fa-paper-plane mr-1" aria-hidden="true"></i>Submit
+        </button>
+        <div class="rmbtm-finance-error w-100" *ngIf="docError" role="alert">{{ docError | rmbCamelDisplay }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #auditHistoryModal>
+  <div class="rmbtm-hist-dialog">
+    <div class="rmbtm-hist-header">
+      <div class="rmbtm-hist-header-text">
+        <div class="rmbtm-hist-kicker"><i class="fa fa-history" aria-hidden="true"></i> Approval history</div>
+        <h4 class="rmbtm-hist-title">{{ ticket?.ticketNo || ('#' + ticket?.ticketId) }}</h4>
+        <p class="rmbtm-hist-sub">Chronological activity and comments from submission through approval and Travel Admin.</p>
+      </div>
+      <button type="button" class="rmbtm-hist-close" aria-label="Close history" (click)="closeAuditHistoryModal()">
+        <i class="fa fa-times" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="rmbtm-hist-body">
+      <div *ngIf="ticketAuditLoading" class="rmbtm-hist-state text-muted">Loading history…</div>
+      <div *ngIf="!ticketAuditLoading && ticketAuditError" class="rmbtm-hist-state text-danger small">{{ ticketAuditError }}</div>
+      <div *ngIf="!ticketAuditLoading && !ticketAuditError && !ticketAuditLog?.length" class="rmbtm-hist-state text-muted small">
+        No approval activity has been recorded for this ticket yet.
+      </div>
+      <div class="rmbtm-timeline" *ngIf="!ticketAuditLoading && !ticketAuditError && ticketAuditLog?.length">
+        <article *ngFor="let row of ticketAuditLog; let last = last" class="rmbtm-timeline-row">
+          <div class="rmbtm-timeline-gutter">
+            <span class="rmbtm-timeline-dot"></span>
+            <span class="rmbtm-timeline-line" *ngIf="!last" aria-hidden="true"></span>
+          </div>
+          <div class="rmbtm-timeline-main">
+            <div class="rmbtm-timeline-card">
+              <div class="rmbtm-timeline-card__top">
+                <time class="rmbtm-timeline-time">{{ row.createdOn | date:'medium' }}</time>
+                <span class="rmbtm-timeline-badge">{{ formatAuditAction(row.action) }}</span>
+              </div>
+              <div class="rmbtm-timeline-actor">
+                <span class="rmbtm-timeline-actor__label">By</span> {{ formatAuditActor(row) }}
+              </div>
+              <div class="rmbtm-timeline-claim" *ngIf="row.lineId != null">{{ claimLabelForAudit(row.lineId) }}</div>
+              <div class="rmbtm-timeline-remarks" *ngIf="hasAuditRemarks(row)">{{ row.remarks }}</div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="rmbtm-hist-footer">
+      <button type="button" class="btn btn-primary px-4" (click)="closeAuditHistoryModal()">Close</button>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #rejectReasonModal>
+  <div class="modal-header">
+    <h5 class="modal-title">{{ rejectModalHeading | rmbCamelDisplay }}</h5>
+    <button type="button" class="close" aria-label="Close" (click)="cancelRejectReason()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <p class="small text-muted mb-2" *ngIf="remarksModalContext?.bulk && remarksModalContext?.kind === 'reject'">The same reason will be applied to every pending request on this ticket.</p>
+    <p class="small text-muted mb-2" *ngIf="remarksModalContext?.bulk && remarksModalContext?.kind === 'approve'">The same comments will be applied to every pending request on this ticket.</p>
+    <label class="small mb-1" *ngIf="remarksModalContext?.kind === 'approve'">Approval comments (required)</label>
+    <label class="small mb-1" *ngIf="remarksModalContext?.kind === 'reject'">Rejection reason (required)</label>
+    <textarea class="form-control" rows="3" [(ngModel)]="rejectReason"
+      [placeholder]="remarksModalContext?.kind === 'approve' ? 'Enter approval comments' : 'Enter rejection reason'"></textarea>
+    <div class="text-danger small mt-2" *ngIf="docError">{{ docError | rmbCamelDisplay }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="cancelRejectReason()">Cancel</button>
+    <button *ngIf="remarksModalContext?.kind === 'reject'" type="button" class="btn btn-danger" (click)="confirmRejectReason()">{{ remarksModalContext?.bulk ? 'Reject all' : 'Reject' }}</button>
+    <button *ngIf="remarksModalContext?.kind === 'approve'" type="button" class="btn btn-success" (click)="confirmRejectReason()">{{ remarksModalContext?.bulk ? 'Approve all' : 'Approve' }}</button>
+  </div>
+</ng-template>
+
+<ng-template #rejectionInfoModal>
+  <div class="modal-header rmbtm-proof-modal__header">
+    <div class="rmbtm-proof-modal__title">{{ rejectionInfoTitle | rmbCamelDisplay }}</div>
+    <button type="button" class="rmbtm-proof-close" aria-label="Close" (click)="closeRejectionInfo()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="rmbtm-empty" style="border-style: solid;">
+      <div class="rmbtm-empty__hint" style="white-space: pre-wrap;">{{ rejectionInfoMessage | rmbCamelDisplay }}</div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" (click)="closeRejectionInfo()">ok</button>
+  </div>
+</ng-template>
+
+<ng-template #proofsModal>
+  <div class="modal-header rmbtm-proof-modal__header">
+    <div>
+      <div class="rmbtm-proof-modal__kicker">{{ proofsModalKind === 'booking' ? 'Booking proof' : 'KYC documents' }}</div>
+      <div class="rmbtm-proof-modal__title">
+        Ticket {{ ticket?.ticketNo || ('#' + ticket?.ticketId) }} · {{ (selectedClaim?.requestType || 'Claim') | rmbCamelDisplay }}
+      </div>
+    </div>
+    <button type="button" class="rmbtm-proof-close" aria-label="Close" (click)="closeProofsModal()">
+      <i class="fa fa-times" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="rmbtm-card">
+          <div class="rmbtm-card__head">
+            <div class="rmbtm-card__title">Documents</div>
+            <div class="rmbtm-card__hint">{{ selectedClaimDocIds?.length || 0 }} file(s)</div>
+          </div>
+          <div *ngIf="selectedClaimDocIds?.length; else noProofsList" class="rmbtm-proof-list">
+            <button
+              *ngFor="let docId of selectedClaimDocIds; let di = index"
+              type="button"
+              class="btn btn-sm rmbtm-doc-pill w-100 text-left mb-2"
+              (click)="previewDoc(docId)">
+              <i class="fa fa-file-o mr-2" aria-hidden="true"></i>
+              document{{ di + 1 }}
+            </button>
+          </div>
+          <ng-template #noProofsList>
+            <div class="rmbtm-empty">
+              <div class="rmbtm-empty__title">noDocuments</div>
+              <div class="rmbtm-empty__hint">No KYC documents attached</div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="col-md-8 mt-3 mt-md-0">
+        <div class="rmbtm-card">
+          <div class="rmbtm-card__head">
+            <div class="rmbtm-card__title">preview</div>
+            <div class="rmbtm-card__hint">pdfImage</div>
+          </div>
+          <div *ngIf="selectedDocument; else noProofSelected">
+            <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else proofImageBlock">
+              <iframe [src]="selectedDocument" width="100%" height="520px"></iframe>
+            </ng-container>
+            <ng-template #proofImageBlock>
+              <img [src]="selectedDocument" class="img-fluid" alt="documentPreview" />
+            </ng-template>
+          </div>
+          <ng-template #noProofSelected>
+            <div class="rmbtm-empty">
+              <div class="rmbtm-empty__title">selectADocument</div>
+              <div class="rmbtm-empty__hint">pickOneFromTheListToPreviewHere</div>
+            </div>
+          </ng-template>
+          <div class="text-danger small mt-2" *ngIf="docError">{{ docError | rmbCamelDisplay }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

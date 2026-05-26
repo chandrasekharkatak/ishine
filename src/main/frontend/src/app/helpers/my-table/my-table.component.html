@@ -7,7 +7,7 @@
                     <i [ngClass]="{'fa fa-search': !isSearchEnabled,'fa-solid fa-xmark': isSearchEnabled}">
                     </i>
                 </button>&nbsp;&nbsp;
-                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed">
+                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed && !(userMapping.rmg_read_only)">
                     <em class="fa fa-download"></em></button>
                 <mat-menu #downloadMenu="matMenu">
                     <button mat-menu-item (click)="downloadData(false)">
@@ -117,7 +117,7 @@
                                     <app-my-table [apiUrl]="null" [columns]="subTableColumnConfig"
                                         [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
                                         [isExportAllowed]="false" [isSearchAllowed]="false"
-                                        [subTableData]="row?.expandedRowDetails">
+                                        [subTableData]="row?.expandedRowDetails" [feature]="feature">
                                     </app-my-table>
                                 </td>
                             </tr>

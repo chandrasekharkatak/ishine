@@ -35,6 +35,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
 	public Employee findByEmail(String email);
 
+	@Query(value = "SELECT * FROM employee WHERE LOWER(email) LIKE LOWER(CONCAT(:localPartPrefix, '%')) LIMIT 1", nativeQuery = true)
+	Employee findFirstByEmailLocalPartIgnoreCase(@Param("localPartPrefix") String localPartPrefix);
+
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeeByEmpId(Long empId);
 

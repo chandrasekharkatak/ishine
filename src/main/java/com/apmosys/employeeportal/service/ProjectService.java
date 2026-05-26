@@ -2646,7 +2646,8 @@ public class ProjectService {
 				+ "    SELECT 'Monitoring' \n" + "),\n" + "AllBillableTypes AS (\n"
 				+ "    SELECT 'Bench' AS billable_type\n" + "    UNION ALL\n" + "    SELECT 'Shadow'\n"
 				+ "    UNION ALL\n" + "    SELECT 'TNM'\n" + "    UNION ALL\n" + "    SELECT 'Fixed Cost'\n"
-				+ "    UNION ALL\n" + "    SELECT 'InternalRNDProducts'\n" + "),\n" + "AllCombinations AS (\n"
+				+ "    UNION ALL\n" + "    SELECT 'InternalRNDProducts'\n" + "    UNION ALL\n"
+				+ "    SELECT 'Monitoring'\n" + "),\n" + "AllCombinations AS (\n"
 				+ "    SELECT \n" + "        apt.po_project_type, \n" + "        abt.billable_type\n"
 				+ "    FROM AllPoProjectTypes apt\n" + "    CROSS JOIN AllBillableTypes abt\n" + "),\n"
 				+ "MainAgg AS (\n" + "    SELECT \n"
@@ -2723,7 +2724,7 @@ public class ProjectService {
 	}
 
 	public Map<String, Map<String, Map<String, Object>>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
-		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
+		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Monitoring", "Shadow", "TNM");
 
 		Map<String, Map<String, EmployeeProjectSummaryDTO>> summaryMap = new HashMap<>();
 
@@ -3825,6 +3826,7 @@ public class ProjectService {
 			response.setFixedCost(0L);
 			response.setTnm(0L);
 			response.setInternalRNDProducts(0L);
+			response.setMonitoring(0L);
 			return response;
 		}
 
@@ -3836,6 +3838,7 @@ public class ProjectService {
 		response.setFixedCost(Long.parseLong(row[4] != null ? row[4].toString() : "0"));
 		response.setTnm(Long.parseLong(row[5] != null ? row[5].toString() : "0"));
 		response.setInternalRNDProducts(Long.parseLong(row[6] != null ? row[6].toString() : "0"));
+		response.setMonitoring(Long.parseLong(row[7] != null ? row[7].toString() : "0"));
 
 		return response;
 	}

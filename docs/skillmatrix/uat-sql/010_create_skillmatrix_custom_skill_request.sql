@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS skillmatrix_custom_skill_request (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  requested_by_emp_id BIGINT NOT NULL,
+  requested_by_name VARCHAR(100) NOT NULL,
+  designation VARCHAR(150) NULL,
+  dept_id BIGINT NOT NULL,
+  dept_name VARCHAR(150) NULL,
+  hod_id BIGINT NOT NULL,
+  hod_name VARCHAR(100) NULL,
+  skill_name VARCHAR(150) NOT NULL,
+  category_id INT NOT NULL,
+  category_name VARCHAR(150) NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  approved_skill_type VARCHAR(20) NULL,
+  decision_comment TEXT NULL,
+  created_skill_id INT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  decided_at DATETIME NULL
+);
