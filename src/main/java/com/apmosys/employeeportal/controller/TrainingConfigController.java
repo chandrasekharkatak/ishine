@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,8 +30,10 @@ import com.apmosys.employeeportal.JobRoleAccess;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
+import com.apmosys.employeeportal.dto.TrainingMappingRequestDTO;
 import com.apmosys.employeeportal.dto.TrainingMasterDTO;
 import com.apmosys.employeeportal.dto.TrainingRequestDTO;
+import com.apmosys.employeeportal.service.TrainingMappingService;
 import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,6 +49,9 @@ public class TrainingConfigController {
 
 	@Autowired
 	private TrainingConfigService trainingConfigService;
+	
+	@Autowired
+	private TrainingMappingService assignmentService;
 	
 	@Value("${file.location.documents.training}")
 	private String trainingFileLocation;
@@ -379,4 +385,42 @@ public class TrainingConfigController {
     public ServiceResponse getAllTrainingTypes() {
         return trainingConfigService.getAllTrainingTypes();
     }
+	
+	 @GetMapping("/{trainingId}/excludable-employees")
+	    public ServiceResponse getExcludableEmployees(
+	            @PathVariable Integer trainingId,
+	            @RequestParam(required = false) List<Integer> deptId) {
+
+	        ServiceResponse response = new ServiceResponse();
+	        try {
+	            response.setServiceResponse(
+	                    assignmentService.getExcludableEmployees(trainingId.longValue(), deptId)
+	            );
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceStatus(e.getMessage());
+	        }
+	        return response;
+	    }
+
+	    @PostMapping("/{trainingId}/exclude")
+	    public ServiceResponse excludeEmployees(
+	            @PathVariable Integer trainingId,
+	            @RequestBody TrainingMappingRequestDTO request) {
+
+	        ServiceResponse response = new ServiceResponse();
+	        try {
+	            assignmentService.excludeEmployeesToTraining(trainingId.longValue(), request);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Employees Excluded successfully.");
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceStatus(e.getMessage());
+	        }
+	        return response;
+	    }
+	
 }

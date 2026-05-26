@@ -524,6 +524,34 @@
                     </div>
                 </div>
             </div>
+             <!-- Exclude Employees Section -->
+            <div class="row mt-4" *ngIf="isTrainingForm">
+                <div class="col-md-12">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-times mr-2"></i>
+                                <strong>Exclude Employees</strong>
+                                <small class="ml-2 text-muted">(All employees included by default)</small>
+                            </h5>
+                        </div>
+                        <div class="card-body bg-white">
+                            <button type="button" class="btn btn-outline-warning" (click)="openExcludeFromForm()">
+                                <i class="fas fa-users-slash mr-1"></i>
+                                Manage Exclusions
+                                <span class="badge badge-danger ml-2" *ngIf="pendingExcludedIds.length > 0">
+                                    {{pendingExcludedIds.length}} excluded
+                                </span>
+                            </button>
+                            <small class="d-block text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                Excluded employees will not see this training.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- Action Buttons -->
             <div class="row mt-4">
@@ -729,6 +757,11 @@
                                             (click)="onViewTrainingResponse(training)" title="View Responses">
                                         <em class="fa fa-clipboard-check"></em> View Responses
                                     </button>
+                                    <button class="btn btn-sm btn-outline-danger mx-1 my-1" *ngIf="userMapping.create_training"
+                                    (click)="onAssignTraining(training)" title="Exclude Employees">
+                                    <em class="fa fa-bars"></em>Exclude Employees
+                                </button>
+
                                 </td>
                             </tr>
                         </tbody>
@@ -1173,3 +1206,143 @@
     </div>
 
 </ng-template>
+<!-- exclusion modal template -->
+<ng-template #assign_training_modal let-modal>
+  <div class="modal-header bg-success text-white">
+    <h4 class="modal-title">
+      <i class="fas fa-users mr-2"></i>
+      Exclude — <strong>{{selectedTrainingForAssign?.trainingName}}</strong>
+    </h4>
+    <button type="button" class="close text-white" (click)="modal.dismiss()">
+      <span>&times;</span>
+    </button>
+  </div>
+
+  <div class="modal-body p-0">
+
+    <!-- Toolbar -->
+<div class="px-3 pt-3 pb-2 bg-light border-bottom">
+  <div class="row align-items-end">
+
+    <div class="col-md-3 mb-2">
+      <label class="font-weight-bold small mb-1">Department</label>
+      <select class="form-control form-control-sm"
+              [(ngModel)]="assignDeptFilter"
+              name="assignDeptFilter">
+        <option value="">All Departments</option>
+        <option *ngFor="let dept of assignDepartments" [value]="dept.deptId">
+          {{dept.departmentName}}
+        </option>
+      </select>
+    </div>
+
+    <div class="col-md-3 mb-2">
+      <label class="font-weight-bold small mb-1">Search</label>
+      <input type="text" class="form-control form-control-sm"
+             [(ngModel)]="assignSearchText"
+             name="assignSearchText"
+             placeholder="Search by name...">
+    </div>
+
+    <div class="col-md-3 mb-2">
+      <label class="font-weight-bold small mb-1">Status</label>
+      <select class="form-control form-control-sm"
+              [(ngModel)]="assignStatusFilter"
+              name="assignStatusFilter">
+        <option value="">All</option>
+        <option value="included">Included</option>
+        <option value="excluded">Excluded</option>
+      </select>
+    </div>
+
+    <div class="col-md-3 mb-2 text-right">
+      <span class="badge badge-success px-3 py-2">
+        <i class="fas fa-check mr-1"></i>
+        {{getSelectedCount()}} / {{assignableEmployees.length}} included
+      </span>
+      <span class="badge badge-danger px-3 py-2 ml-1">
+        <i class="fas fa-times mr-1"></i>
+        {{assignableEmployees.length - getSelectedCount()}} excluded
+      </span>
+      <div class="mt-1">
+        <a href="javascript:void(0)" class="small text-success mr-2"
+           (click)="selectAllEmployees()">Select All</a>
+        <a href="javascript:void(0)" class="small text-danger"
+           (click)="deselectAllEmployees()">Deselect All</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+    <!-- Loading -->
+    <div *ngIf="assignLoading" class="text-center py-5">
+      <div class="spinner-border text-success" role="status"></div>
+      <p class="mt-2 text-muted small">Loading employees...</p>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive" *ngIf="!assignLoading"
+         style="max-height: 400px; overflow-y: auto;">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="thead-light"
+               style="position: sticky; top: 0; z-index: 1;">
+          <tr>
+            <th style="width: 40px;">
+              <input type="checkbox"
+                     [checked]="isAllFilteredSelected()"
+                     (change)="toggleAllFiltered($event)">
+            </th>
+            <th>Employee Name</th>
+            <th>Department</th>
+            <th class="text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let emp of getFilteredEmployees()" [class.table-success]="assignSelectedIds.has(emp.empId)">
+                <td>
+                    <input type="checkbox" [checked]="assignSelectedIds.has(emp.empId)"
+                        (change)="toggleEmployeeSelection(emp.empId)">
+                </td>
+                <td>{{emp.name}}</td>
+                <td>
+                    <span class="badge badge-light border">{{emp.departmentName}}</span>
+                </td>
+                <td class="text-center">
+                    <span *ngIf="assignSelectedIds.has(emp.empId)" class="badge badge-success">
+                        <i class="fas fa-check"></i> Included
+                    </span>
+                    <span *ngIf="!assignSelectedIds.has(emp.empId)" class="badge badge-secondary">
+                        <i class="fas fa-times"></i> Excluded
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div class="modal-footer">
+    <small class="text-muted mr-auto">
+      <i class="fas fa-info-circle"></i>
+      Unchecked employees will be excluded from this training.
+    </small>
+    <button type="button" class="btn btn-secondary"
+            (click)="modal.dismiss()">
+      Cancel
+    </button>
+    <button type="button" class="btn btn-success px-4"
+            [disabled]="assignSaving"
+            (click)="onUpdateAssignment()">
+      <span *ngIf="assignSaving">
+        <span class="spinner-border spinner-border-sm mr-1"></span>
+        Saving...
+      </span>
+      <span *ngIf="!assignSaving">
+        <i class="fas fa-save mr-1"></i> Update Assignment
+      </span>
+    </button>
+  </div>
+</ng-template>
+
