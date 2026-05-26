@@ -27,10 +27,10 @@ import lombok.ToString;
 @Setter
 @Audited
 @ToString
-@Table(indexes = { @Index(name = "idx_podeptm_po_id", columnList = "poId"),
-        @Index(name = "idx_podeptm_dept_id", columnList = "deptId"),
-        @Index(name = "idx_podeptm_project_id", columnList = "projectId")
-})
+//@Table(indexes = { @Index(name = "idx_podeptm_po_id", columnList = "poId"),
+//        @Index(name = "idx_podeptm_dept_id", columnList = "deptId"),
+//        @Index(name = "idx_podeptm_project_id", columnList = "projectId")
+//})
 public class PoDepartmentMapping {
 	
 	@Id

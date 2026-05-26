@@ -7763,12 +7763,11 @@ public List<BiomaxRequest> getBiomaxRequestTest(){
 		}
 	    
 	    @Scheduled(cron = "0 0 1 * * *")
-	    @Transactional
+	    @Transactional(rollbackOn = Exception.class)
 	    public void updateTeamMemberStatus() {
 	        teamMemberStatusOrchestrationService.updateTeamMemberStatus(SchedulerTriggerType.SCHEDULER);
 	    }
-	    
-	    
+
 	    public void sendAutoMigrationMail(List<AutoMigrationDTO> migrations) {
 
 		    AutoMigrationDTO dto = migrations.get(0);

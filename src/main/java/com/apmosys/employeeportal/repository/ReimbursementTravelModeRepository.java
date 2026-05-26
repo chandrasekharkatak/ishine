@@ -1,15 +1,19 @@
 package com.apmosys.employeeportal.repository;
 
-import com.apmosys.employeeportal.model.ReimbursementTravelMode;
-import com.apmosys.employeeportal.model.TravelMode;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
+import com.apmosys.employeeportal.model.ReimbursementTravelMode;
 
 public interface ReimbursementTravelModeRepository extends JpaRepository<ReimbursementTravelMode, Long> {
-   // Optional<TravelMode> findByModeType(String modeType); 
-    
-   // List<TravelMode> findByTravelReasonId(Long travelReasonId);
 
+	long countByExpenditureType_Id(Long expenditureTypeId);
+
+	List<ReimbursementTravelMode> findByExpenditureType_IdOrderByModeTypeAsc(Long expenditureTypeId);
+
+	boolean existsByExpenditureType_IdAndModeTypeIgnoreCase(Long expenditureTypeId, String modeType);
+
+	boolean existsByExpenditureType_IdAndModeTypeIgnoreCaseAndTravelModeIdNot(Long expenditureTypeId,
+			String modeType, Long travelModeId);
 }

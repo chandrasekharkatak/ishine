@@ -2426,7 +2426,7 @@ public class ProjectService {
                  		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
                  		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
                  		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId ")
+                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) ")
                  .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
 						 + " ON ppd.project_id = p.project_id and ppd.active = true\n " )
                  .append(buildPoJoinCondition(flag))
@@ -2646,7 +2646,8 @@ public class ProjectService {
 				+ "    SELECT 'Monitoring' \n" + "),\n" + "AllBillableTypes AS (\n"
 				+ "    SELECT 'Bench' AS billable_type\n" + "    UNION ALL\n" + "    SELECT 'Shadow'\n"
 				+ "    UNION ALL\n" + "    SELECT 'TNM'\n" + "    UNION ALL\n" + "    SELECT 'Fixed Cost'\n"
-				+ "    UNION ALL\n" + "    SELECT 'InternalRNDProducts'\n" + "),\n" + "AllCombinations AS (\n"
+				+ "    UNION ALL\n" + "    SELECT 'InternalRNDProducts'\n" + "    UNION ALL\n"
+				+ "    SELECT 'Monitoring'\n" + "),\n" + "AllCombinations AS (\n"
 				+ "    SELECT \n" + "        apt.po_project_type, \n" + "        abt.billable_type\n"
 				+ "    FROM AllPoProjectTypes apt\n" + "    CROSS JOIN AllBillableTypes abt\n" + "),\n"
 				+ "MainAgg AS (\n" + "    SELECT \n"
@@ -2723,7 +2724,7 @@ public class ProjectService {
 	}
 
 	public Map<String, Map<String, Map<String, Object>>> getProjectSummary(GetEmployeeProjectReportPayloadDTO dto) {
-		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Shadow", "TNM");
+		List<String> allBillableTypes = Arrays.asList("Bench", "Fixed Cost", "InternalRNDProducts", "Monitoring", "Shadow", "TNM");
 
 		Map<String, Map<String, EmployeeProjectSummaryDTO>> summaryMap = new HashMap<>();
 
@@ -3070,6 +3071,10 @@ public class ProjectService {
 				empDTO.setMobileNo(record[20] != null ? Long.parseLong(record[20].toString()) : null);
 				empDTO.setEmail(record[21] != null ? record[21].toString() : null);
 				empDTO.setEmployeementIdAccToET(record[22] != null ? record[22].toString() : null);
+				if (record.length > 34) {
+					empDTO.setExperience(record[33] != null ? record[33].toString() : null);
+					empDTO.setDateOfJoining(record[34] != null ? record[34].toString() : null);
+				}
 
 				teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
 			}
@@ -3821,6 +3826,7 @@ public class ProjectService {
 			response.setFixedCost(0L);
 			response.setTnm(0L);
 			response.setInternalRNDProducts(0L);
+			response.setMonitoring(0L);
 			return response;
 		}
 
@@ -3832,6 +3838,7 @@ public class ProjectService {
 		response.setFixedCost(Long.parseLong(row[4] != null ? row[4].toString() : "0"));
 		response.setTnm(Long.parseLong(row[5] != null ? row[5].toString() : "0"));
 		response.setInternalRNDProducts(Long.parseLong(row[6] != null ? row[6].toString() : "0"));
+		response.setMonitoring(Long.parseLong(row[7] != null ? row[7].toString() : "0"));
 
 		return response;
 	}
@@ -4706,6 +4713,10 @@ public class ProjectService {
   	    dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
   	    dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
   	    dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
+  	    if (record.length > 34) {
+  	    	dtoObj.setExperience(record[33] != null ? record[33].toString() : null);
+  	    	dtoObj.setDateOfJoining(record[34] != null ? record[34].toString() : null);
+  	    }
 
   	    return dtoObj;
   	}

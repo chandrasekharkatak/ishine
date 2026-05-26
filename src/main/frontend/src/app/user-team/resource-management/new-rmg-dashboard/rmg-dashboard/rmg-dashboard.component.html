@@ -46,11 +46,12 @@
             <div class="d-flex align-items-center gap-3">
                 <!-- Department Dropdown -->
                 <div class="d-flex align-items-center mr-1">
-                    <label class="toolbar-label mb-0">Department</label>&nbsp;
+                    <label class="toolbar-label mb-0" [title]="selectedDepartmentsTooltip">Department</label>&nbsp;
 
                     <app-my-select class="form-select toolbar-select max-width200" placeholder="Select Department"
                         [(ngModel)]="selectedDepartmentIds" (dropdownClosed)="onDepartmentSelectionChange()"
                         [options]="filteredDepartmentList" displayKey="name" valueKey="deptId" [multiple]="true"
+                        [title]="selectedDepartmentsTooltip"
                         [showFilterAction]="currentUser.employeeRole != 'SuperAdmin'"
                         [filterActionLabel]="departmentFilterActionLabel" (filterAction)="filterDepartment()">
                     </app-my-select>
@@ -64,7 +65,7 @@
                     </app-my-select>
                 </div>
                 <!-- 360 Button -->
-                <button class="btn toolbar-btn ml-1 mr-1"
+                <button class="btn toolbar-btn ml-1 mr-1" *ngIf="!(userMapping.rmg_read_only)"
                     [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
                     [disabled]="!isValidEmployee" [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
                     <i class="bi bi-file-earmark-text me-1"></i> 360°
@@ -384,7 +385,7 @@
                         <div class="card-body p-2">
                             <p class="kpi-label text-muted text-uppercase mb-1">Fixed Cost</p>
                             <div id="TOTAL_FC_Chart" style="height: 130px"></div>
-                            <p class="xx-small text-muted mt-1 mb-0">On Time + Defaulter = Active</p>
+                            <!-- <p class="xx-small text-muted mt-1 mb-0">On Time + Defaulter = Active</p> -->
                         </div>
                     </div>
                 </div>
@@ -691,7 +692,7 @@
             [defaultSortColumn]="employeeDetailsDefaultSortColumn" [isRowExpandable]="true"
             [extraParams]="employeeDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
             [subTableColumnConfig]="employeeDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
-            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="">
+            [defaultCellMergeColumn]="'employmentIdAcToET'" [defaultSubTableCellMergeColumn]="" [feature]="feature">
         </app-my-table>
     </div>
 </ng-template>
@@ -707,7 +708,7 @@
             [defaultSortColumn]="projectDetailsDefaultSortColumn" [isRowExpandable]="true"
             [extraParams]="projectDetailsExtraParams" [isExportAllowed]="true" [isSearchAllowed]="true"
             [subTableColumnConfig]="projectDetailsSubTableColumnConfig" [subTableData]="[]" [mergeRowData]="true"
-            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="">
+            [defaultCellMergeColumn]="'projectName'" [defaultSubTableCellMergeColumn]="" [feature]="feature">
         </app-my-table>
         <!-- <div class="modal-actions">
               <button class="btn btn-outline-primary btn-sm ml-2" (click)="closeProjectDetailsModal()">Cancel</button>

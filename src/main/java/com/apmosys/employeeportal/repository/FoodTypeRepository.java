@@ -7,7 +7,8 @@ import com.apmosys.employeeportal.model.FoodType;
 
 @Repository
 public interface FoodTypeRepository extends JpaRepository<FoodType, Long> {
-	
-	//Optional<ExpenditureType> findByExpenditureTypeName(String expenditureType);
 
+	boolean existsByFoodTypeNameIgnoreCaseAndIdNot(String foodTypeName, Long id);
+
+	boolean existsByFoodTypeNameIgnoreCase(String foodTypeName);
 }

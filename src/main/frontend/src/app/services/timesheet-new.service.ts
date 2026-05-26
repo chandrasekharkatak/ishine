@@ -294,8 +294,9 @@ export class TimesheetNewService {
    * @param approvedDocType - true for Approved (FinalDocumentNew), false for Filled (TimesheetDocumentDetailsNew)
    */
   getDocumentDataByDocId(docId: number, approvedDocType: boolean): Observable<Blob> {
-    const url = `${this.baseUrl}api/v2/timesheet/getDocumentDataByDocId?docId=${docId}&approvedDocType=${approvedDocType}`;
-    return this.http.get(url, { responseType: 'blob' });
+    const payload = { docId, approvedDocType };
+    const url = `${this.baseUrl}api/v2/timesheet/getDocumentDataByDocId`;
+    return this.http.post(url, payload,{ responseType: 'blob' });
   }
 
   /**

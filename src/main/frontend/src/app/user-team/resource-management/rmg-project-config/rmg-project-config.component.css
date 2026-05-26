@@ -2011,3 +2011,32 @@ border-left: 4px solid #dc3545;
 font-weight: bold;
 font-style: italic;
 }
+
+.min-width-requirement-table50 {
+    min-width: 50px !important;
+}
+
+.min-width-requirement-table100 {
+    min-width: 100px !important;
+}
+
+.min-width-requirement-table150 {
+    min-width: 150px !important;
+}
+
+.min-width-requirement-table180 {
+    min-width: 180px !important;
+}
+
+
+.max-width-requirement-table100 {
+    max-width: 100px !important;
+}
+
+.max-width-requirement-table150 {
+    max-width: 150px !important;
+}
+
+.max-width-requirement-table200 {
+    max-width: 200px !important;
+}

@@ -122,6 +122,9 @@ public class PoPortalAPIService {
 	@Value("${exceptiondataReconcile.mailplsql}")
 	private String exceptionMailplsql;
 	
+	@Value("${poPortal.api.getProjectsByIds}")
+	private String poPortalProjectsByIdsURL;
+	
 	@Autowired
 	ClientService clientService;
 	
@@ -2430,7 +2433,7 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 	            // =====================================================
 	            // NULL PO DETAILS
 	            // =====================================================
-	            if (projectDto.getPoDetailsList() == null) {
+	            if (projectDto.getPoDetailsList() == null || projectDto.getPoDetailsList().isEmpty()){
 
 	                totalProjectsFailed++;
 
@@ -2724,13 +2727,13 @@ public ServiceResponse getAllMailsByProjectId(Long projectId) {
 		if (project == null || client == null) {
 			throw new PoportalApiException("Project or Client cannot be null");
 		}
-	    if (poDto.getDepartmentList() == null) {
+	    if (poDto.getDepartmentList() == null  || poDto.getDepartmentList().isEmpty()) {
 	        throw new PoportalApiException("Department list is NULL");
 	    }
 	    logger.info("department list is not null ");
 	    
 	    if ("TNM".equalsIgnoreCase(projectDto.getProjectType())
-	            && poDto.getResourceRequirementList() == null) {
+	            && (poDto.getResourceRequirementList() == null || poDto.getResourceRequirementList().isEmpty())) {
 	        throw new PoportalApiException("TNM project missing resources");
 	    }
 	    
@@ -3603,6 +3606,413 @@ return empId;
 			logger.error("Failed to send email for project {}: {}", projDetails.getProjectName(), e.getMessage());
 			return false;
 		}
+	}
+	
+	
+	
+
+	public ServiceResponse repairPoDataByProjectIds(
+	        List<Long> projectIds) {
+
+	    ServiceResponse response = new ServiceResponse();
+
+	    String traceId = UUID.randomUUID().toString();
+
+	    ApiLog initialLog = null;
+
+	    int finalHttpStatusCode =
+	            HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+	    StringBuilder exceptionDetailsForLog =
+	            new StringBuilder();
+
+	    List<ProjectPoMappingWithResourceDTO> payload =
+	            new ArrayList<>();
+
+	    int totalProjectsFromPayload = 0;
+	    int totalProjectsProcessed = 0;
+	    int totalProjectsFailed = 0;
+
+	    int totalPoReceived = 0;
+	    int totalPoProcessed = 0;
+	    int totalPoFailed = 0;
+
+	    try {
+
+	        // =====================================================
+	        // API LOG START
+	        // =====================================================
+
+	        initialLog = apiLogUtility.startLog(
+	                traceId,
+	                "repairPoDataByProjectIds",
+	                "Ishine",
+	                getCurrentUserId(),
+	                httpRequest
+	        );
+
+	        // =====================================================
+	        // CALL PO PORTAL
+	        // =====================================================
+
+	        HttpHeaders headers = new HttpHeaders();
+
+	        headers.set(
+	                "Authorization",
+	                poPortalAPIAuthenticationJWTUtility
+	                        .generateAccessToken()
+	        );
+
+	        headers.set("X-Trace-Id", traceId);
+
+	        headers.setContentType(MediaType.APPLICATION_JSON);
+
+	        HttpEntity<List<Long>> entity =
+	                new HttpEntity<>(projectIds, headers);
+
+	        logger.info(
+	                "Calling PO Portal for projectIds={}",
+	                projectIds
+	        );
+
+	        ResponseEntity<List<ProjectPoMappingWithResourceDTO>>
+	                apiResponse =
+	                restTemplate.exchange(
+	                        poPortalProjectsByIdsURL,
+	                        HttpMethod.POST,
+	                        entity,
+	                        new ParameterizedTypeReference<
+	                                List<ProjectPoMappingWithResourceDTO>>() {
+	                        }
+	                );
+
+	        finalHttpStatusCode =
+	                apiResponse.getStatusCodeValue();
+
+	        payload = apiResponse.getBody();
+
+	        logger.info(
+	                "Received payload from PO Portal={}",
+	                payload
+	        );
+
+	        if (apiResponse.getStatusCode() != HttpStatus.OK
+	                || payload == null) {
+
+	            throw new PoportalApiException(
+	                    "PO Portal API failed or returned empty response"
+	            );
+	        }
+
+	        // =====================================================
+	        // TOTAL PROJECT COUNT
+	        // =====================================================
+
+	        totalProjectsFromPayload =
+	                payload != null ? payload.size() : 0;
+
+	        // =====================================================
+	        // TOTAL PO COUNT
+	        // =====================================================
+
+	        for (ProjectPoMappingWithResourceDTO dto : payload) {
+
+	            if (dto.getPoDetailsList() != null) {
+
+	                totalPoReceived += dto.getPoDetailsList().size();
+	            }
+	        }
+
+	        // =====================================================
+	        // MAIN LOOP
+	        // =====================================================
+
+	        for (ProjectPoMappingWithResourceDTO projectDto
+	                : payload) {
+
+	            try {
+
+	                logger.info(
+	                        "Processing Repair Payload | poProjectId={}",
+	                        projectDto.getProjectId()
+	                );
+
+	                // =============================================
+	                // NULL PO DETAILS
+	                // =============================================
+
+	                if (projectDto.getPoDetailsList() == null
+	                        || projectDto.getPoDetailsList().isEmpty()) {
+
+	                    totalProjectsFailed++;
+
+	                    exceptionDetailsForLog.append(
+	                            "poDetailsList NULL | poProjectId="
+	                    )
+	                    .append(projectDto.getProjectId())
+	                    .append(" || ");
+
+	                    continue;
+	                }
+
+	                // =============================================
+	                // FIND PROJECT
+	                // =============================================
+
+	                Project project = projectRepository
+	                        .findByPoProjectId(
+	                                projectDto.getProjectId()
+	                        );
+
+	                if (project == null) {
+
+	                    totalProjectsFailed++;
+
+	                    exceptionDetailsForLog.append(
+	                            "Project not found | poProjectId="
+	                    )
+	                    .append(projectDto.getProjectId())
+	                    .append(" || ");
+
+	                    continue;
+	                }
+
+	                Client client =
+	                        clientRepository.findByClientId(
+	                                project.getClientId()
+	                        );
+
+	                boolean allPoSuccess = true;
+
+	                // =============================================
+	                // DELETE OLD DATA
+	                // =============================================
+
+	                deleteExistingPoData(projectDto);
+
+	                // =============================================
+	                // SAVE NEW DATA
+	                // =============================================
+
+	                for (PoDetailsForProjectPoMappingDTO poDto
+	                        : projectDto.getPoDetailsList()) {
+
+	                    try {
+
+	                        saveSinglePoTransactional(
+	                                projectDto,
+	                                poDto,
+	                                project,
+	                                client
+	                        );
+
+	                        totalPoProcessed++;
+
+	                    } catch (Exception ex) {
+
+	                        ex.printStackTrace();
+
+	                        allPoSuccess = false;
+
+	                        totalPoFailed++;
+
+	                        exceptionDetailsForLog.append(
+	                                "Rollback PO | poProjectId="
+	                        )
+	                        .append(projectDto.getProjectId())
+	                        .append(", poId=")
+	                        .append(poDto.getPoId())
+	                        .append(", reason=")
+	                        .append(ex.getMessage())
+	                        .append(" || ");
+	                    }
+	                }
+
+	                // =============================================
+	                // PROJECT COUNTS
+	                // =============================================
+
+	                if (allPoSuccess) {
+
+	                    totalProjectsProcessed++;
+
+	                } else {
+
+	                    totalProjectsFailed++;
+	                }
+
+	            } catch (Exception ex) {
+
+	                ex.printStackTrace();
+
+	                totalProjectsFailed++;
+
+	                exceptionDetailsForLog.append(
+	                        "Project level failure | poProjectId="
+	                )
+	                .append(projectDto.getProjectId())
+	                .append(", reason=")
+	                .append(ex.getMessage())
+	                .append(" || ");
+	            }
+	        }
+
+	        response.setServiceStatus(
+	                ServiceResponse.STATUS_SUCCESS
+	        );
+
+	        response.setServiceMessage(
+	                "PO repair completed."
+	        );
+
+	        response.setServiceResponse(payload);
+
+	    } catch (Exception ex) {
+
+	        ex.printStackTrace();
+
+	        response.setServiceStatus(
+	                ServiceResponse.STATUS_FAIL
+	        );
+
+	        response.setServiceMessage(
+	                "PO repair failed."
+	        );
+
+	        response.setServiceError(ex.getMessage());
+
+	        exceptionDetailsForLog.append(ex.getMessage());
+
+	    } finally {
+
+	        // =====================================================
+	        // API LOG END
+	        // =====================================================
+
+	        try {
+
+	            if (initialLog != null) {
+
+	                apiLogUtility.endLog(
+	                        initialLog.getId(),
+	                        poPortalProjectsByIdsURL,
+	                        finalHttpStatusCode,
+	                        exceptionDetailsForLog.toString(),
+	                        httpRequest
+	                );
+	            }
+
+	        } catch (Exception logEx) {
+
+	            logEx.printStackTrace();
+
+	            logger.error(
+	                    "Failed to end API log",
+	                    logEx
+	            );
+	        }
+
+	        // =====================================================
+	        // MAIL
+	        // =====================================================
+
+	        try {
+
+	            String formattedFailures =
+	                    exceptionDetailsForLog.toString()
+	                            .replace(
+	                                    "||",
+	                                    "<br/><br/>"
+	                            );
+
+	            String mailBody =
+
+	                    "<b>Trace ID:</b> "
+	                            + traceId
+	                            + "<br/><br/>"
+
+	                            + "<b>API:</b> repairPoDataByProjectIds<br/><br/>"
+
+	                            + "<b>Summary:</b><br/>"
+
+	                            + "Total Projects From Payload: "
+	                            + totalProjectsFromPayload
+	                            + "<br/>"
+
+	                            + "Projects Processed Successfully: "
+	                            + totalProjectsProcessed
+	                            + "<br/>"
+
+	                            + "Projects Failed: "
+	                            + "<span style='color:red;'>"
+	                            + totalProjectsFailed
+	                            + "</span><br/><br/>"
+
+	                            + "Total PO Received: "
+	                            + totalPoReceived
+	                            + "<br/>"
+
+	                            + "PO Processed Successfully: "
+	                            + totalPoProcessed
+	                            + "<br/>"
+
+	                            + "PO Failed: "
+	                            + "<span style='color:red;'>"
+	                            + totalPoFailed
+	                            + "</span><br/><br/>"
+
+	                            + "<b>Failure Details:</b><br/><br/>"
+
+	                            + (formattedFailures.isEmpty()
+	                            ? "No Failures"
+	                            : formattedFailures);
+
+	            mailService.sendMailWithCC(
+	                    exceptionMailplsql,
+	                    exceptionMaildev,
+	                    "PO Repair Summary | TraceId : "
+	                            + traceId,
+	                    mailBody
+	            );
+
+	        } catch (Exception mailEx) {
+
+	            mailEx.printStackTrace();
+
+	            logger.error(
+	                    "Failed to send repair mail",
+	                    mailEx
+	            );
+	        }
+	    }
+
+	    return response;
+	}
+	
+	@Transactional
+	public void deleteExistingPoData(
+	        ProjectPoMappingWithResourceDTO projectDto) {
+
+	    if (projectDto.getPoDetailsList() == null) {
+	        return;
+	    }
+
+	    List<Long> poIds = projectDto.getPoDetailsList()
+	            .stream()
+	            .map(PoDetailsForProjectPoMappingDTO::getPoId)
+	            .collect(Collectors.toList());
+
+	    if (poIds.isEmpty()) {
+	        return;
+	    }
+
+	    logger.info("Deleting old data for poIds={}", poIds);
+
+	    poRequirementMappingRepository.deleteByPoIds(poIds);
+
+	    poDepartmentMappingRepository.deleteByPoIds(poIds);
+
+	    projectPoDetailsRepository.deleteByPoIds(poIds);
 	}
 
 	

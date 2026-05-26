@@ -1,0 +1,47 @@
+<div class="mt-5">
+  <app-breadcrumb></app-breadcrumb>
+</div>
+
+<div class="row px-0" *ngIf="hasAnySkillMatrixAccess()">
+  <div class="col-md-12">
+    <div class="card">
+      <ul class="nav nav-tabs timesheet__tabs" id="skillMatrixTab" role="tablist">
+        <li *ngIf="userMapping['skill_matrix_submit_for_review']" class="nav-item timesheet__tab-item">
+          <a class="nav-link timesheet__tab-item__link" routerLink="submit-for-review" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }">Submit for review</a>
+        </li>
+        <li *ngIf="userMapping['skill_matrix_my_submissions']" class="nav-item timesheet__tab-item">
+          <a class="nav-link timesheet__tab-item__link" routerLink="my-submissions" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }">My Submissions</a>
+        </li>
+        <li *ngIf="userMapping['skill_matrix_approve_skill_requests']" class="nav-item timesheet__tab-item">
+          <a class="nav-link timesheet__tab-item__link" routerLink="approve-requests" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }">Approve Skill Requests</a>
+        </li>
+        <li *ngIf="userMapping['skill_matrix_master_configuration']" class="nav-item timesheet__tab-item">
+          <a class="nav-link timesheet__tab-item__link" routerLink="master-configuration" routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: false }">Master Configuration</a>
+        </li>
+      </ul>
+
+      <div class="tab-content" id="skillMatrixTabContent">
+        <div class="timesheet__tab-container">
+          <router-outlet class="tab-pane fade" role="tabpanel"></router-outlet>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row px-0" *ngIf="!hasAnySkillMatrixAccess()">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-body timesheet__tab-container">
+        <p class="mb-0 text-muted">
+          You do not have any Skill Matrix permissions assigned. Ask your administrator to map Skill Matrix sub-features to your job role in
+          <strong>Configuration</strong> → role / feature mapping, or use <strong>Reports → ACL</strong>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1338,10 +1338,18 @@ public class EmployeeService {
 				}
 				
 				EmpPrimaryProjectMapping employeeProject = empPrimaryProjectMappingRepository.findByEmpIdAndIsMapped(employeedto.getEmpId(),"Y");
-				if(employeeProject!=null) {
+				if (employeeProject != null) {
 					Project project = projectRepository.findByProjectId(employeeProject.getPrimaryProjectId().intValue());
-					empDTO.setDefaultProjectName(project.getProjectName());			
-					empDTO.setProjectId(employeeProject.getPrimaryProjectId().intValue());		
+					if (project != null) {
+						empDTO.setDefaultProjectId(project.getProjectId());
+						empDTO.setDefaultProjectName(project.getProjectName());
+						empDTO.setProjectId(employeeProject.getPrimaryProjectId().intValue());
+						String clientName = project.getClientName();
+						if ((clientName == null || clientName.trim().isEmpty()) && project.getClientId() != null) {
+							clientName = projectRepository.getClientNameByClientId(project.getClientId());
+						}
+						empDTO.setClientName(clientName);
+					}
 				}
 						
 						
@@ -4611,7 +4619,7 @@ public class EmployeeService {
 						File savedUpdatedFile = new File(imageFileLocation + File.separator + newFileName);
 						image.transferTo(savedUpdatedFile);
 
-						if (savedFile.exists()) {
+						if (savedUpdatedFile.exists()) {
 							employeeObj.setProfileImageName(newFileName);
 							Employee dbResponse = employeeRepository.save(employeeObj);
 
@@ -4656,11 +4664,16 @@ public class EmployeeService {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("Image Upload Failed");
+			response.setServiceError(e.getMessage());
+
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
-			
+			apiLogInfo.setApiResponse(e.getMessage());
 		}
+			
+		
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;

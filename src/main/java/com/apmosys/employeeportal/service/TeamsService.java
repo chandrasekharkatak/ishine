@@ -270,6 +270,8 @@ public class TeamsService {
 	@Value("${maximum.timesheetCanBeFilledByMember}")
 	private String maximumTimesheetCanBeFilledByTeamMember;
 
+    private static final long DEFAULT_MAPPING_SCHEDULER_USER = 1L;
+
 	public ServiceResponse getAllProjectListByProjectManagerId(TimesheetDTO timesheetDTO) {
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
@@ -3529,6 +3531,10 @@ public class TeamsService {
 				} else {
 					obj.setOtherActiveProjectIds(List.of());
 				}
+				String employeeRole = obj.getEmployeeRole();
+				if(employeeRole != null && !employeeRole.isBlank()) {
+					obj.setEmployeeRole(employeeRole.replaceAll(",\\s*$", ""));
+				}
 				obj.setDisplayRequirement(getDisplayRequirement(obj));
 			}
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
@@ -5317,18 +5323,49 @@ public class TeamsService {
      */
 
     public void updateDefaultProjectMappings() {
+        updateDefaultProjectMappings(null);
+    }
 
-        List<Long> activeEmployees =
-                employeeRepository.findAllActiveEmployees();
+    public void updateDefaultProjectMappings(Long scopedProjectId) {
 
-        if (activeEmployees.isEmpty()) return;
+        List<Long> activeEmployees;
+        List<ProjectEmpInfoDTO> allActiveProjects;
+        List<ProjectEmpInfoDTO> scopedMappingProjects;
 
-        List<ProjectEmpInfoDTO> projects =
-                employeeTeamMapRepository
-                        .findActiveProjectsForEmployees(activeEmployees);
+        if (scopedProjectId == null) {
+            activeEmployees = employeeRepository.findAllActiveEmployees();
+            if (activeEmployees.isEmpty()) {
+                return;
+            }
+            allActiveProjects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+            scopedMappingProjects = allActiveProjects;
+        } else {
+            List<EmployeeTeamMap> projectMembers = employeeTeamMapRepository.findByProjectIdAndActive(
+                    scopedProjectId.intValue(), 1L);
+            activeEmployees = projectMembers.stream()
+                    .map(EmployeeTeamMap::getEmpId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .collect(Collectors.toList());
+            if (activeEmployees.isEmpty()) {
+                return;
+            }
+            allActiveProjects = employeeTeamMapRepository.findActiveProjectsForEmployees(activeEmployees);
+            scopedMappingProjects = allActiveProjects.stream()
+                    .filter(p -> p.getProjectId() != null
+                            && scopedProjectId.equals(p.getProjectId().longValue()))
+                    .collect(Collectors.toList());
+            if (scopedMappingProjects.isEmpty()) {
+                return;
+            }
+        } 
+
+        Map<Long, List<ProjectEmpInfoDTO>> allActiveProjectsByEmp =
+                allActiveProjects.stream()
+                        .collect(Collectors.groupingBy(ProjectEmpInfoDTO::getEmpId));
 
         Map<Long, List<ProjectEmpInfoDTO>> empProjectMap =
-                projects.stream()
+                scopedMappingProjects.stream()
                         .collect(Collectors.groupingBy(
                                 ProjectEmpInfoDTO::getEmpId));
 
@@ -5342,7 +5379,7 @@ public class TeamsService {
                         .collect(Collectors.groupingBy(EmpPrimaryProjectMapping::getEmpId));
 
         List<EmpPrimaryProjectMapping> updates = new ArrayList<>();
-        
+
         List<MultiProjectEmployeeDTO> multiProjectEmployees = new ArrayList<>();
         Map<String, Set<MultiProjectEmployeeDTO>> hodNoDefaultEmployees = new HashMap<>();
         List<EmployeeBillableUpdateDTO> billableUpdates = new ArrayList<>();
@@ -5352,12 +5389,14 @@ public class TeamsService {
                 empProjectMap.entrySet()) {
 
             Long empId = entry.getKey();
-            List<ProjectEmpInfoDTO> empProjects = entry.getValue();
+            List<ProjectEmpInfoDTO> empProjectsForMapping = entry.getValue();
+            List<ProjectEmpInfoDTO> empProjectsForMultiProjectCheck =
+                    allActiveProjectsByEmp.getOrDefault(empId, empProjectsForMapping);
 
-            if (empProjects.size() > 1) {
+            if (empProjectsForMultiProjectCheck.size() > 1) {
 
                 MultiProjectEmployeeDTO dto =
-                        buildMultiProjectEmployee(empId, empProjects);
+                        buildMultiProjectEmployee(empId, empProjectsForMultiProjectCheck);
                 multiProjectEmployees.add(dto);
 
                 boolean hasDefault =
@@ -5377,7 +5416,11 @@ public class TeamsService {
                 continue;
             }
 
-            ProjectEmpInfoDTO project = empProjects.get(0);
+            if (empProjectsForMapping.isEmpty()) {
+                continue;
+            }
+
+            ProjectEmpInfoDTO project = empProjectsForMapping.get(0);
 
             Long projectId = project.getProjectId() != null
                     ? project.getProjectId().longValue()
@@ -5393,6 +5436,15 @@ public class TeamsService {
                     new ArrayList<>(
                             mappingsByEmpId.getOrDefault(empId, Collections.emptyList()));
 
+            if (hasDuplicateActiveDefaults(empMappings)) {
+                log.warn(
+                        "Skipping default-project mapping update for empId={}: multiple is_mapped='Y' rows in emp_primary_project_mapping",
+                        empId);
+                queueHodNotificationForMappingIntegrityIssue(
+                        empId, empProjectsForMultiProjectCheck, multiProjectEmployees, hodNoDefaultEmployees);
+                continue;
+            }
+
             // Demote any existing default mapping that is not the current single active project
             for (EmpPrimaryProjectMapping existing : empMappings) {
                 if ("Y".equalsIgnoreCase(existing.getIsMapped())
@@ -5400,7 +5452,7 @@ public class TeamsService {
 
                     existing.setIsMapped("N");
                     existing.setUpdatedOn(now);
-                    existing.setUpdatedBy(1L);
+                    existing.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
                     updates.add(existing);
                 }
             }
@@ -5412,14 +5464,18 @@ public class TeamsService {
                             .orElse(null);
 
             if (target == null) {
-                target = new EmpPrimaryProjectMapping();
-                target.setEmpId(empId);
-                target.setPrimaryProjectId(projectId);
-                target.setPrimaryProjectName(projectName);
-                target.setIsMapped("Y");
-                target.setUpdatedOn(now);
-                target.setUpdatedBy(1L);
-                updates.add(target);
+                boolean hasActiveDefault = empMappings.stream()
+                        .anyMatch(m -> "Y".equalsIgnoreCase(m.getIsMapped()));
+                if (!hasActiveDefault) {
+                    target = new EmpPrimaryProjectMapping();
+                    target.setEmpId(empId);
+                    target.setPrimaryProjectId(projectId);
+                    target.setPrimaryProjectName(projectName);
+                    target.setIsMapped("Y");
+                    target.setUpdatedOn(now);
+                    target.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
+                    updates.add(target);
+                }
             } else {
                 boolean needsUpdate =
                         !"Y".equalsIgnoreCase(target.getIsMapped())
@@ -5429,20 +5485,20 @@ public class TeamsService {
                     target.setPrimaryProjectName(projectName);
                     target.setIsMapped("Y");
                     target.setUpdatedOn(now);
-                    target.setUpdatedBy(1L);
+                    target.setUpdatedBy(DEFAULT_MAPPING_SCHEDULER_USER);
                     updates.add(target);
                 }
             }
-            
+			
             billableUpdates.add(
                     computeBillableUpdate(empId, project)
             );
         }
-        
+
         notifyManagersForMultipleProjectsGrouped(multiProjectEmployees);
 
         notifyHodsForMissingDefaultMapping(hodNoDefaultEmployees);
-        
+
         if (!billableUpdates.isEmpty()) {
 
             bulkUpdateBillableType(billableUpdates);
@@ -5450,9 +5506,96 @@ public class TeamsService {
         }
 
         if (!updates.isEmpty()) {
+            List<EmpPrimaryProjectMapping> existingMappings = updates.stream()
+                    .filter(m -> m.getMappingId() != null)
+                    .collect(Collectors.toList());
+            List<EmpPrimaryProjectMapping> newMappings = updates.stream()
+                    .filter(m -> m.getMappingId() == null)
+                    .collect(Collectors.toList());
 
-            empPrimaryProjectMappingRepository.saveAll(updates);
+            if (!existingMappings.isEmpty()) {
+                empPrimaryProjectMappingRepository.saveAll(existingMappings);
+            }
+            for (EmpPrimaryProjectMapping row : newMappings) {
+                empPrimaryProjectMappingRepository.save(row);
+            }
         }
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void cleanupDuplicateDefaultProjectMappings() {
+        List<Long> duplicateEmpIds =
+                empPrimaryProjectMappingRepository.findEmployeesWithMultipleDefaultMappings();
+
+        if (duplicateEmpIds.isEmpty()) {
+            log.info("Duplicate default mapping cleanup: no employees with multiple is_mapped='Y' rows found");
+            return;
+        }
+
+        log.info(
+                "Duplicate default mapping cleanup started: {} employee(s) with multiple is_mapped='Y' rows: {}",
+                duplicateEmpIds.size(), duplicateEmpIds);
+
+        int totalDeleted = 0;
+
+        for (Long empId : duplicateEmpIds) {
+            List<EmpPrimaryProjectMapping> activeMappings =
+                    empPrimaryProjectMappingRepository.findByEmpIdAndIsMappedOrderByUpdatedOnDesc(empId, "Y");
+
+            if (activeMappings.size() <= 1) {
+                continue;
+            }
+
+            EmpPrimaryProjectMapping retained = activeMappings.get(activeMappings.size() - 1);
+            log.info(
+                    "Duplicate default mapping cleanup retaining row for empId={}: mappingId={}, primaryProjectId={}, primaryProjectName={}, updatedOn={}",
+                    empId,
+                    retained.getMappingId(),
+                    retained.getPrimaryProjectId(),
+                    retained.getPrimaryProjectName(),
+                    retained.getUpdatedOn());
+
+            for (int i = 0; i < activeMappings.size() - 1; i++) {
+                EmpPrimaryProjectMapping duplicate = activeMappings.get(i);
+                log.info(
+                        "Duplicate default mapping cleanup deleting row for empId={}: mappingId={}, primaryProjectId={}, primaryProjectName={}, updatedOn={}",
+                        empId,
+                        duplicate.getMappingId(),
+                        duplicate.getPrimaryProjectId(),
+                        duplicate.getPrimaryProjectName(),
+                        duplicate.getUpdatedOn());
+                empPrimaryProjectMappingRepository.delete(duplicate);
+                totalDeleted++;
+            }
+        }
+
+        log.info(
+                "Duplicate default mapping cleanup complete: duplicateEmployeesFound={}, rowsDeleted={}",
+                duplicateEmpIds.size(), totalDeleted);
+    }
+
+    private void queueHodNotificationForMappingIntegrityIssue(
+            Long empId,
+            List<ProjectEmpInfoDTO> empProjects,
+            List<MultiProjectEmployeeDTO> multiProjectEmployees,
+            Map<String, Set<MultiProjectEmployeeDTO>> hodNoDefaultEmployees) {
+
+        MultiProjectEmployeeDTO dto = buildMultiProjectEmployee(empId, empProjects);
+        multiProjectEmployees.add(dto);
+
+        String hodEmail = employeeRepository.findHodMail(empId);
+        if (hodEmail != null && !hodEmail.isBlank()) {
+            hodNoDefaultEmployees
+                    .computeIfAbsent(hodEmail, k -> new HashSet<>())
+                    .add(dto);
+        }
+    }
+
+    private boolean hasDuplicateActiveDefaults(List<EmpPrimaryProjectMapping> empMappings) {
+        long activeDefaultCount = empMappings.stream()
+                .filter(m -> "Y".equalsIgnoreCase(m.getIsMapped()))
+                .count();
+        return activeDefaultCount > 1;
     }
 
     private void notifyHodsForMissingDefaultMapping(
@@ -5477,8 +5620,10 @@ public class TeamsService {
 
             try {
                 mailService.sendMailWithCC(
-                        hodEmail,
-                        rmgMail,
+//                        hodEmail,
+//                        rmgMail,
+                		"priyadarshini.singh@apmosys.com",
+                		"",
                         subject,
                         body
                 );
@@ -5497,14 +5642,26 @@ public class TeamsService {
 
         body.append("<table border='1' cellpadding='5'>")
             .append("<tr>")
-            .append("<th>Employee ID</th>")
+            .append("<th>Emp ID</th>")
+            .append("<th>Name</th>")
             .append("<th>Projects</th>")
             .append("</tr>");
 
         for (MultiProjectEmployeeDTO emp : employees) {
+            String employmentId = emp.getEmployeeCode() != null && !emp.getEmployeeCode().isBlank()
+                    ? emp.getEmployeeCode()
+                    : (emp.getEmpId() != null ? String.valueOf(emp.getEmpId()) : "--");
+            String employeeName = emp.getEmployeeName() != null && !emp.getEmployeeName().isBlank()
+                    ? emp.getEmployeeName()
+                    : "--";
+            String projects = emp.getProjectNames() != null && !emp.getProjectNames().isEmpty()
+                    ? String.join(", ", emp.getProjectNames())
+                    : "--";
+
             body.append("<tr>")
-                .append("<td>").append(emp.getEmpId()).append("</td>")
-                .append("<td>").append(String.join(", ", emp.getProjectNames())).append("</td>")
+                .append("<td>").append(employmentId).append("</td>")
+                .append("<td>").append(employeeName).append("</td>")
+                .append("<td>").append(projects).append("</td>")
                 .append("</tr>");
         }
 
@@ -5527,8 +5684,16 @@ public class TeamsService {
         TNMConflictDTO dto = new TNMConflictDTO();
 
         dto.setEmpId(candidate.getEmpId());
-        dto.setEmployeeCode(candidate.getEmployeeCode());
-        dto.setEmpName(candidate.getEmpName());
+        Employee employee = candidate.getEmpId() != null
+                ? employeeRepository.findByEmpId(candidate.getEmpId())
+                : null;
+        if (employee != null) {
+            dto.setEmployeeCode(formatEmploymentIdWithPrefix(employee));
+            dto.setEmpName(employee.getName() != null ? employee.getName() : "--");
+        } else {
+            dto.setEmployeeCode(candidate.getEmployeeCode());
+            dto.setEmpName(candidate.getEmpName() != null ? candidate.getEmpName() : "--");
+        }
         dto.setProjectId(candidate.getProjectId());
         dto.setNewProjectName(candidate.getProjectName());
         dto.setStartDate(candidate.getStartDate().toLocalDate());
@@ -5712,10 +5877,49 @@ public class TeamsService {
         dto.setProjectNames(
                 projects.stream()
                         .map(ProjectEmpInfoDTO::getProjectName)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
         );
 
+        Employee employee = empId != null ? employeeRepository.findByEmpId(empId) : null;
+        enrichMultiProjectEmployeeDisplay(dto, employee);
+
         return dto;
+    }
+
+    private void enrichMultiProjectEmployeeDisplay(MultiProjectEmployeeDTO dto, Employee employee) {
+        if (employee == null) {
+            dto.setEmployeeName(dto.getEmpId() != null ? "EMP-" + dto.getEmpId() : "--");
+            dto.setEmployeeCode(dto.getEmpId() != null ? String.valueOf(dto.getEmpId()) : "--");
+            return;
+        }
+        dto.setEmployeeName(employee.getName() != null ? employee.getName() : "--");
+        dto.setEmployeeCode(formatEmploymentIdWithPrefix(employee));
+    }
+
+    private String formatEmploymentIdWithPrefix(Employee employee) {
+        if (employee.getEmployeementId() == null) {
+            return employee.getEmpId() != null ? "EMP-" + employee.getEmpId() : "--";
+        }
+        String employmentId = String.valueOf(employee.getEmployeementId());
+        if (isTruthyFlag(employee.getIsConsultant())) {
+            return "CS-" + employmentId;
+        }
+        if (isTruthyFlag(employee.getIsApmosysProduct())) {
+            return "AP-" + employmentId;
+        }
+        return "A-" + employmentId;
+    }
+
+    private boolean isTruthyFlag(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        String normalized = value.trim();
+        return "true".equalsIgnoreCase(normalized)
+                || "y".equalsIgnoreCase(normalized)
+                || "yes".equalsIgnoreCase(normalized)
+                || "1".equals(normalized);
     }
     
     public void bulkUpdateBillableType(List<EmployeeBillableUpdateDTO> updates) {
@@ -5867,17 +6071,27 @@ public class TeamsService {
 
         body.append("<table border='1' cellpadding='5'>");
         body.append("<tr>");
-        body.append("<th>Employee ID</th>");
+        body.append("<th>Emp ID</th>");
+        body.append("<th>Name</th>");
         body.append("<th>Projects</th>");
         body.append("</tr>");
 
         for (MultiProjectEmployeeDTO emp : employees) {
 
+            String employmentId = emp.getEmployeeCode() != null && !emp.getEmployeeCode().isBlank()
+                    ? emp.getEmployeeCode()
+                    : (emp.getEmpId() != null ? String.valueOf(emp.getEmpId()) : "--");
+            String employeeName = emp.getEmployeeName() != null && !emp.getEmployeeName().isBlank()
+                    ? emp.getEmployeeName()
+                    : "--";
+            String projects = emp.getProjectNames() != null && !emp.getProjectNames().isEmpty()
+                    ? String.join(", ", emp.getProjectNames())
+                    : "--";
+
             body.append("<tr>");
-            body.append("<td>").append(emp.getEmpId()).append("</td>");
-            body.append("<td>")
-                    .append(String.join(", ", emp.getProjectNames()))
-                    .append("</td>");
+            body.append("<td>").append(employmentId).append("</td>");
+            body.append("<td>").append(employeeName).append("</td>");
+            body.append("<td>").append(projects).append("</td>");
             body.append("</tr>");
         }
 
@@ -5896,21 +6110,23 @@ public class TeamsService {
         String billable = "No";
         String billableType = "Bench";
 
-        if (Boolean.TRUE.equals(project.getIsShadow())) {
-
+        if (Integer.valueOf(1).equals(project.getIsShadow())) {
+        	
             billableType = "Shadow";
-        }
-
-        else if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
+            
+        } else if ("TNM".equalsIgnoreCase(project.getPoProjectType())) {
 
             billable = "Yes";
             billableType = "TNM";
         }
 
-        else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())
-                || "Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
+        else if ("Fixed Cost".equalsIgnoreCase(project.getPoProjectType())) {
 
             billableType = "Fixed Cost";
+        }
+        else if ("Monitoring".equalsIgnoreCase(project.getPoProjectType())) {
+
+        	billableType = "Monitoring";
         }
 
         else if ("InternalRNDProducts".equalsIgnoreCase(project.getInternalProjectType())) {

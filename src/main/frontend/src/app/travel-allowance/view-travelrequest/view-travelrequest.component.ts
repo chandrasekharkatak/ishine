@@ -8,6 +8,17 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
 import { TravelDeskService } from 'src/app/services/travel-desk.service';
+import { summarizeTravelTicketsToRows } from '../trv-ticket-rows.helper';
+import { TravelTicketModalComponent } from '../travel-ticket-modal/travel-ticket-modal.component';
+import { isHotelTravelReasonName } from '../travel-policy.helper';
+import {
+  approvalLevelApproverColumnTitle,
+  approvalLevelCell,
+  approvalLevelStatusColumnTitle,
+  buildTicketFilterColumns,
+  resolveTableLevelColumns,
+  RmbApprovalLevelColumn
+} from '../../reimbursement/rmb-approval-levels.helper';
 declare var $: any; // Import jQuery if it's being used for DOM manipulation
 
 @Component({
@@ -17,6 +28,9 @@ declare var $: any; // Import jQuery if it's being used for DOM manipulation
   styleUrls: ['./view-travelrequest.component.css']
 })
 export class ViewTravelrequestComponent implements OnInit {
+  readonly approvalLevelApproverColumnTitle = approvalLevelApproverColumnTitle;
+  readonly approvalLevelStatusColumnTitle = approvalLevelStatusColumnTitle;
+  readonly approvalLevelCell = approvalLevelCell;
 
   @ViewChild("alert_message")
   alertTemplate: TemplateRef<any>;
@@ -31,6 +45,32 @@ export class ViewTravelrequestComponent implements OnInit {
   alertMessage: any;
   invoiceDetails: boolean = false;
 
+  tableLevelColumns: RmbApprovalLevelColumn[] = [];
+  private matrixLevelColumnsFallback: RmbApprovalLevelColumn[] = [];
+  private readonly travelStaticFilterColumns = [
+    'requestId',
+    'name',
+    'requestType',
+    'travelModeDisplay',
+    'travelClassDisplay',
+    'tripTypeDisplay',
+    'fromDate',
+    'toDate',
+    'hotelCategory',
+    'cityCategory',
+    'city',
+    'fromLocation',
+    'toLocation',
+    'appliedOn',
+    'purpose',
+    'bookingProof',
+    'totalCost',
+    'displayStatus',
+    'currentApprovalLevel',
+    'blank'
+  ];
+  travelActiveColumns: string[] = [...this.travelStaticFilterColumns];
+
   constructor(private travelDesk: TravelDeskService,
     private modalService: NgbModal,
     private sanitizer: DomSanitizer,
@@ -41,29 +81,160 @@ export class ViewTravelrequestComponent implements OnInit {
 
   ngOnInit(): void {
     this.onGetEmployeeInfo();
-    this.onGetTravelInfo();
+    void this.onGetTravelInfo();
+  }
+
+  get travelTableColspan(): number {
+    return this.travelStaticFilterColumns.length - 1 + this.tableLevelColumns.length * 2 + 1;
+  }
+
+  formatTravelCost(amount: any): string {
+    const value = Number(amount);
+    if (!Number.isFinite(value) || value <= 0) {
+      return '—';
+    }
+    return `Rs. ${value.toLocaleString('en-IN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+  }
+
+  private async refreshTableLevelColumns(): Promise<void> {
+    let matrixCols: RmbApprovalLevelColumn[] = [];
+    const empId = Number(this.currentUser?.empId);
+    if (empId) {
+      try {
+        const res: any = await this.travelDesk
+          .resolveTravelApprovalMatrixForEmployee(empId)
+          .pipe(first())
+          .toPromise();
+        if (res?.serviceStatus === 'Success' && res.serviceResponse?.levelColumns) {
+          matrixCols = res.serviceResponse.levelColumns;
+        }
+      } catch {
+        matrixCols = [];
+      }
+    }
+    this.matrixLevelColumnsFallback = matrixCols;
+    const ticketsForLevels = this.travelRequests.filter(
+      (r: any) => r.matrixTicket && Array.isArray(r.approvalLevels) && r.approvalLevels.length
+    );
+    this.tableLevelColumns = resolveTableLevelColumns(
+      ticketsForLevels.length ? ticketsForLevels : this.travelRequests,
+      matrixCols
+    );
+    this.travelActiveColumns = buildTicketFilterColumns(
+      this.travelStaticFilterColumns,
+      this.tableLevelColumns.length
+    );
+    if (this.travelRequests.length) {
+      this.syncRowApprovalFilterFields();
+    }
+  }
+
+  private enrichLegacyRowApprovalLevels(row: any): any {
+    if (row.matrixTicket || (row.approvalLevels && row.approvalLevels.length)) {
+      return row;
+    }
+    const levels: any[] = [];
+    if (row.hodName || row.status) {
+      levels.push({
+        order: 1,
+        levelLabel: 'Level 1',
+        approverName: row.hodName || '—',
+        approverStatus: row.status || '—'
+      });
+    }
+    if (row.level2approverName || row.level2approverStatus) {
+      levels.push({
+        order: 2,
+        levelLabel: 'Level 2',
+        approverName: row.level2approverName || '—',
+        approverStatus: row.level2approverStatus || '—'
+      });
+    }
+    if (levels.length) {
+      row.approvalLevels = levels;
+    }
+    return row;
   }
 
   async onGetTravelInfo() {
-    if (this.isValidForm()) {
-      this.travelDeskInfo = new MyTravelDesk();
-      let travelData = new MyTravelDesk();
-
-      console.log('currentEmployeeInfo ::::::::::::::::', this.currentEmployeeInfo);
+    if (!this.isValidForm()) {
+      return;
+    }
+    const rows: any[] = [];
+    try {
+      const ticketResp: any = await this.travelDesk
+        .fetchMyTravelDeskTickets(this.currentUser.empId)
+        .pipe(first())
+        .toPromise();
+      if (ticketResp?.serviceStatus === 'Success' && Array.isArray(ticketResp.serviceResponse)) {
+        rows.push(...summarizeTravelTicketsToRows(ticketResp.serviceResponse));
+      }
+    } catch (e) {
+      console.error('Error fetching travel tickets:', e);
+    }
+    try {
+      const travelData = new MyTravelDesk();
       travelData.employeeId = this.currentUser.empId;
+      const legacyResp: any = await this.travelDesk.fetchTravelData(travelData).pipe(first()).toPromise();
+      if (legacyResp?.serviceStatus === 'Success' && Array.isArray(legacyResp.serviceResponse)) {
+        const legacyRows = legacyResp.serviceResponse.map((r: any) =>
+          this.enrichLegacyRowApprovalLevels({ ...r, matrixTicket: false })
+        );
+        rows.push(...legacyRows);
+      }
+    } catch (e) {
+      console.error('Error fetching legacy travel data:', e);
+    }
+    rows.sort((a, b) => {
+      const ad = a?.appliedOn ? new Date(a.appliedOn).getTime() : 0;
+      const bd = b?.appliedOn ? new Date(b.appliedOn).getTime() : 0;
+      return bd - ad;
+    });
+    this.travelRequests = rows;
+    this.selectedTravelRequest = rows;
+    await this.refreshTableLevelColumns();
+  }
 
-      console.log('Form Data:', travelData);
-
-      const response: any = await this.travelDesk.fetchTravelData(travelData).toPromise();
-
-      if (response.serviceStatus === "Success") {
-        this.travelRequests = response.serviceResponse;
-        console.log('Fetched Travel Requests:', this.travelRequests);
-        this.selectedTravelRequest = this.travelRequests;
-      } else {
-        console.error('Error fetching data:', response.serviceResponse);
+  private syncRowApprovalFilterFields(): void {
+    const n = this.tableLevelColumns.length;
+    for (const row of this.travelRequests) {
+      for (let i = 1; i <= n; i++) {
+        row[`level${i}ApproverName`] = approvalLevelCell(row, i - 1, 'approverName');
+        row[`level${i}ApproverStatus`] = approvalLevelCell(row, i - 1, 'approverStatus');
       }
     }
+  }
+
+  cellItems(row: any, field: string): any[] {
+    const items = row?.[`${field}Items`];
+    if (Array.isArray(items) && items.length) {
+      return items;
+    }
+    const value = row?.[field];
+    if (value == null || value === '') {
+      return ['NA'];
+    }
+    return [value];
+  }
+
+  cellItemKind(row: any, index: number): 'hotel' | 'flight' {
+    const requestType = row?.lines?.[index]?.requestType
+      || row?.requestTypeItems?.[index]
+      || row?.requestType;
+    return isHotelTravelReasonName(requestType) ? 'hotel' : 'flight';
+  }
+
+  cellItemKindLabel(row: any, index: number): string {
+    return this.cellItemKind(row, index) === 'hotel' ? 'Hotel' : 'Flight';
+  }
+
+  cellItemKindClass(row: any, index: number): string {
+    return this.cellItemKind(row, index) === 'hotel'
+      ? 'trv-cell-stack-badge--hotel'
+      : 'trv-cell-stack-badge--flight';
   }
 
   isValidForm() {
@@ -81,6 +252,94 @@ export class ViewTravelrequestComponent implements OnInit {
     this.modalRef = this.modalService.open(template, { modalDialogClass: 'modal-lg' });
     this.alertMessage = message;
   }
+
+  bookingProofEntries(row: any): Array<{
+    kindLabel: string;
+    badgeClass: string;
+    docIds: number[];
+    bookingReference?: string;
+  }> {
+    if (Array.isArray(row?.lines) && row.lines.length) {
+      return row.lines.map((line: any, index: number) => {
+        const kind = this.cellItemKind(row, index);
+        const rawIds = Array.isArray(line?.adminProofDocIds) ? line.adminProofDocIds : [];
+        const docIds = rawIds
+          .map((id: any) => Number(id))
+          .filter((id: number) => Number.isFinite(id));
+        return {
+          kindLabel: kind === 'hotel' ? 'Hotel' : 'Flight',
+          badgeClass: kind === 'hotel' ? 'trv-cell-stack-badge--hotel' : 'trv-cell-stack-badge--flight',
+          docIds,
+          bookingReference: line?.bookingReference || row?.bookingReference
+        };
+      });
+    }
+    const ids = Array.isArray(row?.adminProofDocIds)
+      ? row.adminProofDocIds.map((id: any) => Number(id)).filter((id: number) => Number.isFinite(id))
+      : [];
+    return [{
+      kindLabel: 'Flight',
+      badgeClass: 'trv-cell-stack-badge--flight',
+      docIds: ids,
+      bookingReference: row?.bookingReference
+    }];
+  }
+
+  async downloadBookingProof(entry: {
+    kindLabel: string;
+    docIds: number[];
+    bookingReference?: string;
+  }): Promise<void> {
+    const docId = Array.isArray(entry?.docIds) && entry.docIds.length ? Number(entry.docIds[0]) : NaN;
+    if (!Number.isFinite(docId)) {
+      this.openAlertMod(this.alertTemplate, `No booking proof available for this ${entry?.kindLabel || 'request'}.`);
+      return;
+    }
+    try {
+      const response: any = await this.travelDesk.previewDocument({ docId }).pipe(first()).toPromise();
+      if (response?.serviceStatus !== 'Success' || !response?.serviceResponse?.documentBytes) {
+        this.openAlertMod(this.alertTemplate, response?.serviceError || 'Document not available.');
+        return;
+      }
+      const base64Data = response.serviceResponse.documentBytes;
+      const link = document.createElement('a');
+      link.href = `data:application/octet-stream;base64,${base64Data}`;
+      const label = (entry?.kindLabel || 'proof').toLowerCase();
+      link.download = entry?.bookingReference
+        ? `booking-${label}-${entry.bookingReference}`
+        : `booking-${label}-proof`;
+      link.click();
+    } catch (e: any) {
+      this.openAlertMod(this.alertTemplate, e?.message || 'Download failed.');
+    }
+  }
+
+  openViewTicketModal(row: any): void {
+    if (!row?.matrixTicket) {
+      return;
+    }
+    const ticket = {
+      ticketId: row.ticketId,
+      ticketNo: row.ticketNo || row.requestId,
+      displayStatus: row.displayStatus,
+      workflowStage: row.workflowStage,
+      fullName: row.name,
+      submittedOn: row.appliedOn,
+      lineCount: row.lines?.length,
+      lines: row.lines,
+      approvalLevels: row.approvalLevels
+    };
+    const ref = this.modalService.open(TravelTicketModalComponent, {
+      size: 'xl',
+      backdrop: 'static',
+      windowClass: 'trv-ticket-modal'
+    });
+    ref.componentInstance.ticket = JSON.parse(JSON.stringify(ticket));
+    ref.componentInstance.actor = { empId: this.currentUser?.empId, email: this.currentUser?.email };
+    ref.componentInstance.viewOnly = true;
+    ref.result.catch(() => {});
+  }
+
   openEditModal(template: TemplateRef<any>, row: any) {
 
     this.selectedTravelRequest = { ...row };
@@ -244,7 +503,6 @@ export class ViewTravelrequestComponent implements OnInit {
   isSearchEnabled: boolean = false;
   filters: any = {};
 
-  travelActiveColumns: any[] = ['requestId', 'name', 'requestType', 'fromDate', 'toDate', 'hotelCategory', 'cityCategory', 'city', 'fromLocation', 'toLocation', 'empId', 'appliedOn', 'purpose'];
   onSearch(searchData) {
     if (this.isSearchEnabled == true) {
       this.filters = searchData;
@@ -259,36 +517,35 @@ export class ViewTravelrequestComponent implements OnInit {
   }
   name = 'TravelReport.xlsx';
   exportToExcel(): void {
-
-    const onlySpecificDataArr = this.travelRequests.map(
-      x => ({
-
-        "Request Id": x.requestId,
-        "Name": x.name,
-        "From Date": x.fromDate,
-        "To Date": x.toDate,
-        "Hotel Category": x.hotelCategory,
-        "City Category": x.cityCategory,
-        "City Name": x.city,
-        "From Location": x.fromLocation,
-        "To Location": x.toLocation,
-        "Applied By": x.empId,
-        "Applied On": x.appliedOn,
-        "Purpose Of Travel": x.purpose,
-        "Current Approval Level": x.level,
-        "Level 1 Approver Name": x.hodName,
-        "Level 1 Approver Status": x.status,
-        "Level 1 Approver Remarks": x.level1approverRemarks,
-        "Level 2 Approver Name": x.level2approverName,
-        "Level 2 Approver Status": x.level2approverStatus,
-        "Level 2 Approver Remarks": x.level2approverRemarks,
-        "Level 3 Approver Name": x.level3approverName,
-        "Level 3 Approver Status": x.level3approverStatus,
-        "Level 3 Approver Remarks": x.level3approverRemarks,
-        "Final Status": x.finalStatus
-      })
-    )
-    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name)
+    const onlySpecificDataArr = this.travelRequests.map((x) => {
+      const row: Record<string, unknown> = {
+        'Request Id': x.requestId,
+        Name: x.name,
+        'Request Type': x.requestType,
+        'Travel Mode': x.travelModeDisplay,
+        'Travel Class': x.travelClassDisplay,
+        'Trip Type': x.tripTypeDisplay,
+        'From Date': x.fromDate,
+        'To Date': x.toDate,
+        'Hotel Category': x.hotelCategory,
+        'City Category': x.cityCategory,
+        'City Name': x.city,
+        'From Location': x.fromLocation,
+        'To Location': x.toLocation,
+        'Applied On': x.appliedOn,
+        'Purpose Of Travel': x.purpose,
+        Status: x.displayStatus || x.finalStatus,
+        'Current Approval Level': x.currentApprovalLevel || x.level
+      };
+      this.tableLevelColumns.forEach((col, li) => {
+        const nameKey = `${col.levelLabel} approver`;
+        const statusKey = `${col.levelLabel} status`;
+        row[nameKey] = approvalLevelCell(x, li, 'approverName');
+        row[statusKey] = approvalLevelCell(x, li, 'approverStatus');
+      });
+      return row;
+    });
+    this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name);
   }
 
   travelId: any;

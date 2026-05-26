@@ -17,7 +17,12 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 
 public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPrimaryProjectMapping, Long>{
 
+	/** @deprecated Prefer {@link #findAllByEmpIdAndIsMappedOrderByMappingIdDesc} — DB may contain duplicate Y rows per emp. */
+	@Deprecated
 	EmpPrimaryProjectMapping findByEmpIdAndIsMapped(Long empId,String ismapped);
+
+	/** All active primary mappings for an employee (newest first). Use first element when only one logical primary is needed. */
+	List<EmpPrimaryProjectMapping> findAllByEmpIdAndIsMappedOrderByMappingIdDesc(Long empId, String ismapped);
 	
 	 List<EmpPrimaryProjectMapping> findByEmpIdIn(List<Long> empIds);
 
@@ -87,4 +92,12 @@ public interface EmpPrimaryProjectMappingRepository extends JpaRepository<EmpPri
         + "WHERE eppm.empId = :empId "
         + "AND eppm.isMapped = 'Y'")
 List<ProjectNameAndPrjoectIdDTO> getPrimaryMappedProjects(@Param("empId") Long empId);
+
+	@Query("SELECT eppm.empId FROM EmpPrimaryProjectMapping eppm "
+			+ "WHERE eppm.isMapped = 'Y' "
+			+ "GROUP BY eppm.empId "
+			+ "HAVING COUNT(eppm) > 1")
+	List<Long> findEmployeesWithMultipleDefaultMappings();
+
+	List<EmpPrimaryProjectMapping> findByEmpIdAndIsMappedOrderByUpdatedOnDesc(Long empId, String isMapped);
 }

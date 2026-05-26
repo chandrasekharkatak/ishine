@@ -888,10 +888,48 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     this.empClientSideObj.projectId = project.projectId!;
     this.empClientSideObj.projectName = project.projectName;
     this.empClientSideObj.empId = this.timesheetFilledForUser.empId;
+    this.empClientSideObj.hasClientSideId = project.hasClientSideId;
+    this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
     this.clientSideIdUpdateOrAddModalRef = this.modalService.open(
       this.clientSideIdUpdateOrAddModal,
       { modalDialogClass: 'modal-lg' }
     );
+  }
+
+  /** Unwrap API response — backend historically returned Optional as an object. */
+  private normalizeClientSideIdResponse(raw: unknown): string | null {
+    if (raw == null) {
+      return null;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      return s.length ? s : null;
+    }
+    if (typeof raw === 'object') {
+      const o = raw as { value?: unknown; present?: boolean };
+      if (typeof o.value === 'string') {
+        const s = o.value.trim();
+        return s.length ? s : null;
+      }
+    }
+    const s = String(raw).trim();
+    return s.length && s !== '[object Object]' ? s : null;
+  }
+
+  /** Apply client side ID to the matching project row in the form. */
+  applyClientSideIdToProject(projectId: number | string, clientSideId: string): void {
+    const pid = Number(projectId);
+    if (!Number.isFinite(pid) || !clientSideId) {
+      return;
+    }
+    this.timesheetLocations.forEach((location) => {
+      location.projects.forEach((project) => {
+        if (Number(project.projectId) === pid) {
+          project.clientSideId = clientSideId;
+        }
+      });
+    });
+    this.cdr.markForCheck();
   }
 
   /**
@@ -919,10 +957,16 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
         return;
       }
     }
+    const savedClientSideId = this.empClientSideObj.clientSideId.trim();
+    const projectId = this.empClientSideObj.projectId;
+    const empId = this.empClientSideObj.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.hideClientSideIdForm();
+        this.applyClientSideIdToProject(projectId, savedClientSideId);
+        this.getListToRenderUpload();
         this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectIdAndEmpId(this.empClientSideObj.projectId, this.empClientSideObj.empId);
+        void this.getClientSideIdByProjectIdAndEmpId(projectId, empId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
@@ -1239,6 +1283,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     }
     this.isNightShift = false;
     this.toDate = null;
+    this.compOffForDate = null;
     const dayTypeFillable = this.isDayTypeFillable();
     this.clearAndInitOnDayTypeChange(dayTypeFillable);
     // if (!dayTypeFillable) {
@@ -2215,7 +2260,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       .subscribe({
         next: (response: any) => {
           if (response.serviceStatus == "Success") {
-            let clientSideId = response.serviceResponse;
+            const clientSideId = this.normalizeClientSideIdResponse(response.serviceResponse);
             // ✅ Don't set empHasClientSideId here - let getListToRenderUpload() handle it
             // This method only sets clientSideId for the specific project
             // getListToRenderUpload() will check ALL projects and set empHasClientSideId correctly
@@ -2223,16 +2268,17 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
               this.empClientSideObj.clientSideId = clientSideId;
               this.empClientSideObj.projectId = projectId;
               this.empClientSideObj.empId = empId;
+              this.applyClientSideIdToProject(projectId, clientSideId);
               this.timesheetLocations.forEach(location => {
                 location.projects.forEach(project => {
-                  if (project.projectId == projectId) {
-                    project.clientSideId = clientSideId;
+                  if (Number(project.projectId) === Number(projectId)) {
                     this.empClientSideObj.projectName = project.projectName;
                     this.empClientSideObj.hasClientSideId = project.hasClientSideId;
                     this.empClientSideObj.hasClientSideFlag = project.hasClientFlag;
                   }
                 });
               });
+              this.getListToRenderUpload();
             }
           } else {
             this.timesheetLocations.forEach(location => {
@@ -6013,6 +6059,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
                 location.projects.forEach((project: any) => {
                   project.timesheetId = null;
                   project.locationMappingId = null;
+                  project.status = null;
                   if (project.activities) {
                     project.activities.forEach((activity: any) => {
                       activity.timesheetId = null;

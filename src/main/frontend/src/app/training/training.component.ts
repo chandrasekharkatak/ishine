@@ -1745,4 +1745,7 @@ clearAllPreviewData() {
       this.nextSlide();
     }
   }
+
+
+    
 }

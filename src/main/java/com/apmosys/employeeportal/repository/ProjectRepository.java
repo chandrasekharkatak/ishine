@@ -24,6 +24,7 @@ import com.apmosys.employeeportal.dto.PoTeamAndMemberDetailsDto;
 import com.apmosys.employeeportal.dto.ProjectDTO;
 import com.apmosys.employeeportal.dto.ProjectFetchDTO;
 import com.apmosys.employeeportal.dto.ProjectIdAndNameDTO;
+import com.apmosys.employeeportal.dto.ProjectIdNameClientDTO;
 import com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO;
 import com.apmosys.employeeportal.dto.RMGFlatEmployeeProjectTeamDTO;
 import com.apmosys.employeeportal.dto.ResourceCountDto;
@@ -36,10 +37,22 @@ import com.apmosys.employeeportal.model.Project;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
+	/** Active projects linked to any of the given departments (reimbursement picker for HOD / VP). */
+	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id "
+			+ "FROM projects p "
+			+ "INNER JOIN clients c ON c.client_id = p.client_id "
+			+ "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id "
+			+ "WHERE p.active = 'true' AND pdm.dept_id IN (:deptIds) "
+			+ "ORDER BY p.project_name ASC", nativeQuery = true)
+	List<Object[]> findActiveProjectsForReimbursementByDeptIds(@Param("deptIds") List<Long> deptIds);
+
 	public List<Project> findAllByProjectManagerId(Long projectManagerId);
 
 	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdAndNameDTO(p.projectId, p.projectName) FROM Project p")
 	public List<ProjectIdAndNameDTO> findAllProjectIdAndName();
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.ProjectIdNameClientDTO(p.projectId, p.projectName, p.clientId) FROM Project p")
+	List<ProjectIdNameClientDTO> findAllProjectIdNameAndClient();
 	
 	public List<Project> findByEmpId(Long empId);
 	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN :projectIds")
@@ -4582,7 +4595,8 @@ boolean existsByProjectName(String projectName);
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Shadow' THEN e.emp_id ELSE NULL END) AS shadow,\n"
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Fixed Cost' THEN e.emp_id ELSE NULL END) AS fixed_cost,\n"
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'TNM' THEN e.emp_id ELSE NULL END) AS tnm,\n"
-    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id ELSE NULL END) AS internal\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id ELSE NULL END) AS internal,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Monitoring' THEN e.emp_id ELSE NULL END) AS monitoring\n"
     				+ "FROM projects p\n"
     				+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
     				+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
@@ -9068,5 +9082,8 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " GROUP BY CASE WHEN po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END) T1 \n")
 	public List<Object[]> getProjectTypeWiseProjectCount(Set<Integer> projectIds, List<Long> deptIds);
 
+	
+	@Query(nativeQuery = true, value = " select p.po_project_type from projects p where p.project_id = :projectId ")
+	public String isClientProject(Integer projectId);
 
 }

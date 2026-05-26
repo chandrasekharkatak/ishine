@@ -1,168 +1,91 @@
-<!-- Travel History Table -->
-<div class="row">
+<div class="row rmb-page">
   <div class="col-md-12">
     <div class="row">
       <div class="col-md-12 table-header">
-        <h1 class="table-header-title">My Reimbursement Request History</h1>
+        <h1 class="table-header-title">My Reimbursement Requests</h1>
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="d-flex align-items-center justify-content-between mt-3">
-          
+    <div class="row mt-3">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-2">
           <div class="selector-toggle">
             <a href="javascript:void(0)">
-              <i *ngIf="!isSearchEnabled" class="fa fa-search" (click)="toggleSearch()"></i>
-              <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark" (click)="toggleSearch()"></i>
+              <i *ngIf="!isSearchEnabledTickets" class="fa fa-search" (click)="toggleTicketSearch()"></i>
+              <i *ngIf="isSearchEnabledTickets" class="fa fa-xmark" (click)="toggleTicketSearch()"></i>
             </a>
-          </div>
-
-         
-          <div class="export-button">
-            <button type="button" class="btn btn-sm btn-outline-primary mt-2 mb-2 excel-button"
-              [hidden]="reimbursementRequests.length == 0" (click)="exportToExcel()">
-              <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
-            </button>
           </div>
         </div>
 
         <div class="overflow-auto" bassHorizontalScroll>
-          <table class="table table-responsive">
+          <table class="table table-bordered rmb-view-table w-100" matSort (matSortChange)="sortTicketData($event)">
             <thead class="thead-light">
               <tr>
-                <th scope="col" class="info-label">Request Id</th>
-                <th scope="col" class="info-label">Name</th>
-                <!-- <th scope="col" class="info-label">Request Type</th> -->
-                <th scope="col" class="info-label">From Date</th>
-                <th scope="col" class="info-label">To Date</th>
-                <th scope="col" class="info-label">Fooding Date</th>
-                <!-- <th scope="col" class="info-label">From Location</th>
-                  <th scope="col" class="info-label">To Location</th> -->
-                <th scope="col" class="info-label">Expenditure Type</th>
-                <th scope="col" class="info-label">Travel Mode</th>
-                <th scope="col" class="info-label">Distance(in Kms)</th>
-                <th scope="col" class="info-label">Currency</th>
-                <th scope="col" class="info-label">Amount</th>
-                <th scope="col" class="info-label">Applied By</th>
-                <th scope="col" class="info-label">Applied On</th>
-                <th scope="col" class="wide-col">Purpose Of Reimbursement</th>
-                <!-- <th scope="col" class="info-label">Status</th> -->
-                <th scope="col" class="info-label">Current Approval Level</th>
-                <th scope="col" class="info-label">Level 1 Approver Name</th>
-                <th scope="col" class="info-label">Level 1 Approver Status</th>
-                <th scope="col" class="info-label">Level 1 Approver Remarks</th>
-                <th scope="col" class="info-label">Level 2 Approver Name</th>
-                <th scope="col" class="info-label">Level 2 Approver Status</th>
-                <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                <!-- <th scope="col" class="info-label">Level 3 Approver Name</th>
-                <th scope="col" class="info-label">Level 3 Approver Status</th>
-                <th scope="col" class="info-label">Level 3 Approver Remarks</th> -->
-                <th scope="col" class="info-label">Final Status</th>
-                <!-- <th scope="col" class="info-label">Current Approval Level</th>
-                  <th scope="col" class="info-label">Level 1 Approver Name</th>
-                  <th scope="col" class="info-label">Level 1 Approver Status</th>
-                  <th scope="col" class="info-label">Level 1 Approver Remarks</th> -->
-                  <th>Reimbursement Status</th>
-                <th scope="col" class="info-label">Action</th>
+                <th mat-sort-header="ticketNo|string">Ticket</th>
+                <th mat-sort-header="displayStatus|string">Status</th>
+                <th mat-sort-header="workflowStage|string">Workflow</th>
+                <th mat-sort-header="totalClaimAmount|number">Total (₹)</th>
+                <th mat-sort-header="paidClaimAmount|number">Paid (₹)</th>
+                <th mat-sort-header="submittedOn|date">Submitted</th>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ approvalLevelStatusColumnTitle(col) }}</th>
+                </ng-container>
+                <th>Rejections</th>
+                <th>Claims</th>
+                <th class="text-center">Action</th>
               </tr>
-              <tr app-column-filter-bar *ngIf="isSearchEnabled" [columnList]="reimbursementActiveColumns"
-                (onSearch)="onSearch($event);page=1"></tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabledTickets" [columnList]="ticketActiveColumns"
+                (onSearch)="onTicketSearch($event);pageTickets=1"></tr>
             </thead>
             <tbody>
-              <tr
-              *ngIf="reimbursementRequests.length == 0 || (reimbursementRequests | colFilter:filters: false).length == 0">
-              <th colspan="12" class="text-center info-label">No details to display...</th>
-          </tr>
-              <tr
-                *ngFor="let row of reimbursementRequests | colFilter:filters:false | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                <td>{{ row.requestId }}</td>
-                <td>{{ row.fullName }}</td>
-                <!-- <td>{{ row.requestType }}</td> -->
-                <td>{{ row.fromDate | date }}</td>
-                <td>{{ row.toDate | date }}</td>
-                <td>{{ row.dateOfFood | date }}</td>
-                <!-- <td>{{ row.fromLocation }}</td>
-                  <td>{{ row.toLocation }}</td> -->
-                <td>{{ row.expenditureType }}</td>
-                <td>{{ row.travelMode || 'NA'}}</td>
-                <td>{{ row.distance || 'NA'}}</td>
-                <td>{{ row.currency }}</td>
-                <td>{{ row.amount }}</td>
-                <td>{{ row.appliedBy }}</td>
-                <td>{{ row.appliedOn | date }}</td>
-                <td>{{ row.purpose }}</td>
-                <!-- <td>{{ row.status }}</td> -->
-
-                <td>{{ row.level }}</td>
-                <td>{{ row.hodName }}</td>
-                <td [ngClass]="{
-                    'text-danger': row.status === 'Rejected',
-                    'text-success': row.status === 'Approved',
-                    'text-warning': row.status === 'Pending'
-                                }">
-                  {{ row.status || 'NA'}}
+              <tr *ngIf="!myReimbursementTickets?.length || (myReimbursementTickets | colFilter:ticketFilters:false).length === 0">
+                <td [attr.colspan]="ticketTableColspan" class="text-center text-muted">No records to display.</td>
+              </tr>
+              <tr *ngFor="let t of myReimbursementTickets
+                | colFilter:ticketFilters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
+                | paginate: { itemsPerPage: 10, currentPage: pageTickets }">
+                <td class="font-weight-bold">{{ t.ticketNo || t.ticketId }}</td>
+                <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
+                <td>{{ t.workflowStage | rmbCamelDisplay }}</td>
+                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-2' }}</td>
+                <td class="text-right text-nowrap">
+                  <ng-container *ngIf="ticketPaidAmountDisplay(t) !== null; else noPaidAmt">₹ {{ ticketPaidAmountDisplay(t)! | number:'1.0-2' }}</ng-container>
+                  <ng-template #noPaidAmt><span class="text-muted">—</span></ng-template>
                 </td>
-                <td>{{ row.level1approverRemarks || 'NA'}}</td>
-                <td>{{ row.level2approverName }}</td>
-                <td [ngClass]="{
-                    'text-danger': row.level2approverStatus === 'Rejected',
-                    'text-success': row.level2approverStatus === 'Approved',
-                    'text-warning': row.level2approverStatus === 'Pending'
-                                }">
-                  {{ row.level2approverStatus || 'NA'}}
+                <td>{{ t.submittedOn | date:'medium' }}</td>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>
+                  <td>{{ approvalLevelCell(t, li, 'approverStatus') | rmbCamelDisplay }}</td>
+                </ng-container>
+                <td class="view-rmb-reject-cell small">
+                  <ng-container *ngIf="rejectedClaimLines(t).length; else noRejections">
+                    <div *ngFor="let r of rejectedClaimLines(t)" class="view-rmb-reject-block mb-2">
+                      <div class="font-weight-bold text-dark">Claim {{ r.lineNo }} · {{ r.expenditureType | rmbCamelDisplay }} · ₹ {{ r.amount | number:'1.0-2' }}</div>
+                      <div class="text-muted">Rejected by · {{ r.rejectedBy | rmbCamelDisplay }}</div>
+                      <div class="text-break mt-1">{{ r.reason | rmbCamelDisplay }}</div>
+                    </div>
+                  </ng-container>
+                  <ng-template #noRejections><span class="text-muted">—</span></ng-template>
                 </td>
-                <td>{{ row.level2approverRemarks || 'NA'}}</td>
-                <!-- <td>{{ row.level3approverName }}</td>
-                <td [ngClass]="{
-                    'text-danger': row.level3approverStatus === 'Rejected',
-                    'text-success': row.level3approverStatus === 'Approved',
-                    'text-warning': row.level3approverStatus === 'Pending'
-                                }">
-                  {{ row.level3approverStatus || 'NA'}}
-                </td>
-                <td>{{ row.level3approverRemarks || 'NA'}}</td> -->
-                <td [ngClass]="{
-                    'text-danger': row.finalStatus === 'Rejected',
-                    'text-success': row.finalStatus === 'Approved',
-                    'text-warning': row.finalStatus === 'Pending'
-                                }">
-                  {{ row.finalStatus || 'NA'}}
-                </td>
-                <td> 
-                  <div>
-                    <span class="badge badge-success" *ngIf="row.reimbursementStatus === 'Approved'">Reimbursement Done</span>
-                    <span class="badge badge-danger" *ngIf="row.reimbursementStatus === 'Rejected'">Rejected(Reapply)</span>
-                    <span class="badge badge-warning" *ngIf="row.reimbursementStatus !== 'Approved' && row.reimbursementStatus !== 'Rejected'">
-                      Pending
-                    </span>
-                  </div>
-                  
-                  </td>
                 <td>
-
-                  <div class="d-inline-flex">
-                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
-                      class="btn btn-primary btn-sm ml-2" (click)="openEditModal(reimbursement,row)">
-                      <em class="fa fa-edit"></em> Edit
-                    </button>
-                    <button *ngIf="row.status != 'Approved' && row.status != 'Rejected'" type="button"
-                      class="btn btn-danger btn-sm ml-2" (click)="deleteReimbursement(row,alert_message)">
-                      <em class="fa fa-trash"></em> Delete
-                    </button>
-                  </div>
+                  <span class="badge badge-light">{{ (t.claims || []).length }} claim(s)</span>
+                </td>
+                <td class="text-center text-nowrap">
+                  <span class="text-muted small">—</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <pagination-controls class="my-pagination" [hidden]="reimbursementRequests.length == 0"
-          (pageChange)="handlePageChange($event)"></pagination-controls>
+        <pagination-controls class="my-3 justify-content-center" [hidden]="!myReimbursementTickets?.length"
+          (pageChange)="handleTicketPageChange($event)">
+        </pagination-controls>
       </div>
     </div>
   </div>
 </div>
-
 
 
 
@@ -178,7 +101,7 @@
       <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="editReimbursementRequestModalLabel">Edit Reimbursement Request</h5>
+            <h5 class="modal-title" id="editReimbursementRequestModalLabel">editReimbursementRequest</h5>
             <button type="button" class="close" (click)="closeModal()" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
@@ -188,7 +111,7 @@
               <div class="row">
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="requestId">Request ID</label>
+                    <label for="requestId">requestId</label>
                     <input type="text" class="form-control" id="requestId"
                       [(ngModel)]="selectedReimbursementRequest.requestId" name="requestId" readonly />
                   </div>
@@ -196,7 +119,7 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="name">Name</label>
+                    <label for="name">fullName</label>
                     <input type="text" class="form-control" id="name"
                       [(ngModel)]="selectedReimbursementRequest.fullName" name="fullName" readonly />
                   </div>
@@ -204,14 +127,14 @@
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="requestType">Request Type</label>
-                      <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
+                    <label for="requestType">Request Type</label>
+                    <input type="text" class="form-control" id="requestType" [(ngModel)]="selectedTravelRequest.requestType" name="requestType" />
                     </div>
                   </div> -->
 
                 <div class="col-md-6" *ngIf="selectedReimbursementRequest.expenditureType === 'Travel'">
                   <div class="form-group">
-                    <label for="fromDate">From Date</label>
+                    <label for="fromDate">fromDate</label>
                     <input type="date" class="form-control" id="fromDate"
                       [(ngModel)]="selectedReimbursementRequest.fromDate" name="fromDate" />
                   </div>
@@ -219,7 +142,7 @@
 
                 <div class="col-md-6" *ngIf="selectedReimbursementRequest.expenditureType === 'Travel'">
                   <div class="form-group">
-                    <label for="toDate">To Date</label>
+                    <label for="toDate">toDate</label>
                     <input type="date" class="form-control" id="toDate"
                       [(ngModel)]="selectedReimbursementRequest.toDate" name="toDate" />
                   </div>
@@ -227,7 +150,7 @@
 
                 <div class="col-md-6" *ngIf="selectedReimbursementRequest.expenditureType === 'Food'">
                   <div class="form-group">
-                    <label for="toDate">Fooding Date</label>
+                    <label for="toDate">dateOfFood</label>
                     <input type="date" class="form-control" id="dateOfFood"
                       [(ngModel)]="selectedReimbursementRequest.dateOfFood" name="dateOfFood" />
                   </div>
@@ -235,21 +158,21 @@
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="fromLocation">From Location</label>
-                      <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
+                    <label for="fromLocation">From Location</label>
+                    <input type="text" class="form-control" id="fromLocation" [(ngModel)]="selectedTravelRequest.fromLocation" name="fromLocation" />
                     </div>
                   </div> -->
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="toLocation">To Location</label>
-                      <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
+                    <label for="toLocation">To Location</label>
+                    <input type="text" class="form-control" id="toLocation" [(ngModel)]="selectedTravelRequest.toLocation" name="toLocation" />
                     </div>
                   </div> -->
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="expenditureType">Expenditure Type</label>
+                    <label for="expenditureType">expenditureType</label>
                     <input type="text" class="form-control" id="status"
                       [(ngModel)]="selectedReimbursementRequest.expenditureType" name="expenditureType" readonly />
                   </div>
@@ -257,28 +180,28 @@
 
                 <div class="col-md-6" *ngIf="selectedReimbursementRequest.expenditureType === 'Travel'">
                   <div class="form-group">
-                    <label for="travelmode">Travel Mode</label>
+                    <label for="travelmode">travelMode</label>
                     <input type="text" class="form-control" id="status"
                       [(ngModel)]="selectedReimbursementRequest.travelMode" name="travelmode" readonly />
                   </div>
                 </div>
                 <div class="col-md-6" *ngIf="selectedReimbursementRequest.expenditureType === 'Travel'">
                   <div class="form-group">
-                    <label for="distance">Distance</label>
+                    <label for="distance">distance</label>
                     <input type="text" class="form-control" id="status"
                       [(ngModel)]="selectedReimbursementRequest.distance" name="distance" readonly />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="currency">Currency</label>
+                    <label for="currency">currency</label>
                     <input type="text" class="form-control" id="status"
                       [(ngModel)]="selectedReimbursementRequest.currency" name="currency" readonly />
                   </div>
                 </div>
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="amount">Amount</label>
+                    <label for="amount">amount</label>
                     <input type="text" class="form-control" id="status"
                       [(ngModel)]="selectedReimbursementRequest.amount" name="amount" readonly />
                   </div>
@@ -286,7 +209,7 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="appliedBy">Applied By</label>
+                    <label for="appliedBy">appliedBy</label>
                     <input type="text" class="form-control" id="appliedBy"
                       [(ngModel)]="selectedReimbursementRequest.appliedBy" name="appliedBy" readonly />
                   </div>
@@ -294,7 +217,7 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="appliedOn">Applied On</label>
+                    <label for="appliedOn">appliedOn</label>
                     <input type="date" class="form-control" id="appliedOn"
                       [(ngModel)]="selectedReimbursementRequest.appliedOn" name="appliedOn" readonly />
                   </div>
@@ -302,7 +225,7 @@
 
                 <div class="col-md-6">
                   <div class="form-group">
-                    <label for="purpose">Purpose of Travel</label>
+                    <label for="purpose">purpose</label>
                     <textarea class="form-control" id="purpose" [(ngModel)]="selectedReimbursementRequest.purpose"
                       name="purpose"></textarea>
                   </div>
@@ -310,28 +233,27 @@
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="status">Status</label>
-                      <input type="text" class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.status" name="status" readonly />
+                    <label for="status">Status</label>
+                    <input type="text" class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.status" name="status" readonly />
                     </div>
                   </div> -->
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="approver">Level 1 Approver</label>
-                      <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.approver" name="approver" readonly/>
+                    <label for="approver">Level 1 Approver</label>
+                    <input type="text" class="form-control" id="approver" [(ngModel)]="selectedTravelRequest.approver" name="approver" readonly/>
                     </div>
                   </div> -->
 
                 <!-- <div class="col-md-6">
                     <div class="form-group">
-                      <label for="approverStatus">Level 1 Approver Status</label>
-                      <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" readonly/>
+                    <label for="approverStatus">Level 1 Approver Status</label>
+                    <input type="text" class="form-control" id="approverStatus" [(ngModel)]="selectedTravelRequest.status" name="approverStatus" readonly/>
                     </div>
                   </div> -->
 
                 <div class="col-md-12 text-center">
-                  <button type="button" class="btn btn-primary" (click)="updateRequest(alert_message)">Save
-                    Changes</button>
+                  <button type="button" class="btn btn-primary" (click)="updateRequest(alert_message)">saveChanges</button>
                 </div>
               </div>
 
@@ -345,7 +267,7 @@
 
 <ng-template #alert_message>
   <div class="modal-body text-center">
-    <p>{{alertMessage}}</p>
-    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+    <p>{{ alertMessage | rmbCamelDisplay }}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">ok</button>&nbsp;
   </div>
 </ng-template>

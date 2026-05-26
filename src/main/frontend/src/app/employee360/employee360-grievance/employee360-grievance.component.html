@@ -1,0 +1,179 @@
+<div *ngIf="accessDenied" class="alert alert-warning mb-3">
+  You do not have permission to view grievance tickets for this employee, or grievance data could not be loaded.
+</div>
+
+<div *ngIf="!accessDenied" class="d-flex justify-content-between mb-3 flex-wrap align-items-start">
+  <div class="d-flex align-items-center flex-wrap">
+    <label for="grievStartDate" class="mt-3 ml-2">From Date:</label>
+    <input
+      type="date"
+      id="grievStartDate"
+      [(ngModel)]="fromDate"
+      (change)="onDateRangeChange()"
+      class="form-control form-control-sm ml-2"
+      style="width: 150px"
+    />
+
+    <label for="grievEndDate" class="mt-3 ml-3">To Date:</label>
+    <input
+      type="date"
+      id="grievEndDate"
+      [(ngModel)]="toDate"
+      (change)="onDateRangeChange()"
+      class="form-control form-control-sm ml-2"
+      style="width: 150px"
+    />
+  </div>
+
+  <div>
+    <button
+      *ngIf="assignedCount >= 1"
+      type="button"
+      class="btn btn-outline-primary btn-sm mx-1 mt-3"
+      (click)="toggleAssignedView()"
+    >
+      {{ toggleButtonLabel }}
+    </button>
+  </div>
+</div>
+
+<div class="selector-toggle">
+  <a href="javascript:void(0)" (click)="toggleSearch()">
+    <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+    <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+  </a>
+</div>
+
+<div class="row-md-6" *ngIf="!accessDenied">
+  <div *ngIf="!showAssignedView">
+    <table class="table" id="grievance360raised" matSort (matSortChange)="sortData($event)">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label" mat-sort-header="ticketNumber|string">Ticket #</th>
+          <th scope="col" class="info-label" mat-sort-header="subject|string">Subject</th>
+          <th scope="col" class="info-label" mat-sort-header="category|string">Category</th>
+          <th scope="col" class="info-label" mat-sort-header="subCategory|string">Sub-category</th>
+          <th scope="col" class="info-label" mat-sort-header="ticketFeature|string">Feature</th>
+          <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+          <th scope="col" class="info-label" mat-sort-header="priority|string">Priority</th>
+          <th scope="col" class="info-label" mat-sort-header="createdOn|date">Created On</th>
+          <th scope="col" class="info-label" mat-sort-header="assignedToName|string">Assigned To</th>
+        </tr>
+        <tr
+          app-column-filter-bar
+          *ngIf="isSearchEnabled"
+          [columnList]="raisedColumns"
+          (onSearch)="onSearch($event); page = 1"
+        ></tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading">
+          <th colspan="10" class="text-center info-label">Loading...</th>
+        </tr>
+        <tr *ngIf="!loading && (!raisedList || raisedList.length === 0)">
+          <th colspan="10" class="text-center info-label">No tickets to display...</th>
+        </tr>
+        <tr
+          *ngFor="
+            let t of raisedList
+              | colFilter: filters : false
+              | sort: [sortColumn, sortColumnType, sortDirection]
+              | paginate: { itemsPerPage: items, currentPage: page, totalItems: totalElements };
+            let i = index
+          "
+        >
+          <th class="info-label">{{ items * (page - 1) + i + 1 }}</th>
+          <td>{{ t.ticketNumber }}</td>
+          <td>{{ t.subject }}</td>
+          <td>{{ t.category }}</td>
+          <td>{{ t.subCategory }}</td>
+          <td>{{ t.ticketFeature }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.priority }}</td>
+          <td>{{ t.createdOn | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ t.assignedToName }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls
+      class="my-pagination"
+      [hidden]="totalElements === 0"
+      (pageChange)="handlePageChange($event)"
+    ></pagination-controls>
+    <button
+      style="float: right"
+      type="button"
+      class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      (click)="exportToExcel('grievance360raised')"
+    >
+      <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+    </button>
+  </div>
+
+  <div *ngIf="showAssignedView">
+    <table class="table" id="grievance360assigned" matSort (matSortChange)="sortData($event)">
+      <thead class="thead-light">
+        <tr>
+          <th scope="col" class="info-label">Sr No.</th>
+          <th scope="col" class="info-label" mat-sort-header="ticketNumber|string">Ticket #</th>
+          <th scope="col" class="info-label" mat-sort-header="subject|string">Subject</th>
+          <th scope="col" class="info-label" mat-sort-header="category|string">Category</th>
+          <th scope="col" class="info-label" mat-sort-header="subCategory|string">Sub-category</th>
+          <th scope="col" class="info-label" mat-sort-header="ticketFeature|string">Feature</th>
+          <th scope="col" class="info-label" mat-sort-header="status|string">Status</th>
+          <th scope="col" class="info-label" mat-sort-header="priority|string">Priority</th>
+          <th scope="col" class="info-label" mat-sort-header="createdOn|date">Created On</th>
+          <th scope="col" class="info-label" mat-sort-header="createdByName|string">Raised By</th>
+        </tr>
+        <tr
+          app-column-filter-bar
+          *ngIf="isSearchEnabled"
+          [columnList]="assignedColumns"
+          (onSearch)="onSearch($event); page = 1"
+        ></tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="loading">
+          <th colspan="10" class="text-center info-label">Loading...</th>
+        </tr>
+        <tr *ngIf="!loading && (!assignedList || assignedList.length === 0)">
+          <th colspan="10" class="text-center info-label">No tickets to display...</th>
+        </tr>
+        <tr
+          *ngFor="
+            let t of assignedList
+              | colFilter: filters : false
+              | sort: [sortColumn, sortColumnType, sortDirection]
+              | paginate: { itemsPerPage: items, currentPage: page, totalItems: totalElements };
+            let i = index
+          "
+        >
+          <th class="info-label">{{ items * (page - 1) + i + 1 }}</th>
+          <td>{{ t.ticketNumber }}</td>
+          <td>{{ t.subject }}</td>
+          <td>{{ t.category }}</td>
+          <td>{{ t.subCategory }}</td>
+          <td>{{ t.ticketFeature }}</td>
+          <td>{{ t.status }}</td>
+          <td>{{ t.priority }}</td>
+          <td>{{ t.createdOn | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ t.createdByName }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <pagination-controls
+      class="my-pagination"
+      [hidden]="totalElements === 0"
+      (pageChange)="handlePageChange($event)"
+    ></pagination-controls>
+    <button
+      style="float: right"
+      type="button"
+      class="btn btn-sm btn-outline-primary ml-auto mr-5 mt-2 mb-2 excel-button"
+      (click)="exportToExcel('grievance360assigned')"
+    >
+      <em class="fa fa-file-arrow-down fa-2x"></em>&nbsp;
+    </button>
+  </div>
+</div>

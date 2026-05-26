@@ -1,128 +1,112 @@
 
-<div class="row">
+<div class="row rmb-page">
     <div class="col-md-12">
       <div class="row">
-        <div class="col-md-12 table-header">
-          <h1 class="table-header-title">Pending Reimbursement Request History</h1>
+        <div class="col-md-12 table-header d-flex flex-wrap justify-content-between align-items-end">
+          <div>
+            <nav class="rmb-approve-subnav mb-2" aria-label="Approve reimbursement views">
+              <button type="button" class="btn btn-sm"
+                [class.btn-primary]="ticketListView === 'pending'"
+                [class.btn-outline-primary]="ticketListView !== 'pending'"
+                (click)="setTicketListView('pending')">Pending Actions</button>
+              <button type="button" class="btn btn-sm ml-1"
+                [class.btn-primary]="ticketListView === 'all'"
+                [class.btn-outline-primary]="ticketListView !== 'all'"
+                (click)="setTicketListView('all')">All Tickets</button>
+            </nav>
+            <h1 class="table-header-title mb-0">
+              <ng-container *ngIf="ticketListView === 'pending'">Pending Reimbursement Approvals</ng-container>
+              <ng-container *ngIf="ticketListView === 'all'">All Assigned Reimbursement Tickets</ng-container>
+            </h1>
+          </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-12">
-          <div class="overflow-auto" bassHorizontalScroll>
-            <table class="table table-responsive">
-              <thead class="thead-light">
-                <tr>
-                  <th scope="col" class="info-label">Reference Id</th>                     
-                  <th scope="col" class="info-label">Name</th>
-                  <!-- <th scope="col" class="info-label">Request Type</th> -->
-                  <th scope="col" class="info-label">From Date</th>
-                  <th scope="col" class="info-label">To Date</th>
-                  <!-- <th scope="col" class="info-label">From Location</th>
-                  <th scope="col" class="info-label">To Location</th> -->
-                  <th scope="col" class="info-label">Expenditure Type</th>
-                  <th scope="col" class="info-label">Travel Mode</th>
-                  <th scope="col" class="info-label">Distance</th>
-                  <th scope="col" class="info-label">Currency</th>
-                  <th scope="col" class="info-label">Food Allowance Type</th>
-                  <th scope="col" class="info-label">Fooding Date</th>
-                  <!-- <th scope="col" class="info-label">Currency</th> -->
-                  <th scope="col" class="info-label">Amount</th>
-                  <th scope="col" class="info-label">Applied By</th>
-                  <th scope="col" class="info-label">Applied On</th>
-                  <th scope="col" class="wide-col">Purpose Of Travel</th>
-                  <!-- <th scope="col" class="info-label">Status</th> -->
-                  <th scope="col" class="info-label">Current Approval Level</th>
-                  <th scope="col" class="info-label">Level 1 Approver Name</th>
-                  <th scope="col" class="info-label">Level 1 Approver Status</th>
-                  <th scope="col" class="info-label">Level 1 Approver Remarks</th>
-                  <th scope="col" class="info-label">Level 2 Approver Name</th>
-                  <th scope="col" class="info-label">Level 2 Approver Status</th>
-                  <th scope="col" class="info-label">Level 2 Approver Remarks</th>
-                  <!-- <th scope="col" class="info-label">Level 3 Approver Name</th>
-                  <th scope="col" class="info-label">Level 3 Approver Status</th>
-                  <th scope="col" class="info-label">Level 3 Approver Remarks</th> -->
-                  <th scope="col" class="info-label">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                
-                <tr *ngFor="let row of reimbursementRequests | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
-                  <td>{{ row.requestId }}</td>
-                  <td>{{ row.fullName }}</td>
-                  <!-- <td>{{ row.requestType }}</td> -->
-                  <td>{{ row.fromDate | date }}</td>
-                  <td>{{ row.toDate | date }}</td>
-                  <!-- <td>{{ row.fromLocation }}</td>
-                  <td>{{ row.toLocation }}</td> -->
-                  <td>{{ row.expenditureType }}</td>
-                  <td>{{ row.travelMode || 'NA'}}</td>
-                  <td>{{ row.distance || 'NA'}}</td>
-                  <td>{{ row.currency }}</td>
-                  <td>{{ row.foodAllowanceType || 'NA'}}</td>
-                  <td>{{ row.dateOfFood | date}}</td>
-                  <td>{{ row.amount }}</td>
-                  <td>{{ row.appliedBy }}</td>
-                  <td>{{ row.appliedOn | date }}</td>
-                  <td>{{ row.purpose }}</td>
-                  <!-- <td>{{ row.status }}</td> -->
-                  <td>{{ row.level }}</td>
-                  <!-- <td>{{ row.hodName }}</td> -->
-                  <td>{{ row.hodName }}</td>
-                  <td [ngClass]="{
-                    'text-danger': row.status === 'Rejected',
-                    'text-success': row.status === 'Approved',
-                    'text-warning': row.status === 'Pending'
-                                }">
-                    {{ row.status || 'NA'}}
-                  </td>
-                  <td>{{ row.level1approverRemarks || 'NA'}}</td>
-                  <td>{{ row.level2approverName }}</td>
-                  <td [ngClass]="{
-                    'text-danger': row.level2approverStatus === 'Rejected',
-                    'text-success': row.level2approverStatus === 'Approved',
-                    'text-warning': row.level2approverStatus === 'Pending'
-                                }">
-                    {{ row.level2approverStatus || 'NA'}}
-                  </td>
-                  <td>{{ row.level2approverRemarks || 'NA' }}</td>
-                  <!-- <td>{{ row.level3approverName }}</td>
-                  <td [ngClass]="{
-                    'text-danger': row.level3approverStatus === 'Rejected',
-                    'text-success': row.level3approverStatus === 'Approved',
-                    'text-warning': row.level3approverStatus === 'Pending'
-                                }">
-                    {{ row.level3approverStatus || 'NA'}}
-                  </td>
-                  <td>{{ row.level3approverRemarks || 'NA' }}</td> -->
-                  <td>
-                 
-                    <div class="d-inline-flex">
-                        <!-- <button *ngIf="row.status === 'Pending'" type="button" class="btn btn-success btn-sm btn-action button" (click)="openEditModal(approveRequest,row)">
-                            <em class="fa fa-edit"></em> Take Action
-                          </button> -->
-                          <!-- Level 1 approver action -->
-                          <button
-                          *ngIf="shouldShowAction(row)"
-                          type="button"
-                          class="btn btn-success btn-sm btn-action button"
-                          (click)="openEditModal(approveRequest, row)"
-                        >
-                          <em class="fa fa-edit"></em> Take Action
-                        </button>
-
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <div class="row mt-3">
+        <div class="col-md-12 d-flex justify-content-between align-items-center mb-2">
+          <div class="selector-toggle">
+            <a href="javascript:void(0)">
+              <i *ngIf="!isSearchEnabledTickets" class="fa fa-search" (click)="toggleTicketSearch()"></i>
+              <i *ngIf="isSearchEnabledTickets" class="fa fa-xmark" (click)="toggleTicketSearch()"></i>
+            </a>
           </div>
-          
-          <pagination-controls class="my-pagination" [hidden]="reimbursementRequests.length == 0"
-                    (pageChange)="handlePageChange($event)"></pagination-controls>
+        </div>
+
+        <div class="col-md-12 overflow-auto" bassHorizontalScroll>
+          <table class="table table-bordered rmb-approve-table w-100" matSort (matSortChange)="sortTicketData($event)">
+            <thead class="thead-light">
+              <tr>
+                <th mat-sort-header="ticketNo|string">Ticket</th>
+                <th mat-sort-header="fullName|string">Employee</th>
+                <th mat-sort-header="displayStatus|string">Status</th>
+                <th mat-sort-header="totalClaimAmount|number" class="text-right">Total amt applied (₹)</th>
+                <th mat-sort-header="paidClaimAmount|number" class="text-right">Total amount paid (₹)</th>
+                <th mat-sort-header="rejectedTotalAmount|number" class="text-right">Rejected amt (₹)</th>
+                <th mat-sort-header="submittedOn|date">Submitted</th>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ approvalLevelStatusColumnTitle(col) }}</th>
+                </ng-container>
+                <th>Claims</th>
+                <th *ngIf="ticketListView === 'pending'" class="text-center">Action</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isSearchEnabledTickets" [columnList]="ticketActiveColumns"
+                (onSearch)="onTicketSearch($event);pageTickets=1"></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!ticketRequests?.length || (ticketRequests | colFilter:ticketFilters:false).length === 0">
+                <td [attr.colspan]="ticketTableColspan" class="text-center text-muted">No records to display.</td>
+              </tr>
+              <tr *ngFor="let t of ticketRequests
+                | colFilter:ticketFilters:false
+                | sort:[sortColumn, sortColumnType, sortDirection]
+                | paginate: { itemsPerPage: 10, currentPage: pageTickets }">
+                <td class="font-weight-bold">{{ t.ticketNo || t.ticketId }}</td>
+                <td>{{ t.fullName | rmbCamelDisplay }}</td>
+                <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
+                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-2' }}</td>
+                <td class="text-right">{{ (t.paidClaimAmount != null && t.paidClaimAmount !== '' ? +t.paidClaimAmount : 0) | number:'1.0-2' }}</td>
+                <td class="text-right">{{ (t.rejectedTotalAmount != null ? +t.rejectedTotalAmount : 0) | number:'1.0-2' }}</td>
+                <td>{{ t.submittedOn | date:'medium' }}</td>
+                <ng-container *ngFor="let col of tableLevelColumns; let li = index">
+                  <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>
+                  <td class="rmb-approve-level-status">
+                    <span class="d-inline-flex align-items-center flex-wrap">
+                      <span>{{ approvalLevelCell(t, li, 'approverStatus') | rmbCamelDisplay }}</span>
+                      <button *ngIf="showApproverLevelInfoIcon(approvalLevelCell(t, li, 'approverStatus'))" type="button"
+                        class="btn btn-link btn-sm p-0 ml-1 rmb-partial-info"
+                        [matTooltip]="partialDetailTooltip(t, li + 1)" matTooltipClass="rmb-partial-tooltip"
+                        matTooltipShowDelay="200" [attr.aria-label]="col.levelLabel + ' rejection details'">
+                        <i class="fa fa-info-circle text-info" aria-hidden="true"></i>
+                      </button>
+                    </span>
+                  </td>
+                </ng-container>
+                <td class="text-center">
+                  <span class="badge badge-light text-dark">{{ (t.claims || []).length }} claim(s)</span>
+                </td>
+                <td *ngIf="ticketListView === 'pending'" class="text-center">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-success"
+                    *ngIf="shouldShowTicketAction(t); else noAction"
+                    (click)="openTicketModal(t)">
+                    Take action
+                  </button>
+                  <ng-template #noAction>
+                    <span class="text-muted small">—</span>
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
 </div> 
+
+      <pagination-controls class="my-3 justify-content-center" [hidden]="!ticketRequests?.length"
+        (pageChange)="handleTicketPageChange($event)">
+      </pagination-controls>
 
   <ng-template #approveRequest>
     <div class="modal-body text-center">
@@ -130,7 +114,7 @@
         <div class="modal-dialog modal-dialog-centered" role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title" id="approveRequestModalLabel">Approve Travel Request</h5>
+              <h5 class="modal-title" id="approveRequestModalLabel">approveTravelRequest</h5>
               <button type="button" class="close" (click)="closeModal()" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
@@ -138,26 +122,26 @@
             <div class="modal-body">
               <form #approveForm="ngForm">
                 <div class="form-group">
-                  <label for="requestId">Requester Name</label>
+                  <label for="requestId">fullName</label>
                   <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.fullName" name="requestId" readonly />
                 </div>
                 <div class="form-group">
-                  <label for="requestId">Expenditure Type</label>
+                  <label for="requestId">expenditureType</label>
                   <input type="text" class="form-control" id="requestId" [(ngModel)]="selectedReimbursementRequest.expenditureType" name="expenditureType" readonly />
                 </div>
                 <div class="form-group">
-                  <label for="approverRemarks">Approver Remarks</label>
-                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedReimbursementRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="Enter your remarks..."></textarea>
+                  <label for="approverRemarks">approverRemarks</label>
+                  <textarea class="form-control" id="approverRemarks" [(ngModel)]="selectedReimbursementRequest.approverRemarks" name="approverRemarks" rows="4" placeholder="enterYourRemarks"></textarea>
                 </div>
                 <div class="form-group">
-                  <label for="status"><span class="text-danger">*</span>Approve Status</label>
+                  <label for="status"><span class="text-danger">*</span>approverStatus</label>
                   <select class="form-control" id="status" [(ngModel)]="selectedReimbursementRequest.approverStatus" name="approverStatus">
-                    <option value="Approved">Approved</option>
-                    <option value="Rejected">Rejected</option>
+                    <option value="Approved">approved</option>
+                    <option value="Rejected">rejected</option>
                   </select>
                 </div>
 
-                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message,alert_message2)">Submit Response</button>
+                <button type="button" class="btn btn-primary" (click)="actionRequest(alert_message,alert_message2)">submitResponse</button>
                 <!-- <button type="button" class="btn btn-primary" (click)="approveRequest()">Approve</button>
                 <button type="button" class="btn btn-danger" (click)="closeModal()">Cancel</button> -->
               </form>
@@ -170,14 +154,14 @@
 
   <ng-template #alert_message>
     <div class="modal-body text-center">
-        <p>{{alertMessage}}</p>
-        <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
+        <p>{{ alertMessage | rmbCamelDisplay }}</p>
+        <button type="button" class="btn btn-primary" (click)="cancelRequest()">ok</button>&nbsp;
     </div>
 </ng-template>
 <ng-template #alert_message2>
   <div class="modal-body text-center">
-      <p>{{alertMessage}}</p>
-      <button type="button" class="btn btn-primary" (click)="cancelRequest2()">OK</button>&nbsp;
+      <p>{{ alertMessage | rmbCamelDisplay }}</p>
+      <button type="button" class="btn btn-primary" (click)="cancelRequest2()">ok</button>&nbsp;
   </div>
 </ng-template>
 

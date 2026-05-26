@@ -54,6 +54,7 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.DomainRepository;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -94,6 +95,9 @@ public class CustomFilterService {
 
 	@Autowired
 	DepartmentRepository departmentRepository;
+
+	@Autowired
+	private EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
@@ -910,7 +914,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return query;
 	}
 
-	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId) {
+	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId, String subFeatureName) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
 			String q;
@@ -1009,8 +1013,22 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //						+ "AND t.is_active != 'N' \n"
 //						+ "AND pr.active != 'false'\n"
 //						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
-				if(empId != null) {
-					  String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+					if (empId != null) {
+						String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+						if (subFeatureName != null) {
+							List<GetDeptIdByRoleDTO> overrideDepts = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(empId, subFeatureName);
+							
+							if (overrideDepts != null && !overrideDepts.isEmpty()) {
+								List<Long> overrideDeptIds = overrideDepts.stream().map(GetDeptIdByRoleDTO::getDeptId)
+										.filter(Objects::nonNull).collect(Collectors.toList());
+								if (deptList != null && !deptList.isEmpty()) {
+									deptList = deptList + "," + overrideDeptIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+								} else {
+									deptList = overrideDeptIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+								}
+							}
+						}
+
 				 q = "SELECT \n"
 				 		+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
 						+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
@@ -1407,7 +1425,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			System.err.println(
 					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + employeeDTO.getQueryList());
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
-			List<Object[]> list = getCustomEmployeeReport(subQuery.toString(),employeeDTO.getEmpId());
+			List<Object[]> list = getCustomEmployeeReport(subQuery.toString(),employeeDTO.getEmpId(), employeeDTO.getSubFeatureName());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (list != null) {
@@ -5256,26 +5274,50 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			String customFilterConditions = createQueryForEmployeeDashboard(request.getQueryList()).toString();
 
 			// 2. Construct the full native SQL query
-			String q = "SELECT distinct cl.client_location, count(distinct e.emp_id) "
-					+ "FROM employee e "
-					+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
-					+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "
-					+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id "
-					+ "INNER JOIN activities a ON a.activity_id = etam.activity_id "
-					+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id "
-					+ "INNER JOIN projects p on p.project_id = t.project_id "
-					+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id "
-					// Other necessary joins for filtering
-					+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
-					+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
-					+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
-					+ "LEFT JOIN clients c on p.client_id = c.client_id "
-					+ "WHERE e.employmentstatus != 'InActive' and etm.active != 0 "
-					+ "AND t.is_active = 'Y' and p.active = 'true' "
-					+ "AND e.emp_id not between 1 and 6 "
-					// 3. Inject the dynamic filter conditions here.
-					+ customFilterConditions
-					+ "GROUP BY cl.client_location";
+			// String q = "SELECT distinct cl.client_location, count(distinct e.emp_id) "
+			// 		+ "FROM employee e "
+			// 		+ "INNER JOIN employee_team_mapping etm on etm.emp_id = e.emp_id "
+			// 		+ "INNER JOIN employee_timesheets et ON et.emp_id = etm.emp_id "
+			// 		+ "INNER JOIN employee_timesheet_activities_mapping etam ON etam.timesheet_id = et.timesheet_id "
+			// 		+ "INNER JOIN activities a ON a.activity_id = etam.activity_id "
+			// 		+ "INNER JOIN teams t on etm.team_id = t.team_id and etm.team_id = a.team_id "
+			// 		+ "INNER JOIN projects p on p.project_id = t.project_id "
+			// 		+ "INNER JOIN client_locations cl on cl.client_location_id = etam.client_location_id "
+			// 		// Other necessary joins for filtering
+			// 		+ "LEFT JOIN job_role jr on e.job_role_id = jr.job_role_id "
+			// 		+ "LEFT JOIN department d on jr.dept_id = d.dept_id "
+			// 		+ "LEFT JOIN employee m on m.emp_id = e.manager_id "
+			// 		+ "LEFT JOIN clients c on p.client_id = c.client_id "
+			// 		+ "WHERE e.employmentstatus != 'InActive' and etm.active != 0 "
+			// 		+ "AND t.is_active = 'Y' and p.active = 'true' "
+			// 		+ "AND e.emp_id not between 1 and 6 "
+			// 		// 3. Inject the dynamic filter conditions here.
+			// 		+ customFilterConditions
+			// 		+ "GROUP BY cl.client_location";
+
+			String q = 	"SELECT cl.client_location, COUNT(DISTINCT e.emp_id) "
+						+ "FROM employee e "
+						+ "INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id "
+						+ "INNER JOIN employee_timesheets_new et ON et.emp_id = e.emp_id  "
+						+ "INNER JOIN employee_timesheet_location_mapping etlm ON etlm.timesheet_id = et.timesheet_id "
+						+ "INNER JOIN project_timesheet_status_new pts ON pts.timesheet_id = et.timesheet_id AND pts.location_mapping_id = etlm.location_mapping_id "
+						+ "INNER JOIN employee_timesheet_activities_mapping_new etamn ON etamn.timesheet_id = et.timesheet_id "
+						+ "    AND etamn.location_mapping_id = etlm.location_mapping_id AND etamn.project_id = pts.project_id "
+						+ "INNER JOIN activities a ON a.activity_id = etamn.activity_id "
+						+ "INNER JOIN teams t ON etm.team_id = t.team_id AND a.team_id = t.team_id "
+						+ " INNER JOIN projects p ON p.project_id = t.project_id AND pts.project_id = p.project_id "
+  						+ " INNER JOIN client_locations cl ON cl.client_location_id = pts.client_location_id "
+  						+ " LEFT JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+  						+ " LEFT JOIN department d ON jr.dept_id = d.dept_id "
+  						+ " LEFT JOIN employee m ON m.emp_id = e.manager_id "
+  						+ " LEFT JOIN clients c ON p.client_id = c.client_id "
+						+ " WHERE e.employmentstatus != 'InActive' "
+						+ "   AND etm.active != 0 "
+						+ "   AND t.is_active = 'Y' " 
+						+ "   AND p.active = 'true' "
+ 						+ "  AND e.emp_id NOT BETWEEN 1 AND 6 "
+						+ 	 customFilterConditions
+						+ " GROUP BY cl.client_location ";
 
 			System.out.println("Executing Work Location Query: " + q);
 			Query query = session.createSQLQuery(q);

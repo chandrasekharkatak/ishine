@@ -12,6 +12,8 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface HotelSubCategoryRepository extends JpaRepository<HotelSubCategory, Long> {
 
+	long countByHotelCategory_Id(Long hotelCategoryId);
+
 	//City findAll(String travelModeName);
     // Custom queries can be added if needed
 	
@@ -20,5 +22,10 @@ public interface HotelSubCategoryRepository extends JpaRepository<HotelSubCatego
 	
 	@Query(nativeQuery = true , value = "SELECT * FROM hotel_sub_category where hotel_sub_category_name =:travelModeName")
 	public Optional<List<HotelSubCategory>> findAllByHotelSubCategoryName(String travelModeName);
+
+	List<HotelSubCategory> findByHotelCategory_IdAndIsActiveOrderByHotelSubCategoryNameAsc(Long hotelCategoryId, String isActive);
+
+	List<HotelSubCategory> findByHotelCategory_HotelCategoryAndIsActiveOrderByHotelSubCategoryNameAsc(
+			String hotelCategory, String isActive);
 
 }

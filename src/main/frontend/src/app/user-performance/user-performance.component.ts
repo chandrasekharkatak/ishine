@@ -860,13 +860,27 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.alertRedirectToList = false;
     this.modalRef?.close();
     if (shouldRedirect) {
+
+    setTimeout(async () => {
+
+      this.isperformanceDsah = true;
+      this.isreviewPage = false;
+
+      this.getAllEmployeesCurrentStatus();
+      this.getAllEmployee();
+
+      await this.getALLdepartmentByEmployee();
+
       setTimeout(() => {
-        this.isperformanceDsah = true;
-        this.isreviewPage = false;
-        this.getAllEmployeesCurrentStatus();
-        this.getAllEmployee();
-      }, 150);
-    }
+
+        if (this.performanceChartRef) {
+          this.performanceChartRef.reflow();
+        }
+
+      }, 400);
+
+    }, 300);
+  }
   }
 
 
@@ -2543,6 +2557,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.performanceService.submitEmployeePerformanceHOD(this.submitPerformance).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse, true);
+        this.hodRemarks = '';
+  this.hrRemarks = '';
         let collapseElement = document.getElementById('collapse' + index);
         if (collapseElement) {
           collapseElement.classList.remove('show'); // Remove 'show' class
@@ -3090,4 +3106,15 @@ hasDataChanged(): boolean {
     if (this.userMapping?.performance_action_by_approvals_to && this.currentStatus === 'Rejected') return true;
     return false;
   }
+
+  allowOnlyLetters(event: KeyboardEvent): void {
+
+  const char = event.key;
+
+  const regex = /^[a-zA-Z.\-\s]+$/;
+
+  if (!regex.test(char)) {
+    event.preventDefault();
+  }
+}
 }

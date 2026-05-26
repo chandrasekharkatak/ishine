@@ -3496,15 +3496,23 @@ async onFinalFileSelected(event: any): Promise<void> {
   else{
     this.empClientSideObj.empId = this.currentUser.empId;
   }
+    const savedId = this.empClientSideObj.clientSideId.trim();
+    const projectId = this.empClientSideObj.projectId;
+    const empId = this.empClientSideObj.empId;
     this.timesheetService.updateClientSideIdMapping(this.empClientSideObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
+        this.hideClientSideIdForm();
+        this.timesheetObj.clientSideId = savedId;
+        if (this.timesheetFormComponent) {
+          this.timesheetFormComponent.applyClientSideIdToProject(projectId, savedId);
+        }
         this.openAlertMod(template, response.serviceResponse);
-        this.getClientSideIdByProjectIdAndEmpId(this.timesheetObj.projectId, this.currentUser.empId);
+        void this.getClientSideIdByProjectIdAndEmpId(projectId, empId);
       } else {
         this.openAlertMod(template, response.serviceResponse)
       }
+      this.resetUpdateClientSideId();
     });
-    this.resetUpdateClientSideId();
   }
 
   async onProjectChange(projId: any) {
@@ -3801,14 +3809,37 @@ async onFinalFileSelected(event: any): Promise<void> {
     //
     await this.timesheetService.getClientSideIdByProjectIdAndEmpId(projectId, empId).pipe(first()).toPromise().then((response: any) => {
       if (response.serviceStatus == "Success") {
-        this.timesheetObj.clientSideId = response.serviceResponse;
-        if (this.timesheetObj.clientSideId) {
-          this.empClientSideObj.clientSideId = this.timesheetObj.clientSideId;
+        const id = this.normalizeClientSideIdFromApi(response.serviceResponse);
+        this.timesheetObj.clientSideId = id;
+        if (id) {
+          this.empClientSideObj.clientSideId = id;
+          if (this.timesheetFormComponent) {
+            this.timesheetFormComponent.applyClientSideIdToProject(projectId, id);
+          }
         }
       } else {
         console.error(response.serviceResponse);
       }
     });
+  }
+
+  private normalizeClientSideIdFromApi(raw: unknown): string | null {
+    if (raw == null) {
+      return null;
+    }
+    if (typeof raw === 'string') {
+      const s = raw.trim();
+      return s.length ? s : null;
+    }
+    if (typeof raw === 'object') {
+      const o = raw as { value?: unknown };
+      if (typeof o.value === 'string') {
+        const s = o.value.trim();
+        return s.length ? s : null;
+      }
+    }
+    const s = String(raw).trim();
+    return s.length && s !== '[object Object]' ? s : null;
   }
 
   resetTimesheetForm(){

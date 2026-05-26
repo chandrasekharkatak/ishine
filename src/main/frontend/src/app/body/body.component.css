@@ -1,14 +1,26 @@
+:host {
+  display: block;
+}
+
 .body{
-    width: 100vw;
+    width: 100%;
+    max-width: 100%;
+    min-height: 0;
     height: 100vh;
     z-index: 0;
     position: relative;
     top: 0;
     transition: all .5s ease;
+    box-sizing: border-box;
 }
 
 .body-container {
   height: 100vh;
+  overflow: hidden;
+}
+
+.body-container ::ng-deep .mat-drawer-content {
+  overflow-x: hidden;
 }
 
 .global-right-drawer {
@@ -231,19 +243,88 @@
   
   
   
+.quick-menu-layer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  z-index: 1200;
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  overflow: visible;
+}
+
+.grievance-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 1195;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #231e8d 0%, #5148d6 100%);
+  color: #fff;
+  box-shadow: 0 14px 32px rgba(35, 30, 141, 0.28);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, bottom 0.2s ease;
+}
+
+.grievance-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 36px rgba(35, 30, 141, 0.34);
+}
+
+.grievance-fab:focus {
+  outline: 2px solid rgba(81, 72, 214, 0.35);
+  outline-offset: 2px;
+}
+
+.grievance-fab i {
+  font-size: 1.1rem;
+}
+
+.grievance-fab__text {
+  display: none;
+}
+
+.grievance-fab--with-quick-menu {
+  bottom: 5.75rem;
+}
+
+.grievance-fab--with-quick-menu.grievance-fab--menu-open {
+  bottom: 16rem;
+}
+
+.quick-menu-layer > * {
+  pointer-events: auto;
+}
+
 .menu-button {
     position: fixed;
     bottom: 1.5rem;
     right: 1.5rem;
-    width: 50px;               
-    height: 50px;
-    border-radius: 50%;        
-    background-color: #231e8d;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: #231e8d !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease, background-color 0.3s ease; 
+    z-index: 1200;
+    transition: transform 0.3s ease, background-color 0.3s ease;
   }
+
+.menu-button mat-icon,
+.menu-button .material-icons {
+  color: #fff;
+}
   
 
   .menu-button:hover {
@@ -274,6 +355,7 @@
     position: fixed;
     right: 5rem;
     left: auto;
+    z-index: 1200;
     height: 25px;
     width: 116px;
     line-height: 25px;
@@ -323,6 +405,7 @@
 .action-button {
     position: fixed;
     right: 2rem;
+    z-index: 1200;
     transition-property: opacity;
     width: 40px;
     height: 40px;
@@ -338,7 +421,7 @@
     padding: 10px;
     border: 1px solid white !important;        
   }
-  
+
  
   .action-button:hover {
     position: fixed;
@@ -385,6 +468,19 @@
   color: white;
 }
   @media (max-width: 600px) {
+    .grievance-fab {
+      right: 1rem;
+      bottom: 1rem;
+    }
+
+    .grievance-fab--with-quick-menu {
+      bottom: 5.5rem;
+    }
+
+    .grievance-fab--with-quick-menu.grievance-fab--menu-open {
+      bottom: 15rem;
+    }
+
     .border-section {
       width: 100%; 
     }

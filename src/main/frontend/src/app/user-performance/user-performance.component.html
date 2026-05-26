@@ -304,7 +304,7 @@
                     <div class="pms-search-input-wrap">
                       <input id="pms-employee-search-input" type="search" autocomplete="off"
                         class="pms-search-input" placeholder="Search…"
-                        [(ngModel)]="searchTableText" (ngModelChange)="onSearchTable()" (keyup.enter)="onSearchTable()" />
+                        [(ngModel)]="searchTableText" (ngModelChange)="onSearchTable()" (keyup.enter)="onSearchTable()"  (keypress)="allowOnlyLetters($event)"/>
                     </div>
                     <button type="button" class="pms-search-btn pms-search-btn--icon-only" (click)="onSearchTable()"
                       title="Search" aria-label="Search">
@@ -317,10 +317,10 @@
                     <input type="text" class="pms-bulk-remark-input" placeholder="HR remark for bulk action"
                       [(ngModel)]="bulkHrRemark" />
                     <button type="button" class="pms-bulk-btn pms-bulk-accept"
-                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
                       (click)="submitBulkHrAction('Accepted')">Bulk Accept</button>
                     <button type="button" class="pms-bulk-btn pms-bulk-reject"
-                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size === 0"
+                      [disabled]="bulkActionInProgress || selectedBulkEmpIds.size < 2"
                       (click)="submitBulkHrAction('Rejected')">Bulk Reject</button>
                   </div>
                   <div class="pms-hod-toolbar-queue" *ngIf="userMapping?.performance_action_by_hod && hodPendingAcceptCount > 0" role="status"

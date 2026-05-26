@@ -7,13 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import com.apmosys.employeeportal.EmployeePortalInterceptor;
 
@@ -27,11 +29,20 @@ public class MyConfig implements WebMvcConfigurer {
     @Value("${security.csp.policy}")
     private String contentSecurityPolicy;
 
+    
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/index.html")
+                .addResourceLocations("classpath:/static/index.html")
+                .setCacheControl(CacheControl.noStore());
+    }
+    
+    
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins("*")
-                .allowedMethods("POST", "GET", "PUT")
+                .allowedMethods("GET", "POST", "PUT", "OPTIONS","PATCH","DELETE")
 //                .allowedMethods("POST", "GET", "PUT" ,"DELETE")
                 .allowedHeaders("Content-Type", "Accept", "X-Requested-With", "loader",
                         "Authorization", "X-FORWARDED-FOR", "Sw8", "X-TRACE-MAP")
@@ -55,6 +66,7 @@ public class MyConfig implements WebMvcConfigurer {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers(request -> {
@@ -87,10 +99,9 @@ public class MyConfig implements WebMvcConfigurer {
                 .referrerPolicy(referrer ->
                     referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)
                 )
-             // ✅ Add extra security headers here, not inside PermissionsPolicyConfig
-                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Resource-Policy", "same-origin"))
-                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Opener-Policy", "same-origin"))
-                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Embedder-Policy", "require-corp"))
+                // Do not set Cross-Origin-Resource-Policy / COEP / COOP to same-origin+require-corp here:
+                // the Angular dev server (e.g. localhost:4200) calls the API on another origin (localhost:8080);
+                // those headers make the browser refuse the response (often reported as CORS failed / status 0).
                 // Permissions-Policy
                 .permissionsPolicy(policy ->
                     policy.policy("geolocation=(), microphone=(), camera=()")

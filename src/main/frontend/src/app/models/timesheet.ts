@@ -120,4 +120,5 @@ export class Timesheet{
     empIds:any[];
     monthYear:any;
     projects?: ProjectItem[]
+    showWorkingHoursInHomePage?:string = "";
 }

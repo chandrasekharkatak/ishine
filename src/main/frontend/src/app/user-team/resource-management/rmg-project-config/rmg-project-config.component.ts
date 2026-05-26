@@ -2455,7 +2455,7 @@ export class RmgProjectConfigComponent implements OnInit {
             this.openAlertMessageModal("Please provide End date!!");
             return;
         }
-        const flag = await this.onRemovePermanentlyChecked(true);
+        const flag = await this.onRemovePermanentlyChecked(this.removePermanently);
         if (!flag) {
             return;
         }

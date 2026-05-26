@@ -710,6 +710,10 @@ export class ResourceManagementComponent implements OnInit {
       await this.getAllDepartmentsByCurrentUserIdAndRole();
     }
 
+    if (this.currentUser.employeeRole !== 'SuperAdmin') {
+      this.selectAllFilteredDepartments();
+    }
+
     this.sectionViewInit();
     this.getEmployeeByNameAndEmpld();
     // this.loadRMGDashboard(this.rmgDashboardProjectRequest);
@@ -855,11 +859,28 @@ export class ResourceManagementComponent implements OnInit {
       await this.getAllDepartmentsByCurrentUserIdAndRole();
     }
 
-    this.selectedDepartmentIds = this.filteredDepartments?.map(dept => dept.deptId) || [];
-    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.selectAllFilteredDepartments();
     if (this.rmgStatusCardsComponent) {
       this.rmgStatusCardsComponent.onDepartmentSelectionChange(this.selectedDepartmentIds);
     }
+  }
+
+  private selectAllFilteredDepartments(): void {
+    this.selectedDepartmentIds = this.filteredDepartments?.map((dept) => dept.deptId) ?? [];
+    this.oldSelectedDepartmentIds = [...this.selectedDepartmentIds];
+    this.filterStateService.deptIdList = this.selectedDepartmentIds;
+    this.filterStateService.myDept = this.myDept;
+  }
+
+  get selectedDepartmentsTooltip(): string {
+    const ids = this.selectedDepartmentIds ?? [];
+    if (ids.length === 0) {
+      return 'No departments selected';
+    }
+    const names = (this.filteredDepartments ?? [])
+      .filter((dept) => ids.includes(dept.deptId))
+      .map((dept) => dept.name);
+    return names.length > 0 ? names.join(', ') : 'No departments selected';
   }
 
   getAllClientList() {

@@ -20,6 +20,7 @@ import { DepartmentService } from 'src/app/services/department.service';
 import { Department } from 'src/app/models/department';
 import { Employee } from 'src/app/models/employee';
 import { LeaveExcludeInclude } from 'src/app/models/LeaveExcludeInclude';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   standalone: false,
@@ -129,7 +130,7 @@ export class LeaveConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName','blank','blank'];
+  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','holidayType','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName','blank','blank'];
   leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description','blank','blank','blank'];
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName','blank','blank'];
   empExcludeColumns = [
@@ -186,6 +187,7 @@ export class LeaveConfigComponent implements OnInit {
     private utilityService: UtilityService,
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
+    private router : Router
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -1772,6 +1774,7 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     this.getAllEmployeesByDepartmentIds(departmentSelect);
   }
 }
+
 
 
 }

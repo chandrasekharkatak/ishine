@@ -851,9 +851,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
-                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                            <span *ngIf="member.empId && !(userMapping.rmg_read_only)" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
-                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="userMapping.rmg_read_only">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
                             [title]="member.poNo|| 'NA'">
@@ -1032,9 +1032,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
-                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                            <span *ngIf="member.empId && !(userMapping.rmg_read_only)" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
-                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="userMapping.rmg_read_only">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberDepartment|| 'NA' ">
                             {{ member.memberDepartment || 'NA' }}
@@ -2309,44 +2309,54 @@
                         <thead>
                             <tr>
                                 <th>Sr.No</th>
-                                <th class="min-width100 max-width150" mat-sort-header="poNo|string">PO No.</th>
-                                <th class="min-width100 max-width150" mat-sort-header="poStartDate|date">PO Start Date
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" mat-sort-header="poNo|string">
+                                    PO No.</th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150"
+                                    mat-sort-header="poStartDate|date">PO
+                                    Start Date
                                 </th>
-                                <th class="min-width100 max-width150" mat-sort-header="poEndDate|date">PO End Date</th>
-                                <th class="min-width100 max-width150" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table100 max-width-requirement-table150"
+                                    mat-sort-header="poEndDate|date">PO End
+                                    Date</th>
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="role|string">
                                     Role
                                 </th>
-                                <th class="min-width100 max-width150" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="department|string">
                                     Department
                                 </th>
-                                <th class="min-width100 max-width150" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="experience|string">
                                     Experience
                                 </th>
-                                <th class="min-width100 max-width150" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="requirementStartDate|date">
                                     Role Start Date
                                 </th>
-                                <th class="min-width100 max-width150" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table100 max-width-requirement-table150" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="requirementEndDate|date">
                                     Role End Date
                                 </th>
-                                <th class="min-width50 max-width100" *ngIf="projectType === 'TNM'"
+                                <th class="min-width-requirement-table50 max-width-requirement-table100" *ngIf="projectType === 'TNM'"
                                     mat-sort-header="count|string">
                                     Required Count
                                 </th>
-                                <th class="min-width50 max-width100" mat-sort-header="assignedApproved|string">Approved
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="assignedApproved|string">
+                                    Approved
                                 </th>
-                                <th class="min-width50 max-width100" mat-sort-header="assignedPending|string">Pending
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="assignedPending|string">
+                                    Pending
                                 </th>
-                                <th class="min-width50 max-width100" mat-sort-header="difference|string">Difference</th>
+                                <th class="min-width-requirement-table50 max-width-requirement-table100"
+                                    mat-sort-header="difference|string">
+                                    Difference</th>
                             </tr>
                             <ng-container *ngIf="isAllResourceRequirementSearchEnabled">
                                 <tr class="custom-filter-row" app-column-filter-bar *ngIf="!isInternalProject"
-                                    [columnList]="allResourceRequirementColumnList"
-                                    (onSearch)="searchAllResourceRequirement($event)">
+                                    [columnList]="allResourceRequirementColumnList" (onSearch)="searchAllResourceRequirement($event)">
                                 </tr>
                                 <tr class="custom-filter-row" app-column-filter-bar *ngIf="isInternalProject"
                                     [columnList]="allResourceRequirementColumnListForInternal"
@@ -2361,54 +2371,60 @@
                             </tr>
                             <ng-container
                                 *ngFor="let resourceReq of currentRmgProjectResourceRequirementList | multicolFilter: allResourceRequirementFilters : true | sort : [allResourceRequirementSortColumn, allResourceRequirementSortColumnType,allResourceRequirementSortDirection] | paginate: { itemsPerPage: allResourceRequirementPageSize, currentPage: allResourceRequirementPage }; let i= index">
-
+                
                                 <tr [ngStyle]="{'background-color': resourceReq.isExpired ? '#fee2e2' : '#ffffff'}">
                                     <td>{{i+1}}</td>
-                                    <td class="min-width100 max-width150 truncate" [title]="resourceReq.poNo || 'NA'">
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        [title]="resourceReq.poNo || 'NA'">
                                         {{resourceReq.poNo || 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate"
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
                                         [title]="resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') : 'NA'">
                                         {{ resourceReq.poStartDate ? (resourceReq.poStartDate | date:'dd-MM-yyyy') :
                                         'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate"
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
                                         [title]="resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'">
                                         {{resourceReq.poEndDate ? (resourceReq.poEndDate | date:'dd-MM-yyyy') : 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate" *ngIf="projectType === 'TNM'"
-                                        [title]="resourceReq.role || 'NA'">
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.role || 'NA'">
                                         {{resourceReq.role || 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate" *ngIf="projectType === 'TNM'"
-                                        [title]="resourceReq.department  || 'NA'">
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.department  || 'NA'">
                                         {{resourceReq.department || 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate" *ngIf="projectType === 'TNM'"
-                                        [title]="resourceReq.experience || 'NA'">
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.experience || 'NA'">
                                         {{resourceReq.experience || 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate" *ngIf="projectType === 'TNM'"
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'"
                                         [title]="resourceReq.requirementStartDate ? (resourceReq.requirementStartDate | date:'dd-MM-yyyy') : 'NA'">
                                         {{resourceReq.requirementStartDate ? (resourceReq.requirementStartDate |
                                         date:'dd-MM-yyyy') : 'NA'}}
                                     </td>
-                                    <td class="min-width100 max-width150 truncate" *ngIf="projectType === 'TNM'"
+                                    <td class="min-width-requirement-table100 max-width-requirement-table150 truncate"
+                                        *ngIf="projectType === 'TNM'"
                                         [title]="resourceReq.requirementEndDate ? (resourceReq.requirementEndDate | date:'dd-MM-yyyy') : 'NA'">
                                         {{resourceReq.requirementEndDate ? (resourceReq.requirementEndDate |
                                         date:'dd-MM-yyyy') : 'NA'}}
                                     </td>
-                                    <td class="min-width50 max-width100" *ngIf="projectType === 'TNM'"
-                                        [title]="resourceReq.count || 0 ">
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        *ngIf="projectType === 'TNM'" [title]="resourceReq.count || 0 ">
                                         {{resourceReq.count || 0 }}
                                     </td>
-                                    <td class="min-width50 max-width100" [title]="resourceReq.assignedApproved || 0">
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.assignedApproved || 0">
                                         {{resourceReq.assignedApproved || 0}}
                                     </td>
-                                    <td class="min-width50 max-width100" [title]="resourceReq.assignedPending || 0">
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.assignedPending || 0">
                                         {{resourceReq.assignedPending || 0}}
                                     </td>
-                                    <td class="min-width50 max-width100" [title]="resourceReq.difference || 0">
+                                    <td class="min-width-requirement-table50 max-width-requirement-table100"
+                                        [title]="resourceReq.difference || 0">
                                         {{resourceReq.difference || 0}}
                                     </td>
                                 </tr>
