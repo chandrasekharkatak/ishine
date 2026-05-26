@@ -717,6 +717,8 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	    return response;
 	}
 
+
+
 	@Override
 	public ServiceResponse checkTrainingFrequency(Long empId, Integer trainingId) {
 		ServiceResponse response = new ServiceResponse();

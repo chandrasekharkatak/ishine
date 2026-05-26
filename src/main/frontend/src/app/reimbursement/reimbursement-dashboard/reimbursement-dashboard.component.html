@@ -26,22 +26,106 @@
     </select>
     <input type="date" class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.fromDate" (change)="loadDashboard()" />
     <input type="date" class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.toDate" (change)="loadDashboard()" />
-    <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.department" (ngModelChange)="loadDashboard()">
-      <option value="">All departments</option>
-      <option *ngFor="let d of filterOptions?.departments; trackBy: trackDeptFilterOption" [ngValue]="d">{{ d }}</option>
-    </select>
-    <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.employeeEmpId" (ngModelChange)="loadDashboard()">
-      <option value="">All employees</option>
-      <option *ngFor="let e of filterOptions?.employees" [ngValue]="e.empId">{{ e.fullName }}</option>
-    </select>
-    <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.projectId" (ngModelChange)="loadDashboard()">
-      <option value="">All projects</option>
-      <option *ngFor="let p of filterOptions?.projects" [ngValue]="p.projectId">{{ p.projectName }}</option>
-    </select>
-    <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.clientId" (ngModelChange)="loadDashboard()">
-      <option value="">All clients</option>
-      <option *ngFor="let c of filterOptions?.clients; trackBy: trackClientFilterOption" [ngValue]="c.clientId">{{ c.clientName }}</option>
-    </select>
+    <div class="rmb-dash__filter-field">
+      <div class="rmb-dash__select-wrap" [class.rmb-dash__select-wrap--disabled]="!departmentSelectOptions.length">
+        <app-my-select
+          class="rmb-dash__my-select"
+          name="rmbDashFilterDept"
+          [placeholder]="'Select department'"
+          [options]="departmentSelectOptions"
+          displayKey="name"
+          valueKey="name"
+          [wrapOptionLines]="true"
+          [(ngModel)]="filter.department"
+          (selectionChange)="onMasterFilterChange()"
+          [disabled]="!departmentSelectOptions.length">
+        </app-my-select>
+      </div>
+      <button
+        *ngIf="filter.department"
+        type="button"
+        class="rmb-dash__filter-clear"
+        (click)="clearDepartmentFilter()"
+        title="Clear department"
+        aria-label="Clear department filter">
+        <i class="fa fa-times-circle" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="rmb-dash__filter-field">
+      <div class="rmb-dash__select-wrap" [class.rmb-dash__select-wrap--disabled]="!filterOptions?.employees?.length">
+        <app-my-select
+          class="rmb-dash__my-select"
+          name="rmbDashFilterEmp"
+          [placeholder]="'Select employee'"
+          [options]="filterOptions?.employees || []"
+          displayKey="fullName"
+          valueKey="empId"
+          [wrapOptionLines]="true"
+          [(ngModel)]="filter.employeeEmpId"
+          (selectionChange)="onMasterFilterChange()"
+          [disabled]="!filterOptions?.employees?.length">
+        </app-my-select>
+      </div>
+      <button
+        *ngIf="filter.employeeEmpId !== '' && filter.employeeEmpId != null"
+        type="button"
+        class="rmb-dash__filter-clear"
+        (click)="clearEmployeeFilter()"
+        title="Clear employee"
+        aria-label="Clear employee filter">
+        <i class="fa fa-times-circle" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="rmb-dash__filter-field">
+      <div class="rmb-dash__select-wrap" [class.rmb-dash__select-wrap--disabled]="!filterOptions?.clients?.length">
+        <app-my-select
+          class="rmb-dash__my-select"
+          name="rmbDashFilterClient"
+          [placeholder]="'Select client'"
+          [options]="filterOptions?.clients || []"
+          displayKey="clientName"
+          valueKey="clientId"
+          [wrapOptionLines]="true"
+          [(ngModel)]="filter.clientId"
+          (selectionChange)="onClientFilterChange()"
+          [disabled]="!filterOptions?.clients?.length">
+        </app-my-select>
+      </div>
+      <button
+        *ngIf="filter.clientId !== '' && filter.clientId != null"
+        type="button"
+        class="rmb-dash__filter-clear"
+        (click)="clearClientFilter()"
+        title="Clear client"
+        aria-label="Clear client filter">
+        <i class="fa fa-times-circle" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="rmb-dash__filter-field">
+      <div class="rmb-dash__select-wrap" [class.rmb-dash__select-wrap--disabled]="!projectSelectOptions.length">
+        <app-my-select
+          class="rmb-dash__my-select"
+          name="rmbDashFilterProject"
+          [placeholder]="projectFilterPlaceholder"
+          [options]="projectSelectOptions"
+          displayKey="projectName"
+          valueKey="projectId"
+          [wrapOptionLines]="true"
+          [(ngModel)]="filter.projectId"
+          (selectionChange)="onMasterFilterChange()"
+          [disabled]="!projectSelectOptions.length">
+        </app-my-select>
+      </div>
+      <button
+        *ngIf="filter.projectId !== '' && filter.projectId != null"
+        type="button"
+        class="rmb-dash__filter-clear"
+        (click)="clearProjectFilter()"
+        title="Clear project"
+        aria-label="Clear project filter">
+        <i class="fa fa-times-circle" aria-hidden="true"></i>
+      </button>
+    </div>
     <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.ticketStatus" (ngModelChange)="loadDashboard()">
       <option value="">All display status</option>
       <option *ngFor="let s of filterOptions?.ticketStatuses" [ngValue]="s">{{ s }}</option>
@@ -50,11 +134,36 @@
       <option value="">All workflow stages</option>
       <option *ngFor="let w of filterOptions?.workflowStages" [ngValue]="w">{{ w }}</option>
     </select>
-    <select class="form-control form-control-sm rmb-dash__select" [(ngModel)]="filter.expenditureType" (ngModelChange)="loadDashboard()">
-      <option value="">All claim types</option>
-      <option *ngFor="let x of filterOptions?.expenditureTypes" [ngValue]="x">{{ x }}</option>
-    </select>
+    <div class="rmb-dash__filter-field">
+      <div class="rmb-dash__select-wrap" [class.rmb-dash__select-wrap--disabled]="!expenditureTypeSelectOptions.length">
+        <app-my-select
+          class="rmb-dash__my-select"
+          name="rmbDashFilterClaimType"
+          [placeholder]="'Select claim type'"
+          [options]="expenditureTypeSelectOptions"
+          displayKey="expenditureTypeName"
+          valueKey="expenditureTypeName"
+          [wrapOptionLines]="true"
+          [(ngModel)]="filter.expenditureType"
+          (selectionChange)="onMasterFilterChange()"
+          [disabled]="!expenditureTypeSelectOptions.length">
+        </app-my-select>
+      </div>
+      <button
+        *ngIf="filter.expenditureType"
+        type="button"
+        class="rmb-dash__filter-clear"
+        (click)="clearClaimTypeFilter()"
+        title="Clear claim type"
+        aria-label="Clear claim type filter">
+        <i class="fa fa-times-circle" aria-hidden="true"></i>
+      </button>
+    </div>
     <button type="button" class="btn btn-outline-secondary btn-sm ml-auto" (click)="resetFilters()">Reset</button>
+    <div class="w-100 rmb-dash__filter-hint small text-muted mt-1 mb-0 px-1">
+      Department, employee, client, then project (project list narrows when a client is selected), display status, workflow stage, and claim type filters apply to
+      <strong>all</strong> tabs below (Overview through Employee analytics). When you set a date range, it narrows the same scope; leave dates empty for all time.
+    </div>
   </div>
 
   <ul class="nav nav-tabs rmb-dash__tabs">
@@ -78,6 +187,9 @@
     </li>
     <li class="nav-item">
       <a class="nav-link" [class.active]="activeTab === 'deptTrend'" href="#" (click)="setTab('deptTrend'); $event.preventDefault()">Department-based analysis</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'travelDesk'" href="#" (click)="setTab('travelDesk'); $event.preventDefault()">Travel Desk Analytics</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" [class.active]="activeTab === 'employee'" href="#" (click)="setTab('employee'); $event.preventDefault()">Employee analytics</a>
@@ -117,6 +229,81 @@
             <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
             <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
             <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-3 col-6 mb-2" *ngFor="let kpi of overviewKpiRow4()">
+          <div class="rmb-dash__kpi">
+            <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
+            <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
+            <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rmb-dash__overview-approval mb-3">
+        <div class="row">
+          <div class="col-lg-5 mb-3 mb-lg-0">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">Configured approval paths</div>
+              <div class="rmb-dash__chart-sub text-muted">Active matrices from reimbursement rule configuration</div>
+              <ng-container *ngIf="overviewActiveMatrices().length; else noMatrixConfig">
+                <div class="rmb-dash__matrix-config" *ngFor="let m of overviewActiveMatrices()">
+                  <div class="rmb-dash__matrix-config-name">{{ m.matrixName }}</div>
+                  <div class="rmb-dash__matrix-config-flow small text-muted">{{ displayApprovalFlowSummary(m.approvalFlowSummary) }}</div>
+                </div>
+              </ng-container>
+              <ng-template #noMatrixConfig>
+                <p class="text-muted small mb-0">No active approval matrix configured.</p>
+              </ng-template>
+            </div>
+          </div>
+          <div class="col-lg-7">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">In-flight workflow (filtered scope)</div>
+              <div class="rmb-dash__chart-sub text-muted">Ticket stages and matrix level queue for current filters</div>
+              <div class="rmb-dash__stage-chips mb-2" *ngIf="workflowStageRows().length">
+                <span
+                  class="rmb-dash__stage-chip"
+                  *ngFor="let s of workflowStageRows()"
+                  [attr.title]="workflowStageLabel(s.stage)">
+                  {{ workflowStageLabel(s.stage) }} <strong>{{ formatNumber(s.count) }}</strong>
+                </span>
+              </div>
+              <p class="text-muted small mb-2" *ngIf="!workflowStageRows().length">No tickets in scope.</p>
+              <div class="rmb-dash__matrix-queue mb-3" *ngIf="pendingMatrixLevelRows().length">
+                <div class="small font-weight-bold text-muted mb-1">Pending at matrix level</div>
+                <span class="rmb-dash__stage-chip rmb-dash__stage-chip--matrix" *ngFor="let lv of pendingMatrixLevelRows()">
+                  {{ lv.label }} <strong>{{ formatNumber(lv.count) }}</strong>
+                </span>
+              </div>
+              <div *ngIf="overviewUsesMatrixWorkflow() && reimbursementDashboard.approvalFunnelMatrix as MF">
+                <div class="small font-weight-bold text-muted mb-1">Matrix funnel ({{ formatNumber(reimbursementDashboard.matrixTicketCount) }} tickets)</div>
+                <div class="rmb-dash__funnel-row rmb-dash__funnel-row--compact" *ngFor="let step of matrixFunnelSteps">
+                  <div class="d-flex justify-content-between small mb-1">
+                    <span>{{ step.k }}</span>
+                    <span class="font-weight-bold">{{ formatNumber(funnelVal(MF, step.f)) }} · {{ funnelPct(funnelVal(MF, step.f), funnelVal(MF, 'submitted')) }}%</span>
+                  </div>
+                  <div class="progress rmb-dash__progress">
+                    <div
+                      class="progress-bar"
+                      role="progressbar"
+                      [style.width.%]="funnelPct(funnelVal(MF, step.f), funnelVal(MF, 'submitted'))"
+                      [ngClass]="{
+                        'bg-primary': step.f === 'submitted',
+                        'bg-info': step.f === 'pastMatrixQueue',
+                        'bg-warning': step.f === 'financeEngaged',
+                        'bg-success': step.f === 'paidClosed'
+                      }"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-muted small mb-0" *ngIf="!overviewUsesMatrixWorkflow() && (reimbursementDashboard.legacyTicketCount || 0) > 0">
+                Tickets in scope use the legacy HOD → HR → Finance path. See <strong>Approval analytics</strong> for the legacy funnel.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -250,50 +437,141 @@
     <!-- Approval funnel -->
     <div [style.display]="activeTab === 'approval' ? 'block' : 'none'">
       <div class="row mb-3">
-        <div class="col-md-4 mb-2">
+        <div class="col-md-3 mb-2">
           <div class="rmb-dash__kpi">
             <div class="rmb-dash__kpi-label">Pending HOD</div>
             <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHodTickets) }}</div>
           </div>
         </div>
-        <div class="col-md-4 mb-2">
+        <div class="col-md-3 mb-2">
+          <div class="rmb-dash__kpi">
+            <div class="rmb-dash__kpi-label">Pending approval</div>
+            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingApprovalTickets || 0) }}</div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-2">
           <div class="rmb-dash__kpi">
             <div class="rmb-dash__kpi-label">Pending HR</div>
             <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHrTickets) }}</div>
           </div>
         </div>
-        <div class="col-md-4 mb-2">
+        <div class="col-md-3 mb-2">
           <div class="rmb-dash__kpi">
             <div class="rmb-dash__kpi-label">Pending Finance</div>
             <div class="rmb-dash__kpi-value text-primary">{{ formatNumber(reimbursementDashboard.pendingFinanceTickets) }}</div>
           </div>
         </div>
       </div>
-      <div class="rmb-dash__chart-card mb-3">
-        <div class="rmb-dash__chart-title">Approval funnel</div>
-        <div class="rmb-dash__chart-sub text-muted">Ticket counts by workflow progression (approximation from current stage)</div>
-        <ng-container *ngIf="reimbursementDashboard.approvalFunnel as F">
-          <div class="rmb-dash__funnel-row" *ngFor="let step of funnelSteps">
-            <div class="d-flex justify-content-between small mb-1">
-              <span>{{ step.k }}</span>
-              <span class="font-weight-bold">{{ formatNumber(funnelVal(F, step.f)) }} · {{ funnelPct(funnelVal(F, step.f), funnelVal(F, 'submitted')) }}%</span>
-            </div>
-            <div class="progress rmb-dash__progress">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                [style.width.%]="funnelPct(funnelVal(F, step.f), funnelVal(F, 'submitted'))"
-                [ngClass]="{
-                  'bg-primary': step.f === 'submitted',
-                  'bg-info': step.f === 'l1Reviewed',
-                  'bg-secondary': step.f === 'l2Reviewed',
-                  'bg-warning': step.f === 'l3Reviewed',
-                  'bg-success': step.f === 'paidClosed'
-                }"
-              ></div>
-            </div>
+      <div class="row mb-3">
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Matrix-matched tickets</div>
+            <div class="rmb-dash__kpi-value text-primary">{{ formatNumber(reimbursementDashboard.matrixTicketCount || 0) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Uses reimbursement approval matrix</div>
           </div>
-        </ng-container>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Legacy workflow tickets</div>
+            <div class="rmb-dash__kpi-value">{{ formatNumber(reimbursementDashboard.legacyTicketCount || 0) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">HOD → HR → Finance path</div>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-lg-6 mb-3">
+          <div class="rmb-dash__chart-card">
+            <div class="rmb-dash__chart-title">Tickets by workflow stage</div>
+            <div class="rmb-dash__chart-sub text-muted">Raw ticket counts in current filter scope</div>
+            <div class="table-responsive" *ngIf="workflowStageRows().length">
+              <table class="table table-sm rmb-dash__mini-table mb-0">
+                <thead><tr><th>Stage</th><th class="text-right">Tickets</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let r of workflowStageRows()">
+                    <td><code class="small">{{ r.stage }}</code></td>
+                    <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted small mb-0" *ngIf="!workflowStageRows().length">No tickets in scope.</p>
+          </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+          <div class="rmb-dash__chart-card">
+            <div class="rmb-dash__chart-title">Pending at matrix level</div>
+            <div class="rmb-dash__chart-sub text-muted">Tickets in PENDING_LEVEL, by configured level order</div>
+            <div class="table-responsive" *ngIf="pendingMatrixLevelRows().length">
+              <table class="table table-sm rmb-dash__mini-table mb-0">
+                <thead><tr><th>Level</th><th class="text-right">Tickets</th></tr></thead>
+                <tbody>
+                  <tr *ngFor="let r of pendingMatrixLevelRows()">
+                    <td>{{ r.label }}</td>
+                    <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted small mb-0" *ngIf="!pendingMatrixLevelRows().length">None — no tickets waiting on a matrix level.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rmb-dash__chart-card mb-3">
+        <div class="rmb-dash__chart-title">Claim lines by status</div>
+        <div class="rmb-dash__chart-sub text-muted">In-scope claim rows (respects project / client / claim-type filters)</div>
+        <div class="table-responsive" *ngIf="claimStatusLineRows().length">
+          <table class="table table-sm rmb-dash__mini-table mb-0">
+            <thead><tr><th>Claim status</th><th class="text-right">Lines</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let r of claimStatusLineRows()">
+                <td><code class="small">{{ r.status }}</code></td>
+                <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-lg-6 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Approval funnel</div>
+            <div class="rmb-dash__chart-sub text-muted">
+              All tickets — where each ticket sits between milestones (legacy HOD/HR path). Total submitted:
+              {{ formatNumber(funnelVal(reimbursementDashboard.approvalFunnel, 'submitted')) }}
+            </div>
+            <div
+              id="rmbDashApprovalFunnelPie"
+              class="rmb-dash__chart-host rmb-dash__chart-host--funnel-pie"
+              *ngIf="funnelHasPieSlices(reimbursementDashboard.approvalFunnel, funnelSteps)"
+            ></div>
+            <p class="text-muted small mb-0" *ngIf="!funnelHasPieSlices(reimbursementDashboard.approvalFunnel, funnelSteps)">
+              No tickets in scope for this funnel.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-6 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Matrix workflow funnel</div>
+            <div class="rmb-dash__chart-sub text-muted">
+              Matrix-matched tickets only ({{ formatNumber(reimbursementDashboard.matrixTicketCount || 0) }} in scope). Submitted:
+              {{ formatNumber(funnelVal(reimbursementDashboard.approvalFunnelMatrix, 'submitted')) }}
+            </div>
+            <div
+              id="rmbDashMatrixFunnelPie"
+              class="rmb-dash__chart-host rmb-dash__chart-host--funnel-pie"
+              *ngIf="(reimbursementDashboard.matrixTicketCount || 0) > 0 && funnelHasPieSlices(reimbursementDashboard.approvalFunnelMatrix, matrixFunnelSteps)"
+            ></div>
+            <p class="text-muted small mb-0" *ngIf="!(reimbursementDashboard.matrixTicketCount > 0)">
+              No matrix-matched tickets in the current filters.
+            </p>
+            <p
+              class="text-muted small mb-0"
+              *ngIf="(reimbursementDashboard.matrixTicketCount || 0) > 0 && !funnelHasPieSlices(reimbursementDashboard.approvalFunnelMatrix, matrixFunnelSteps)"
+            >
+              No matrix funnel breakdown for the current filter scope.
+            </p>
+          </div>
+        </div>
       </div>
       <p class="text-muted small mb-0">
         Per-approver turnaround and scorecards need reimbursement audit aggregation — use ticket lifecycle and Finance queue for
@@ -303,7 +581,7 @@
 
     <!-- Rejection -->
     <div [style.display]="activeTab === 'rejection' ? 'block' : 'none'">
-      <div class="row mb-3">
+      <div class="row mb-2">
         <div class="col-md-3 col-6 mb-2">
           <div class="rmb-dash__kpi">
             <div class="rmb-dash__kpi-label">Rejected claims</div>
@@ -317,14 +595,30 @@
           </div>
         </div>
       </div>
+      <div class="row mb-3" *ngIf="(reimbursementDashboard.rejectedClaimLines || 0) > 0">
+        <div class="col-6 col-md-3 mb-2" *ngFor="let ch of rejectionByChannelList() | slice:0:4">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">{{ ch.channel }}</div>
+            <div class="rmb-dash__kpi-value text-danger">{{ formatNumber(ch.count) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">{{ ch.pct }}% of rejected lines</div>
+          </div>
+        </div>
+      </div>
       <div class="row">
-        <div class="col-lg-6 mb-3">
+        <div class="col-lg-4 mb-3">
           <div class="rmb-dash__chart-card">
             <div class="rmb-dash__chart-title">Rejections by claim type</div>
             <div id="rmbDashChartRejectType" class="rmb-dash__chart-host"></div>
           </div>
         </div>
-        <div class="col-lg-6 mb-3">
+        <div class="col-lg-4 mb-3">
+          <div class="rmb-dash__chart-card">
+            <div class="rmb-dash__chart-title">Rejections by channel</div>
+            <div class="rmb-dash__chart-sub text-muted">HOD vs matrix level vs HR vs Finance</div>
+            <div id="rmbDashChartRejectChannel" class="rmb-dash__chart-host rmb-dash__chart-host--short"></div>
+          </div>
+        </div>
+        <div class="col-lg-4 mb-3">
           <div class="rmb-dash__chart-card">
             <div class="rmb-dash__chart-title">Rejection reasons</div>
             <div class="rmb-dash__chart-sub text-muted">From HOD / HR remarks and Finance reason</div>
@@ -340,6 +634,27 @@
           </div>
         </div>
       </div>
+      <div class="rmb-dash__chart-card mb-3" *ngIf="(reimbursementDashboard.rejectionByDepartmentTop || []).length">
+        <div class="rmb-dash__chart-title">Top departments by rejected claim lines</div>
+        <div class="table-responsive">
+          <table class="table table-sm rmb-dash__mini-table mb-0">
+            <thead>
+              <tr>
+                <th>Department</th>
+                <th class="text-right">Rejected lines</th>
+                <th class="text-right">Rejected amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of reimbursementDashboard.rejectionByDepartmentTop">
+                <td>{{ r.department }}</td>
+                <td class="text-right font-weight-bold">{{ formatNumber(r.rejectedLines) }}</td>
+                <td class="text-right text-danger">₹{{ formatRupee(r.rejectedAmount) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
       <div class="rmb-dash__chart-card">
         <div class="rmb-dash__chart-title">Rejection detail log</div>
         <div class="table-responsive">
@@ -348,6 +663,7 @@
               <tr>
                 <th>Ticket</th>
                 <th>Employee</th>
+                <th>Dept</th>
                 <th>Type</th>
                 <th class="text-right">Amount</th>
                 <th>By</th>
@@ -359,6 +675,7 @@
               <tr *ngFor="let r of reimbursementDashboard.rejectionLog || []">
                 <td class="text-primary font-weight-bold">{{ r.ticketNo || r.ticketId }}</td>
                 <td>{{ r.employeeName }}</td>
+                <td class="small">{{ r.department }}</td>
                 <td>{{ r.expenditureType }}</td>
                 <td class="text-right text-danger">₹{{ formatRupee(r.amount) }}</td>
                 <td>{{ r.rejectedBy }}</td>
@@ -374,7 +691,7 @@
     <!-- Client analytics (dimension + employee stacks, status, tops, aging) -->
     <div [style.display]="activeTab === 'clientTrend' ? 'block' : 'none'">
       <p class="text-muted small mb-3">
-        Client-centric view for the current filters: the main chart matches the <strong>Client Analysis</strong> prototype — a <strong>4-series line chart</strong> (Chart.js-style): one point per <strong>clients</strong> master row, colors Raised #1B3461 · Paid #16A34A · Pending #D97706 · Rejected #DC2626 (rejected series dashed). KPIs and aging use the same scoped data as the overview.
+        Client-centric view: <strong>four line charts</strong> (Raised, Paid, Pending, Rejected) for the top active clients in scope. KPIs and aging use the same filtered data as the overview.
       </p>
       <div class="row mb-3">
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
@@ -390,7 +707,7 @@
         </div>
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
           { l: 'Rejected amount', v: '₹' + formatRupee(reimbursementDashboard.totalRejectedClaimsAmount), s: 'Rejected claims' },
-          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Distinct employees in filter scope' },
+          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Active employees from employee master' },
           { l: 'Clients (master list)', v: formatNumber((filterOptions?.clients || []).length), s: 'All rows from clients table in filter dropdown' }
         ]">
           <div class="rmb-dash__kpi">
@@ -403,11 +720,24 @@
       <div class="row">
         <div class="col-lg-8 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Client-wise reimbursement — 4-series line chart</div>
+            <div class="rmb-dash__chart-title">Client-wise reimbursement</div>
             <div class="rmb-dash__chart-sub text-muted">
-              One point per client (master list) · Raised · Paid · Pending · Rejected (₹) — same palette and styling as the HRMS prototype (<code>rmbDashClientEmployeeStack</code>).
+              Four line charts (₹) · top 12 clients with activity · value labels on each point
             </div>
-            <div id="rmbDashClientEmployeeStack" class="rmb-dash__chart-host"></div>
+            <div class="row rmb-dash__insight-lines">
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashClientInsightLineRaised" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashClientInsightLinePaid" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashClientInsightLinePending" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-0">
+                <div id="rmbDashClientInsightLineRejected" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-lg-4 mb-3">
@@ -421,15 +751,15 @@
       <div class="row">
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top clients by raised amount</div>
-            <div class="rmb-dash__chart-sub text-muted">Horizontal bars (₹)</div>
+            <div class="rmb-dash__chart-title">Top 10 clients by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · client names</div>
             <div id="rmbDashClientTopDim" class="rmb-dash__chart-host"></div>
           </div>
         </div>
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top employees by raised amount</div>
-            <div class="rmb-dash__chart-sub text-muted">From scoped leaderboard</div>
+            <div class="rmb-dash__chart-title">Top 10 employees by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · from scoped leaderboard</div>
             <div id="rmbDashClientTopEmp" class="rmb-dash__chart-host"></div>
           </div>
         </div>
@@ -449,7 +779,7 @@
     <!-- Project analytics -->
     <div [style.display]="activeTab === 'projectTrend' ? 'block' : 'none'">
       <p class="text-muted small mb-3">
-        Project-centric view for the current filters: the main chart is the same <strong>4-series line chart</strong> as Client Analysis (one point per <strong>projects</strong> master row; rejected series dashed). KPIs and aging match the overview.
+        Project-centric view: four line charts (Raised, Paid, Pending, Rejected) for top active projects. KPIs and aging match the overview.
       </p>
       <div class="row mb-3">
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
@@ -465,8 +795,8 @@
         </div>
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
           { l: 'Rejected amount', v: '₹' + formatRupee(reimbursementDashboard.totalRejectedClaimsAmount), s: 'Rejected claims' },
-          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Distinct employees in filter scope' },
-          { l: 'Projects (chart series)', v: formatNumber((reimbursementDashboard?.projectLineChartPack?.categories || []).length), s: 'One category per projects master row (+ orphans)' }
+          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Active employees from employee master' },
+          { l: 'Projects (master)', v: formatNumber((reimbursementDashboard?.projectLineChartPack?.categories || []).length), s: 'Main chart shows only projects with activity in scope' }
         ]">
           <div class="rmb-dash__kpi">
             <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
@@ -478,11 +808,24 @@
       <div class="row">
         <div class="col-lg-8 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Project-wise reimbursement — 4-series line chart</div>
+            <div class="rmb-dash__chart-title">Project-wise reimbursement</div>
             <div class="rmb-dash__chart-sub text-muted">
-              One point per project (master list) · Raised · Paid · Pending · Rejected (₹) — prototype-aligned series (<code>rmbDashProjectEmployeeStack</code>).
+              Four line charts (₹) · top 12 projects with activity · value labels on each point
             </div>
-            <div id="rmbDashProjectEmployeeStack" class="rmb-dash__chart-host"></div>
+            <div class="row rmb-dash__insight-lines">
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashProjectInsightLineRaised" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashProjectInsightLinePaid" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashProjectInsightLinePending" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-0">
+                <div id="rmbDashProjectInsightLineRejected" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-lg-4 mb-3">
@@ -496,13 +839,15 @@
       <div class="row">
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top projects by raised amount</div>
+            <div class="rmb-dash__chart-title">Top 10 projects by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · project names</div>
             <div id="rmbDashProjectTopDim" class="rmb-dash__chart-host"></div>
           </div>
         </div>
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top employees by raised amount</div>
+            <div class="rmb-dash__chart-title">Top 10 employees by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · employee names</div>
             <div id="rmbDashProjectTopEmp" class="rmb-dash__chart-host"></div>
           </div>
         </div>
@@ -522,7 +867,7 @@
     <!-- Department analytics -->
     <div [style.display]="activeTab === 'deptTrend' ? 'block' : 'none'">
       <p class="text-muted small mb-3">
-        Department-centric view: the main chart matches the <strong>Department Analysis</strong> prototype — <strong>4-series line chart</strong> by master department with the same palette; <strong>all series solid</strong> (prototype <code>iDt</code>). Extra categories at the end are ticket departments not in the master list. KPIs and aging match the overview.
+        Department-centric view: four line charts (Raised, Paid, Pending, Rejected) for top active departments. KPIs and aging match the overview.
       </p>
       <div class="row mb-3">
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
@@ -538,7 +883,7 @@
         </div>
         <div class="col-md-4 col-6 mb-2" *ngFor="let kpi of [
           { l: 'Rejected amount', v: '₹' + formatRupee(reimbursementDashboard.totalRejectedClaimsAmount), s: 'Rejected claims' },
-          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Distinct employees in filter scope' },
+          { l: 'Employees (filter list)', v: formatNumber((filterOptions?.employees || []).length), s: 'Active employees from employee master' },
           { l: 'Departments (master list)', v: formatNumber((filterOptions?.departments || []).length), s: 'All rows from department master in filter dropdown' }
         ]">
           <div class="rmb-dash__kpi">
@@ -551,11 +896,24 @@
       <div class="row">
         <div class="col-lg-8 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Department-wise reimbursement — 4-series line chart</div>
+            <div class="rmb-dash__chart-title">Department-wise reimbursement</div>
             <div class="rmb-dash__chart-sub text-muted">
-              One point per master department · Raised · Paid · Pending · Rejected (₹) — all solid series per prototype (<code>rmbDashDeptInsightEmployeeStack</code>).
+              Four line charts (₹) · top 12 departments with activity · value labels on each point
             </div>
-            <div id="rmbDashDeptInsightEmployeeStack" class="rmb-dash__chart-host"></div>
+            <div class="row rmb-dash__insight-lines">
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashDeptInsightLineRaised" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashDeptInsightLinePaid" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-2">
+                <div id="rmbDashDeptInsightLinePending" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+              <div class="col-md-6 mb-0">
+                <div id="rmbDashDeptInsightLineRejected" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-lg-4 mb-3">
@@ -569,13 +927,15 @@
       <div class="row">
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top departments by raised amount</div>
+            <div class="rmb-dash__chart-title">Top 10 departments by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · department names</div>
             <div id="rmbDashDeptInsightTopDim" class="rmb-dash__chart-host"></div>
           </div>
         </div>
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Top employees by raised amount</div>
+            <div class="rmb-dash__chart-title">Top 10 employees by raised amount</div>
+            <div class="rmb-dash__chart-sub text-muted">Vertical bars (₹) · employee names</div>
             <div id="rmbDashDeptInsightTopEmp" class="rmb-dash__chart-host"></div>
           </div>
         </div>
@@ -590,6 +950,174 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Travel Desk analytics -->
+    <div [style.display]="activeTab === 'travelDesk' ? 'block' : 'none'">
+      <p class="text-muted small mb-3">
+        Travel Desk spend analytics by <strong>project</strong> and <strong>client</strong> using booked request amounts from Travel Desk.
+        This tab follows date, department, employee, client, project, display status and workflow stage filters. Claim type filter is ignored here.
+      </p>
+
+      <div class="alert alert-warning py-2 px-3 mb-3" *ngIf="travelDeskLoadError">
+        {{ travelDeskLoadError }}
+      </div>
+
+      <ng-container *ngIf="travelDeskDashboard && !travelDeskLoadError; else noTravelDeskAnalytics">
+        <div class="row mb-3">
+          <div class="col-md-3 col-6 mb-2" *ngFor="let kpi of travelDeskKpiRow1()">
+            <div class="rmb-dash__kpi">
+              <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
+              <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
+              <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-3 col-6 mb-2" *ngFor="let kpi of travelDeskKpiRow2()">
+            <div class="rmb-dash__kpi">
+              <div class="rmb-dash__kpi-label">{{ kpi.l }}</div>
+              <div class="rmb-dash__kpi-value" [ngClass]="kpi.vc">{{ kpi.v }}</div>
+              <div class="rmb-dash__kpi-sub" [ngClass]="kpi.sc || 'text-muted'" *ngIf="kpi.s">{{ kpi.s }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-8 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Monthly travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked request amounts grouped by booking month</div>
+              <div id="rmbDashTravelSpendTrend" class="rmb-dash__chart-host rmb-dash__chart-host--insight-line"></div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Ticket status distribution</div>
+              <div class="rmb-dash__chart-sub text-muted text-center font-weight-bold mb-1">{{ formatNumber(travelDeskDashboard.ticketCount) }} total tickets</div>
+              <div id="rmbDashTravelTicketDonut" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 projects by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount aggregated per project</div>
+              <div id="rmbDashTravelProjectTop" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 clients by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount aggregated per client</div>
+              <div id="rmbDashTravelClientTop" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Top 10 employees by travel spend</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked amount by employee in current scope</div>
+              <div id="rmbDashTravelTopEmp" class="rmb-dash__chart-host"></div>
+            </div>
+          </div>
+          <div class="col-lg-6 mb-3">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">Workflow stage summary</div>
+              <div class="rmb-dash__chart-sub text-muted">Ticket counts by current workflow stage</div>
+              <div class="table-responsive" *ngIf="travelWorkflowStageRows().length; else noTravelStages">
+                <table class="table table-sm rmb-dash__mini-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Stage</th>
+                      <th class="text-right">Tickets</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelWorkflowStageRows()">
+                      <td><code class="small">{{ row.stage }}</code></td>
+                      <td class="text-right font-weight-bold">{{ formatNumber(row.count) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelStages>
+                <p class="text-muted small mb-0">No tickets in the current travel scope.</p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-8 mb-3">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Project spend breakdown</div>
+              <div class="rmb-dash__chart-sub text-muted">Shows each project, mapped client, request count and total travel spend</div>
+              <div class="table-responsive" *ngIf="travelDeskDashboard.projectSpendRows?.length; else noTravelProjects">
+                <table class="table table-sm rmb-dash__table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Project</th>
+                      <th>Client</th>
+                      <th class="text-center">Requests</th>
+                      <th class="text-center">Booked</th>
+                      <th class="text-right">Total Spend</th>
+                      <th class="text-right">Avg / Booked Request</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelProjectSpendRows(15)">
+                      <td>{{ row.projectName }}</td>
+                      <td>{{ row.clientName }}</td>
+                      <td class="text-center">{{ formatNumber(row.requestCount) }}</td>
+                      <td class="text-center">{{ formatNumber(row.bookedRequestCount) }}</td>
+                      <td class="text-right">₹{{ formatRupee(row.totalSpend) }}</td>
+                      <td class="text-right">₹{{ formatRupee(row.averageSpend) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelProjects>
+                <p class="text-muted small mb-0">No project spend found for the current filters.</p>
+              </ng-template>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-3">
+            <div class="rmb-dash__chart-card h-100">
+              <div class="rmb-dash__chart-title">Client spend breakdown</div>
+              <div class="rmb-dash__chart-sub text-muted">Booked spend rolled up per client</div>
+              <div class="table-responsive" *ngIf="travelDeskDashboard.clientSpendRows?.length; else noTravelClients">
+                <table class="table table-sm rmb-dash__mini-table mb-0">
+                  <thead>
+                    <tr>
+                      <th>Client</th>
+                      <th class="text-right">Spend</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of travelClientSpendRows(12)">
+                      <td>{{ row.clientName }}</td>
+                      <td class="text-right font-weight-bold">₹{{ formatRupee(row.totalSpend) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ng-template #noTravelClients>
+                <p class="text-muted small mb-0">No client spend found for the current filters.</p>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #noTravelDeskAnalytics>
+        <div class="rmb-dash__chart-card" *ngIf="!travelDeskLoadError">
+          <p class="text-muted small mb-0">No Travel Desk analytics data is available for the current filters.</p>
+        </div>
+      </ng-template>
     </div>
 
     <!-- Employee -->

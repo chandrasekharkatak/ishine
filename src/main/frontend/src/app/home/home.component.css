@@ -1944,3 +1944,287 @@ notification-badge {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* ===================================================== */
+/* 1. TABS & HEADERS (FIX FOR IN-LINE VIEW ALL BUTTON)   */
+/* ===================================================== */
+
+.card-title.d-flex,
+.birthday-list .card-title,
+.reward.card .card-title {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+}
+
+.card-title .d-flex {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.section-heading {
+    display: inline-block !important;
+    margin: 0 !important;
+}
+
+.enterprise-view-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #2563eb !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    padding: 0 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+    transition: color 0.2s ease, transform 0.1s ease !important;
+}
+
+.enterprise-view-btn:hover {
+    color: #1d4ed8 !important;
+    text-decoration: underline !important;
+}
+
+
+/* ===================================================== */
+/* 2. MODAL BACKDROP (CLEAN DESKTOP DEFAULT)             */
+/* ===================================================== */
+
+.modern-modal-backdrop {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.45) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 99999 !important;
+
+    /* Perfect center padding for desktop screens */
+    padding: 16px !important;
+
+    box-sizing: border-box !important;
+    animation: fadeIn 0.2s ease !important;
+}
+
+
+/* ===================================================== */
+/* 3. MODAL CONTAINER                                    */
+/* ===================================================== */
+
+.modern-modal-container {
+    width: 100% !important;
+    max-width: 650px !important;
+    max-height: 85vh !important;
+    background: #ffffff !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    box-sizing: border-box !important;
+    animation: scaleIn 0.2s ease !important;
+}
+
+
+/* ===================================================== */
+/* 4. MODAL STRUCTURAL SEGMENTS                          */
+/* ===================================================== */
+
+.modern-modal-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 18px 24px !important;
+    border-bottom: 1px solid #e9ecef !important;
+    background: #ffffff !important;
+    flex-shrink: 0 !important;
+}
+
+.modal-main-title {
+    margin: 0 !important;
+    font-size: 19px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+}
+
+.modal-sub-title {
+    margin: 4px 0 0 0 !important;
+    font-size: 13px !important;
+    color: #64748b !important;
+}
+
+.modern-close-btn {
+    width: 36px !important;
+    height: 36px !important;
+    border: 2px solid #2563eb !important;
+    background: white !important;
+    border-radius: 10px !important;
+    color: #2563eb !important;
+    font-size: 22px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    transition: all 0.2s !important;
+}
+
+.modern-close-btn:hover {
+    background: #2563eb !important;
+    color: white !important;
+}
+
+.modern-modal-body {
+    padding: 20px 24px !important;
+    overflow-y: auto !important;
+    background: #f8fafc !important;
+    flex-grow: 1 !important;
+}
+
+
+/* ===================================================== */
+/* 5. EMPLOYEE LIST ITEMS & BADGES                      */
+/* ===================================================== */
+
+.employee-modern-card {
+    display: flex !important;
+    align-items: center !important;
+    background: white !important;
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    box-sizing: border-box !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.employee-modern-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+.modern-avatar {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    margin-right: 16px !important;
+    border: 3px solid #dbeafe !important;
+    flex-shrink: 0 !important;
+}
+
+.modern-employee-info {
+    flex-grow: 1 !important;
+    min-width: 0 !important;
+}
+
+.modern-employee-name {
+    margin: 0 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #1e293b !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.modern-employee-name.clickable {
+    cursor: pointer !important;
+}
+
+.modern-employee-name.clickable:hover {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+}
+
+.modern-employee-department {
+    margin: 3px 0 0 0 !important;
+    font-size: 12px !important;
+    color: #64748b !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.empty-state {
+    text-align: center !important;
+    padding: 40px 20px !important;
+}
+
+.empty-icon {
+    width: 70px !important;
+    margin-bottom: 14px !important;
+}
+
+
+/* ===================================================== */
+/* 6. RESPONSIVE ONLY BREAKPOINTS (< 768px Mobile/Tablet) */
+/* ===================================================== */
+@media (max-width: 768px) {
+    .modern-modal-backdrop {
+        /* FIXED: These layout rules only execute during mobile responsive emulation */
+        padding-left: 75px !important;   /* Pushes away from left sidebar navigation */
+        padding-right: 16px !important;  /* Keeps uniform right breathing gap */
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+
+    .modern-modal-header {
+        padding: 14px 16px !important;
+    }
+
+    .modern-modal-body {
+        padding: 14px 14px !important;
+    }
+
+    .modal-main-title {
+        font-size: 16px !important;
+    }
+
+    .employee-modern-card {
+        padding: 10px 12px !important;
+    }
+
+    .modern-avatar {
+        width: 42px !important;
+        height: 42px !important;
+        margin-right: 10px !important;
+    }
+
+    .card-title .d-flex {
+        flex-wrap: wrap !important;
+    }
+}
+
+
+/* ===================================================== */
+/* 7. RENDERING ANIMATIONS                              */
+/* ===================================================== */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.96);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}

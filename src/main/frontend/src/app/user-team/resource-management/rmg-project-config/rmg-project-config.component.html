@@ -851,9 +851,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName || 'NA' ">
-                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                            <span *ngIf="member.empId && !(userMapping.rmg_read_only)" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
-                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="userMapping.rmg_read_only">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" *ngIf="!isInternalProject"
                             [title]="member.poNo|| 'NA'">
@@ -1032,9 +1032,9 @@
                             {{ member.employementId || 'NA' }}
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberName|| 'NA' ">
-                            <span *ngIf="member.empId" class="cursor-pointer emp_360-span text-underline"
+                            <span *ngIf="member.empId && !(userMapping.rmg_read_only)" class="cursor-pointer emp_360-span text-underline"
                                 [navigateToEmployee360]="member.empId">{{member.memberName || 'NA' }}</span>
-                            <span *ngIf="!member.empId">{{member.memberName || 'NA' }}</span>
+                            <span *ngIf="userMapping.rmg_read_only">{{member.memberName || 'NA' }}</span>
                         </td>
                         <td class="min-width100 max-width150 truncate" [title]="member.memberDepartment|| 'NA' ">
                             {{ member.memberDepartment || 'NA' }}

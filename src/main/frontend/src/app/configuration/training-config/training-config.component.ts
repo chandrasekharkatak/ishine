@@ -147,6 +147,20 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   { value: 'AUDIO', label: 'Audio' },
   { value: 'LINK', label: 'External Link' }
 ];
+
+selectedTrainingForAssign: any = null;
+assignableEmployees: any[]   = [];
+assignSelectedIds: Set<number> = new Set();
+assignDepartments: any[]     = [];
+assignDeptFilter: string     = '';
+assignSearchText: string     = '';
+assignLoading: boolean       = false;
+assignSaving: boolean        = false;
+
+@ViewChild('assign_training_modal') assignTrainingModal: any;
+pendingExcludedIds: number[] = [];
+assignStatusFilter: string = '';
+
   allTrainingResponse: any[] = [];
   sortResponseColumn: string = '';
   sortResponseColumnType: string = '';
@@ -185,21 +199,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   newTrainingType: string = '';
   @ViewChild(TrainingContentViewComponent) contentPreviewModal: TrainingContentViewComponent;
   currCard: string = 'usersAttended';
-
-
-selectedTrainingForAssign: any = null;
-assignableEmployees: any[]   = [];
-assignSelectedIds: Set<number> = new Set();
-assignDepartments: any[]     = [];
-assignDeptFilter: string     = '';
-assignSearchText: string     = '';
-assignLoading: boolean       = false;
-assignSaving: boolean        = false;
-
-@ViewChild('assign_training_modal') assignTrainingModal: any;
-pendingExcludedIds: number[] = [];
-assignStatusFilter: string = '';
-
   
   constructor(
     private authenticationService: AuthenticationService,
@@ -2178,6 +2177,5 @@ loadAllEmployeesForNewTraining() {
     }
   });
 }
-
 
 }

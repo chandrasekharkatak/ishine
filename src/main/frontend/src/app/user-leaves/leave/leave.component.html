@@ -829,8 +829,8 @@
                                     <td>{{ leave.rowNumber || (20*(page-1)+i+1) }}</td>
                                     <td>{{ leave.employeeName }}</td>
                                     <td>{{ leave.leaveType }}</td>
-                                    <td>{{ leave.fromDate }}</td>
-                                    <td>{{ leave.toDate }}</td>
+                                    <td>{{ leave.fromDate | date:'dd-MM-yyyy'}}</td>
+                                    <td>{{ leave.toDate | date:'dd-MM-yyyy'}}</td>
                                     <td>{{ leave.noOfDays }} day(s)</td>
                                     <td>{{ leave.status }}</td>
                                     <td>{{ leave.createdByName }}</td>

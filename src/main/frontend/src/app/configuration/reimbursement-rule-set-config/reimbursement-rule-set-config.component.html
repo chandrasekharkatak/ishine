@@ -73,7 +73,14 @@
               >
                 <th scope="col" class="info-label">{{ items * (page - 1) + i + 1 }}</th>
                 <td>{{ rs.name }}</td>
-                <td class="rmb-rs-table-applies">{{ rs.applicabilitySummary }}</td>
+                <td class="rmb-rs-table-applies">
+                  <span>{{ rs.applicabilitySummary }}</span>
+                  <i
+                    class="fa-solid fa-circle-info rmb-rs-applies-info"
+                    aria-label="Roles info"
+                    [attr.title]="rs.applicabilityRolesTooltip"
+                  ></i>
+                </td>
                 <td>{{ rs.levelsSummary }}</td>
                 <td>{{ rs.createdByName || '—' }}</td>
                 <td>{{ rs.createdOn ? (rs.createdOn | date: 'dd-MM-yyyy HH:mm:ss') : '—' }}</td>

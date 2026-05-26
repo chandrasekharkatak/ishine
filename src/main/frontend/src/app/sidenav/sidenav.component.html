@@ -1,26 +1,125 @@
 <div class="sidenav" [ngClass]="collapsed? 'sidenav-collapsed':''">
     <div class="logo-container">
-        <button class="logo" (click)="toggleCollapse()"><img src="assets/Images/ishine_logo.jpeg" alt=""></button>
+        <button class="logo" (click)="toggleCollapse()"><img src="assets/Images/favicon.png" alt=""></button>
         <div class="logo-text" *ngIf="collapsed">ApMoSys</div>
         <button class="btn-close" *ngIf="collapsed" (click)="closeSidenav()">
             <i class="fa fa-times close-icon" aria-hidden="true"></i>
         </button>
     </div>
 
-    <ul class="sidenav-nav">
-        
-        <li class="sidenav-nav-item" *ngFor="let data of menuItems; let i = index" title="{{data.tabName}}">
-            <a 
-              class="sidenav-nav-link" 
-              [routerLink]="firstTimeLogin === 'false' ? [data.tabRouteName] : null"  
-              routerLinkActive="active"
-              [routerLinkActiveOptions]="{exact: false}"
-              (click)="onTabClick($event)" 
-              [ngClass]="{'disabled-link': firstTimeLogin === 'false'}"       >
-              <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
-              <span class="sidenav-link-text" *ngIf="collapsed">{{data.tabName}}</span>
-            </a>
-          </li>
-          
-    </ul>
+    <div class="sidenav-nav-scroll-wrap">
+
+        <ul class="sidenav-nav">
+
+            <li class="nav-group" *ngFor="let group of groupedMenuItems" #groupRef>
+
+                <ng-container *ngIf="!collapsed">
+
+                    <ng-container *ngIf="group.items.length === 1">
+                        <a class="sidenav-nav-link single-collapsed-link"
+                           [routerLink]="firstTimeLogin === 'false' ? [group.items[0].tabRouteName] : null"
+                           routerLinkActive="active"
+                           [routerLinkActiveOptions]="{exact: false}"
+                           (click)="onTabClick($event, group)"
+                           [title]="group.items[0].tabName">
+                            <i class="sidenav-link-icon" [ngClass]="group.groupIcon"></i>
+                        </a>
+                    </ng-container>
+
+                    <ng-container *ngIf="group.items.length > 1">
+
+                      <div class="nav-group-header-collapsed"
+                          [ngClass]="{'panel-open': group.isExpanded || hoveredGroup === group || isGroupActive(group)}"
+                          (click)="toggleGroup(group, groupRef)"
+                          (mouseenter)="onGroupMouseEnter(group, groupRef)"
+                          [title]="group.groupLabel">
+                          <i class="sidenav-link-icon" [ngClass]="group.groupIcon"></i>
+                      </div>
+
+                      <div class="floating-group-panel"
+                          *ngIf="group.isExpanded || hoveredGroup === group"
+                          [style.top.px]="hoveredGroupTop"
+                          (mouseenter)="onPanelMouseEnter()">
+                          <div class="floating-group-label">{{ group.groupLabel }}</div>
+                          <ul class="floating-group-list">
+                              <li *ngFor="let data of group.items" [title]="data.tabName">
+                                  <a class="floating-group-link"
+                                    [routerLink]="firstTimeLogin === 'false' ? [data.tabRouteName] : null"
+                                    routerLinkActive="active"
+                                    #rla="routerLinkActive"
+                                    [routerLinkActiveOptions]="{exact: false}"
+                                    (click)="onTabClick($event, group)"
+                                    [ngClass]="{'disabled-link': firstTimeLogin === 'false'}">
+                                      <i [class]="data.tabIcon"></i>
+                                      <span>{{ data.tabName }}</span>
+                                  </a>
+                              </li>
+                          </ul>
+                      </div>
+
+                  </ng-container>
+
+                </ng-container>
+
+                <ng-container *ngIf="collapsed">
+
+                    <ng-container *ngIf="group.items.length === 1">
+
+                        <div class="nav-group-header single-group-label">
+                            <span class="nav-group-label">{{ group.groupLabel }}</span>
+                        </div>
+
+                        <ul class="nav-group-items">
+                            <li class="sidenav-nav-item" [title]="group.items[0].tabName">
+                                <a class="sidenav-nav-link"
+                                   [routerLink]="firstTimeLogin === 'false' ? [group.items[0].tabRouteName] : null"
+                                   routerLinkActive="active"
+                                   [routerLinkActiveOptions]="{exact: false}"
+                                   (click)="onTabClick($event, group)"
+                                   [ngClass]="{'disabled-link': firstTimeLogin === 'false'}">
+                                    <i class="sidenav-link-icon" [ngClass]="group.items[0].tabIcon"></i>
+                                    <span class="sidenav-link-text">{{ group.items[0].tabName }}</span>
+                                </a>
+                            </li>
+                        </ul>
+
+                    </ng-container>
+
+                    <ng-container *ngIf="group.items.length > 1">
+
+                        <div class="nav-group-header"
+                             (click)="toggleGroup(group)"
+                             style="display: flex; align-items: center; cursor: pointer; padding: 12px 16px;">
+                            <span class="nav-group-label" style="flex-grow: 1;">{{ group.groupLabel }}</span>
+                            <i class="nav-group-chevron fa"
+                               [ngClass]="group.isExpanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </div>
+
+                        <ul class="nav-group-items"
+                            [ngClass]="{'nav-group-items--collapsed': !group.isExpanded}">
+                            <li class="sidenav-nav-item"
+                                *ngFor="let data of group.items"
+                                [title]="data.tabName">
+                                <a class="sidenav-nav-link"
+                                   [routerLink]="firstTimeLogin === 'false' ? [data.tabRouteName] : null"
+                                   routerLinkActive="active"
+                                   [routerLinkActiveOptions]="{exact: false}"
+                                   (click)="onTabClick($event, group)"
+                                   [ngClass]="{'disabled-link': firstTimeLogin === 'false'}">
+                                    <i class="sidenav-link-icon" [class]="data.tabIcon"></i>
+                                    <span class="sidenav-link-text">{{ data.tabName }}</span>
+                                </a>
+                            </li>
+                        </ul>
+
+                    </ng-container>
+
+                </ng-container>
+
+            </li>
+
+        </ul>
+
+    </div>
+
 </div>

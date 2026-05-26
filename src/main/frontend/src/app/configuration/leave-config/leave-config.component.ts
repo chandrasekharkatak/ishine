@@ -130,7 +130,7 @@ export class LeaveConfigComponent implements OnInit {
 
   filters:any = {};
   isSearchEnabled:boolean = false;
-  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName','blank','blank'];
+  holidayColumns:any[] = ['blank', 'occasion','dayOfTheWeek','dateOfHoliday','holidayType','state','createdOn', 'createdbyName', 'updatedOn', 'updatedByName','blank','blank'];
   leaveTypeColumns:any[] = ['leaveType', 'leaveTypeCode', 'gender', 'noOfDays','rules', 'updatedOn', 'updatedByName', 'description','blank','blank','blank'];
   leavePolicyColumns:any[] = ['blank','leavePolicyName','leaveType','description','createdByName','createdOn','updatedOn','updatedByName','blank','blank'];
   empExcludeColumns = [

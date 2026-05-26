@@ -89,7 +89,7 @@
             <tr>
               <th class="th-num">#</th>
               <th mat-sort-header="trainingName|string">Training Name</th>
-              <th mat-sort-header="trainingType|string">Category</th>
+              <!-- <th mat-sort-header="trainingType|string">Category</th> -->
               <th class="text-center" mat-sort-header="mandatoryFlag|string">Mandatory</th>
               <th class="text-center" mat-sort-header="lockEnabled|string">Lock</th>
               <th class="text-center" mat-sort-header="activeStatus|string">Status</th>
@@ -123,9 +123,9 @@
                   </span>
                 </div>
               </td>
-              <td>
+              <!-- <td>
                 <span class="badge-modern badge-muted">{{ training.trainingType }}</span>
-              </td>
+              </td> -->
               <td class="text-center">
                 <span class="badge-modern" [ngClass]="training.mandatoryFlag === 'true' ? 'badge-danger' : 'badge-muted'">
                   <!-- <i class="fas" [ngClass]="training.mandatoryFlag === 'true' ? 'fa-check' : 'fa-times'"></i> -->
@@ -380,7 +380,7 @@
               <i class="fas fa-info-circle"></i>
               <strong>Note:</strong> Editing existing content. If you change the file, please upload a new file.
             </div>
-
+             
             <!-- Content Form -->
             <form>
               <div class="row">
@@ -926,3 +926,4 @@
     </button>
   </div>
 </ng-template>
+      

@@ -366,35 +366,18 @@ public class EmployeeCustomRepository {
         Map<String, String> searchFilter = pageDTO.getSearchFilter();
         String baseQuery = getUnfilledTimesheetProjectDetailsQuery(isAllAccessEmployee, fromDate, toDate);
         
-       
-        if (projectType != null
-                && !projectType.trim().isEmpty()) {
-
+        if (projectType != null && !projectType.trim().isEmpty()) {
             if ("TNM".equalsIgnoreCase(projectType)) {
-
-                baseQuery +=
-                        " AND p.po_project_type = 'TNM' ";
-
+                baseQuery += " AND p.po_project_type = 'TNM' ";
             } else if ("Fixed Cost".equalsIgnoreCase(projectType)) {
-
-                baseQuery +=
-                        " AND p.po_project_type = 'Fixed Cost' ";
-
+                baseQuery += " AND p.po_project_type = 'Fixed Cost' ";
             } else if ("Monitoring".equalsIgnoreCase(projectType)) {
-
-                baseQuery +=
-                        " AND p.po_project_type = 'Monitoring' ";
-
+                baseQuery += " AND p.po_project_type = 'Monitoring' ";
             } else if ("Internal".equalsIgnoreCase(projectType)) {
-
-                baseQuery +=
-                        " AND p.po_project_type IS NULL "
-                                + " AND p.internal_project_type IS NOT NULL ";
+                baseQuery += " AND p.po_project_type IS NULL AND p.internal_project_type IS NOT NULL ";
             }
         }
         
-        System.err.println(baseQuery);
-
         List<Long> projectIdsTemp = getProjectIdsByBaseQuery(baseQuery, pageDTO.getSortColumn(), sortDirection,
                 pageable, projectIds,
                 fromDate, toDate, searchFilter, isAllAccessEmployee, deptIds);
@@ -820,7 +803,8 @@ public class EmployeeCustomRepository {
         return query.toString();
     }
 
-    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee, LocalDate fromDate, LocalDate toDate) {
+    public String getUnfilledTimesheetProjectDetailsQuery(boolean isAllAccessEmployee, LocalDate fromDate,
+            LocalDate toDate) {
         StringBuilder query = new StringBuilder();
         query
                 .append(" FROM projects p  \n")
@@ -837,22 +821,12 @@ public class EmployeeCustomRepository {
                 .append(" WHERE 1=1 \n")
                 .append(" AND p.active = 'true' AND t.is_active = 'Y'  \n")
                 .append(" AND etm.active != 0 AND e.employmentstatus != 'InActive' \n")
-                .append(" AND p.project_id IN :projectIds  \n");
-//        if (!isAllAccessEmployee) {
-            query.append(" AND d.dept_id IN :deptIds ");
-//        }
-
-        query.append(" AND p.project_id NOT IN (SELECT p2.project_id FROM employee_timesheets_new et \n")
-                .append(" INNER JOIN employee_timesheet_activities_mapping_new etam ON et.timesheet_id = etam.timesheet_id \n")
-                .append(" INNER JOIN activities a ON a.activity_id = etam.activity_id  \n")
-                .append(" RIGHT JOIN teams t2 ON t2.team_id = a.team_id  \n")
-                .append(" INNER JOIN projects p2 ON p2.project_id = t2.project_id  \n")
-                .append(" WHERE 1=1 \n");
-                if (fromDate != null && toDate != null) {
-                    query.append(" AND et.date >= :fromDate AND et.date <= :toDate \n");
-                }
-               
-                query.append(" ) \n");
+                .append(" AND p.project_id IN :projectIds  \n")
+                .append(" AND d.dept_id IN :deptIds ")
+                .append(" AND p.project_id NOT IN (SELECT ptsn.project_id FROM employee_timesheets_new etn INNER JOIN project_timesheet_status_new ptsn ON ptsn.timesheet_id = etn.timesheet_id ) \n");
+        if (fromDate != null && toDate != null) {
+            query.append("  AND p.start_date IS NOT NULL AND DATE(p.start_date) >= DATE(:fromDate) AND DATE(p.start_date) <= DATE(:toDate) \n");
+        }
         return query.toString();
     }
 
@@ -887,7 +861,7 @@ public class EmployeeCustomRepository {
                 .append("c.client_name, \n")
                 .append("GROUP_CONCAT(DISTINCT pm.name ORDER BY pm.name SEPARATOR ', ') AS project_manager_name, \n")
                 .append("t.team_id, t.team_name,  \n")
-                .append("e.emp_id, e.name emp_name , jr.name job_role_name, d.name department_name , e.mobile_no, e.email,  e.billable, e.billable_type, etm.start_date effective_start_date, e.employeement_id  \n")
+                .append("e.emp_id, e.name emp_name , jr.name job_role_name, d.name department_name , e.mobile_no, e.email,  e.billable, e.billable_type, TIMESTAMP(p.start_date) effective_start_date, e.employeement_id  \n")
                 .append(baseQuery);
 
         if (projectIdsTemp != null && !projectIdsTemp.isEmpty()) {

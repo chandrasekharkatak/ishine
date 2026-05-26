@@ -445,6 +445,17 @@
   color: #166534;
 }
 
+.rmb-rs-applies-info {
+  margin-left: 0.4rem;
+  font-size: 0.9rem;
+  color: #64748b;
+  cursor: help;
+}
+
+.rmb-rs-applies-info:hover {
+  color: #193d8a;
+}
+
 /* app-my-select — bordered like Skill Matrix submit + full width */
 .rmb-rs-root ::ng-deep .rmb-rs-my-select.skill-matrix-master-config__search-select {
   display: block;

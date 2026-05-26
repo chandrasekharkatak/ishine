@@ -7,7 +7,7 @@
                     <i [ngClass]="{'fa fa-search': !isSearchEnabled,'fa-solid fa-xmark': isSearchEnabled}">
                     </i>
                 </button>&nbsp;&nbsp;
-                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed">
+                <button class="btn btn-sm btn-outline-primary" matButton [matMenuTriggerFor]="downloadMenu" *ngIf="data && data?.length > 0 && isExportAllowed && !(userMapping.rmg_read_only)">
                     <em class="fa fa-download"></em></button>
                 <mat-menu #downloadMenu="matMenu">
                     <button mat-menu-item (click)="downloadData(false)">
@@ -73,12 +73,12 @@
                             </td>
                             <td>{{i+1}}</td>
                             <ng-container *ngIf="!isRowExpanded(row)">
-                                <td [title]="row[col.field]" *ngFor="let col of columns">{{ row[col.field] }}</td>
+                                <td [title]="row[col.field]" *ngFor="let col of columns">{{ col.isDate ? (row[col.field] | date:'dd-MM-yyyy') : row[col.field] }}</td>
                             </ng-container>
 
                             <ng-container *ngIf="isRowExpanded(row)">
                                 <td [attr.rowspan]="getRowSpan(row,col?.field, i)" [title]="row[col.field]"
-                                    *ngFor="let col of columns">{{ row[col.field] }}</td>
+                                    *ngFor="let col of columns">{{ col.isDate ? (row[col.field] | date:'dd-MM-yyyy') : row[col.field] }}</td>
                             </ng-container>
 
                             <td class="text-center" *ngIf="isLastColumnAction && rowActions?.length > 0">
@@ -104,7 +104,7 @@
                                     <td [title]="innerRow[col.field]"
                                         [attr.rowspan]="getChildRowSpan(i,row,col?.field, j)"
                                         *ngIf="!isChildCellHidden(i, j, col.field)">
-                                        {{ innerRow[col.field] }}
+                                        {{ col.isDate ? (innerRow[col.field] | date:'dd-MM-yyyy') : innerRow[col.field] }}
                                     </td>
                                 </ng-container>
                                 <td *ngIf="isLastColumnAction && rowActions?.length > 0"></td>
@@ -117,7 +117,7 @@
                                     <app-my-table [apiUrl]="null" [columns]="subTableColumnConfig"
                                         [defaultSortColumn]="" [isRowExpandable]="false" [extraParams]=""
                                         [isExportAllowed]="false" [isSearchAllowed]="false"
-                                        [subTableData]="row?.expandedRowDetails">
+                                        [subTableData]="row?.expandedRowDetails" [feature]="feature">
                                     </app-my-table>
                                 </td>
                             </tr>

@@ -9,11 +9,11 @@
                     (click)="showViewProjects()">
                     View All Projects
                 </button>
-                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1" [ngClass]="{'active': isCreation}"
-                    (click)="showCreateInternalProjectForm()">
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"  *ngIf="!(userMapping.rmg_read_only)" 
+                    [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
                     Create Internal Project
                 </button>
-                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"
+                <button type="button" class="btn custom-btn-outline-primary btn-sm mx-1"  *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
                     Search Employee(Skill Matrix)
                 </button>
@@ -46,10 +46,10 @@
                         <mat-slide-toggle color="primary" *ngIf="currentUser.employeeRole != 'SuperAdmin'"
                             [(ngModel)]="myDept" (change)="toggleDepartment()">
                         </mat-slide-toggle>
-                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'">
+                        <label *ngIf="currentUser.employeeRole !== 'SuperAdmin'" [title]="selectedDepartmentsTooltip">
                             {{ myDept ? 'My Departments' : 'Departments' }}
                         </label>
-                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'">
+                        <label *ngIf="currentUser.employeeRole === 'SuperAdmin'" [title]="selectedDepartmentsTooltip">
                             {{ 'Departments' }}
                         </label>
                     </div>
@@ -57,7 +57,7 @@
                     <app-my-select class="form-control department-select app-my-select-dropdown"
                         placeholder="Select Department" [(ngModel)]="selectedDepartmentIds"
                         (dropdownClosed)="onDepartmentSelectionChange($event)" [options]="filteredDepartments"
-                        displayKey="name" valueKey="deptId" [multiple]="true">
+                        displayKey="name" valueKey="deptId" [multiple]="true" [title]="selectedDepartmentsTooltip">
                     </app-my-select>
                 </div>
     
@@ -72,7 +72,7 @@
                 <!-- Employee Action Buttons -->
                 <div class="col-md-2">
                     <div class="d-flex flex-column">
-                        <button class="rounded-button details-button employee-summary-btn m-1"
+                        <button class="rounded-button details-button employee-summary-btn m-1" *ngIf="!(userMapping.rmg_read_only)"
                             [title]="!isValidEmployee ? 'Select a valid employee to Open Employee 360 View' : ''"
                             [disabled]="!isValidEmployee" [navigateToEmployee360]="isValidEmployee ? selectedEmpId : null">
                             Employee 360
@@ -105,12 +105,12 @@
                     <i class="bi bi-eye"></i>
                     View All Projects
                 </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20" *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isCreation}" (click)="showCreateInternalProjectForm()">
                     <i class="bi bi-plus"></i>
                     Create Internal Project
                 </button>
-                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20"
+                <button type="button" class="btn btn-outline-primary btn-sm mx-1 rounded-20" *ngIf="!(userMapping.rmg_read_only)"
                     [ngClass]="{'active': isSkillMatrix}" (click)="openShowSkillMatrix()">
                     <i class="bi bi-person-vcard"></i>
                     Skill Matrix

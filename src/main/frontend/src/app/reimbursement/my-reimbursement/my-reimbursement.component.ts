@@ -69,13 +69,11 @@ vehicleTypeList:any[] = [];
     expenditureTypeDescription: ''
   };
 
-  /** Projects for claim: team mapping, department-linked, optional BD "Others". */
+  /** Projects for claim: team mapping, department-linked, optional "Others". */
   mappedProjectsForClaim: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
   /** How {@link #mappedProjectsForClaim} was built (for empty-state messaging). */
   projectPickerSource: 'TEAM' | 'DEPARTMENT' | null = null;
-  /** Server: employee is in Business Development — enables "Others" project option. */
-  showOthersOption = false;
-  /** Distinct clients for BD Others picker. */
+  /** Distinct clients for Others picker. */
   clientsForOthers: { clientId: number; clientName: string }[] = [];
   readonly RMB_OTHERS_PROJECT_ID = -1;
 
@@ -201,7 +199,6 @@ vehicleTypeList:any[] = [];
   async loadMappedProjectsForReimbursement() {
     this.mappedProjectsForClaim = [];
     this.projectPickerSource = null;
-    this.showOthersOption = false;
     const empId = this.currentEmployeeInfo?.empId ?? this.currentUser?.empId;
     if (empId == null) {
       return;
@@ -216,7 +213,6 @@ vehicleTypeList:any[] = [];
       }
       const bag = response.serviceResponse;
       this.projectPickerSource = bag.pickerSource === 'DEPARTMENT' ? 'DEPARTMENT' : 'TEAM';
-      this.showOthersOption = !!bag.showOthersOption;
       const raw = (bag.projects || []) as any[];
       const seen = new Set<number>();
       const parsed: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
@@ -239,22 +235,25 @@ vehicleTypeList:any[] = [];
       const normalRows = parsed
         .filter((r) => r.projectId !== this.RMB_OTHERS_PROJECT_ID)
         .sort((a, b) => a.projectName.localeCompare(b.projectName));
-      this.mappedProjectsForClaim = [...othersRows, ...normalRows];
-      if (this.showOthersOption) {
-        await this.loadClientsForOthers();
-      } else {
-        this.clientsForOthers = [];
+      if (!othersRows.length) {
+        othersRows.push({
+          projectId: this.RMB_OTHERS_PROJECT_ID,
+          projectName: 'Others',
+          clientName: '',
+          clientId: null
+        });
       }
+      this.mappedProjectsForClaim = [...othersRows, ...normalRows];
+      await this.loadClientsForOthers();
     } catch (e) {
       console.error('loadMappedProjectsForReimbursement', e);
       this.projectPickerSource = null;
-      this.showOthersOption = false;
+      this.mappedProjectsForClaim = [];
     }
   }
 
   async loadClientsForOthers(): Promise<void> {
-    if (!this.showOthersOption) {
-      this.clientsForOthers = [];
+    if (this.clientsForOthers.length > 0) {
       return;
     }
     try {
@@ -326,13 +325,21 @@ vehicleTypeList:any[] = [];
 
   onReimbursementProjectSelected(_event?: unknown): void {
     const id = this.reimbursementObj.projectId != null ? Number(this.reimbursementObj.projectId) : NaN;
-    if (!Number.isFinite(id) || id === this.RMB_OTHERS_PROJECT_ID) {
+    if (!Number.isFinite(id)) {
       this.reimbursementObj.displayClientName = '';
-      if (id === this.RMB_OTHERS_PROJECT_ID && this.showOthersOption && !this.clientsForOthers.length) {
+      this.reimbursementObj.othersProjectName = '';
+      this.reimbursementObj.othersClientId = null;
+      return;
+    }
+    if (id === this.RMB_OTHERS_PROJECT_ID) {
+      this.reimbursementObj.displayClientName = '';
+      if (!this.clientsForOthers.length) {
         void this.loadClientsForOthers();
       }
       return;
     }
+    this.reimbursementObj.othersProjectName = '';
+    this.reimbursementObj.othersClientId = null;
     const p = this.mappedProjectsForClaim.find((x) => x.projectId === id);
     this.reimbursementObj.displayClientName = p?.clientName ? String(p.clientName) : '';
   }
@@ -377,6 +384,29 @@ vehicleTypeList:any[] = [];
       return;
     }
     this.claimAmountInput = String(Number(a));
+  }
+
+  /** From/To date: calendar only — block keyboard typing and paste. */
+  onClaimDateKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Tab') {
+      return;
+    }
+    event.preventDefault();
+  }
+
+  onClaimDatePaste(event: ClipboardEvent): void {
+    event.preventDefault();
+  }
+
+  openClaimDatePicker(event: Event): void {
+    const el = event.target as HTMLInputElement;
+    if (el && typeof el.showPicker === 'function') {
+      try {
+        el.showPicker();
+      } catch {
+        // showPicker may throw if not triggered by user gesture
+      }
+    }
   }
 
   onClaimAmountKeydown(event: KeyboardEvent): void {

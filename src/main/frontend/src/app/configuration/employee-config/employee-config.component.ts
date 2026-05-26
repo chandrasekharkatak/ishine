@@ -1884,17 +1884,24 @@ storePreviousStatus(){
         }
 
         if (employeeObj.newEtmStartDate !== undefined && employeeObj.newEtmStartDate !== null) {
-          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate, teamId : employeeObj.defaultTeamId };
+          const teamId = this.resolveTeamIdForValidation(employeeObj);
+          if (this.requiresTeamIdForStartDateValidation() && teamId == null) {
+            this.alertMessage = "Please select Default Team before validating the start date.";
+            this.openAlertMod(template, this.alertMessage);
+            return false;
+          }
+          let member = { empId: employeeObj.empId, startDate: employeeObj.newEtmStartDate, teamId };
           let projectData = {
             currentProjectId: employeeObj.defaultProjectId,
             projectIds: [employeeObj.defaultProjectId],
-            projectType: this.defaultProjectUpdationProjectType
+            projectType: this.defaultProjectUpdationProjectType,
+            validationContext: 'EMPLOYEE_CONFIG'
           };
 
           employeeObj.isEndDateVisible = false;
           employeeObj.memberMaxEndDate = null;
           const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(member, projectData);
-          if (response?.type === 'NO_CONFLICT' && response?.type == 'PROJECT_GAP') {
+          if (response?.type === 'NO_CONFLICT' || response?.type == 'PROJECT_GAP') {
             return true;
           } else if (response?.type === 'EMPLOYEE_MAPPING_BETWEEN_EXISTING_PROJECT' || response?.type === 'OVERLAPPING_ENTRIES_FOUND_IN_THIS_PROJECT') {
             employeeObj.isEndDateVisible = true;
@@ -2811,6 +2818,13 @@ storePreviousStatus(){
       if (selectedProject?.teamList && selectedProject?.teamList?.length > 0) {
         this.teamList = selectedProject.teamList;
         this.showTeamDropdown = true;
+        if (selectedProject.teamList.length === 1) {
+          const teamId = selectedProject.teamList[0].teamId;
+          this.employeeObj.defaultTeamId = teamId;
+          this.onTeamChange(teamId);
+        } else if (this.employeeObj.defaultTeamId) {
+          this.syncEmployeeRoleDropdownForSelectedTeam();
+        }
       }
       if (this.defaultProjectUpdationProjectType && this.defaultProjectUpdationProjectType && !this.internalProjectTypes.includes(this.defaultProjectUpdationProjectType?.trim()?.toLowerCase())) {
         this.showPoDropdown = true;
@@ -2823,14 +2837,17 @@ storePreviousStatus(){
 
   onTeamChange(selectedTeamId: any) {
     this.resetCascade('TEAM');
-    const selectedTeam = this.teamList.find(t => t.teamId === selectedTeamId);
     this.employeeObj.defaultTeamId = selectedTeamId;
-    if (selectedTeam) {
-      this.showEmployeeRoleDropdown = true;
+    if (this.syncEmployeeRoleDropdownForSelectedTeam()) {
       this.employeeObj.defaultTeamEmployeeRole = [];
-    } else {
-      this.showEmployeeRoleDropdown = false;
     }
+  }
+
+  /** Employee Role dropdown is gated by showEmployeeRoleDropdown; set true when a valid team is selected. */
+  private syncEmployeeRoleDropdownForSelectedTeam(): boolean {
+    const selectedTeam = this.teamList?.find(t => t.teamId === this.employeeObj?.defaultTeamId);
+    this.showEmployeeRoleDropdown = !!selectedTeam;
+    return !!selectedTeam;
   }
 
   // getAllEmployeeList() {
@@ -5369,6 +5386,31 @@ resetDefaultProjectFields() {
     }
   }
 
+  /** Resolves team id for validateEmployeeProjectStartDate API (non-PO projects require teamId). */
+  private resolveTeamIdForValidation(employeeObj: any = this.employeeObj): number | null {
+    const candidates = [
+      employeeObj?.defaultTeamId,
+      employeeObj?.teamId,
+      this.teamList?.length === 1 ? this.teamList[0]?.teamId : null
+    ];
+    for (const raw of candidates) {
+      if (raw != null && raw !== '' && raw !== undefined) {
+        const teamId = Number(raw);
+        if (Number.isFinite(teamId)) {
+          employeeObj.defaultTeamId = teamId;
+          return teamId;
+        }
+      }
+    }
+    return null;
+  }
+
+  private requiresTeamIdForStartDateValidation(): boolean {
+    const projectType = this.defaultProjectUpdationProjectType?.trim()?.toLowerCase();
+    return this.showTeamDropdown
+      || (projectType != null && this.internalProjectTypes.includes(projectType));
+  }
+
   async validateEmployeeProjectStartDate(alertMessageTemplate: any): Promise<boolean> {
     if (this.isCreation && this.employeeObj.newEtmStartDate && this.normalizeDate(this.employeeObj.newEtmStartDate) < this.normalizeDate(this.employeeObj.dateOfJoining)) {
       this.alertMessage = "Employee’s Start Date must not be earlier than the Employee’s Date of Joining!!";
@@ -5389,11 +5431,18 @@ resetDefaultProjectFields() {
       this.openAlertMod(alertMessageTemplate, this.alertMessage);
       return false;
     }
-    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate, teamId : this.employeeObj.defaultTeamId };
+    const teamId = this.resolveTeamIdForValidation();
+    if (this.requiresTeamIdForStartDateValidation() && teamId == null) {
+      this.alertMessage = "Please select Default Team before validating the start date.";
+      this.openAlertMod(alertMessageTemplate, this.alertMessage);
+      return false;
+    }
+    let member = { empId: this.employeeObj.empId, startDate: this.employeeObj.newEtmStartDate, teamId };
     let projectData = {
       currentProjectId: this.employeeObj.defaultProjectId,
       projectIds: [this.employeeObj.defaultProjectId],
-      projectType: this.defaultProjectUpdationProjectType
+      projectType: this.defaultProjectUpdationProjectType,
+      validationContext: 'EMPLOYEE_CONFIG'
     };
 
     this.employeeObj.isEndDateVisible = false;

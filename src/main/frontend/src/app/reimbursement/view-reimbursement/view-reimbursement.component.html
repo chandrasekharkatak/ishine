@@ -27,8 +27,8 @@
                 <th mat-sort-header="paidClaimAmount|number">Paid (₹)</th>
                 <th mat-sort-header="submittedOn|date">Submitted</th>
                 <ng-container *ngFor="let col of tableLevelColumns; let li = index">
-                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ col.levelLabel }} approver</th>
-                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ col.levelLabel }} status</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
+                  <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ approvalLevelStatusColumnTitle(col) }}</th>
                 </ng-container>
                 <th>Rejections</th>
                 <th>Claims</th>
@@ -48,9 +48,9 @@
                 <td class="font-weight-bold">{{ t.ticketNo || t.ticketId }}</td>
                 <td>{{ t.displayStatus | rmbCamelDisplay }}</td>
                 <td>{{ t.workflowStage | rmbCamelDisplay }}</td>
-                <td>{{ t.totalClaimAmount }}</td>
+                <td class="text-right">{{ t.totalClaimAmount | number:'1.0-2' }}</td>
                 <td class="text-right text-nowrap">
-                  <ng-container *ngIf="ticketPaidAmountDisplay(t) !== null; else noPaidAmt">₹ {{ ticketPaidAmountDisplay(t)! | number:'1.0-0' }}</ng-container>
+                  <ng-container *ngIf="ticketPaidAmountDisplay(t) !== null; else noPaidAmt">₹ {{ ticketPaidAmountDisplay(t)! | number:'1.0-2' }}</ng-container>
                   <ng-template #noPaidAmt><span class="text-muted">—</span></ng-template>
                 </td>
                 <td>{{ t.submittedOn | date:'medium' }}</td>
@@ -61,7 +61,7 @@
                 <td class="view-rmb-reject-cell small">
                   <ng-container *ngIf="rejectedClaimLines(t).length; else noRejections">
                     <div *ngFor="let r of rejectedClaimLines(t)" class="view-rmb-reject-block mb-2">
-                      <div class="font-weight-bold text-dark">Claim {{ r.lineNo }} · {{ r.expenditureType | rmbCamelDisplay }} · ₹ {{ r.amount }}</div>
+                      <div class="font-weight-bold text-dark">Claim {{ r.lineNo }} · {{ r.expenditureType | rmbCamelDisplay }} · ₹ {{ r.amount | number:'1.0-2' }}</div>
                       <div class="text-muted">Rejected by · {{ r.rejectedBy | rmbCamelDisplay }}</div>
                       <div class="text-break mt-1">{{ r.reason | rmbCamelDisplay }}</div>
                     </div>

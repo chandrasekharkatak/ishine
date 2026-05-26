@@ -166,6 +166,8 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
+import { TravelApprovalMatrixConfigComponent } from './configuration/travel-approval-matrix-config/travel-approval-matrix-config.component';
+import { TravelTicketModalComponent } from './travel-allowance/travel-ticket-modal/travel-ticket-modal.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
 import { RoMonthYearFieldComponent } from './user-timesheet/hr-dashboard/ro-month-year-field/ro-month-year-field.component';
 import { TimesheetConfigComponent } from './configuration/timesheet-config/timesheet-config.component';
@@ -217,6 +219,7 @@ import { KnowledgeHubComponent } from './user-team/KnowledgeHub/KnowledgeHub.com
 import { ResizableModule } from 'angular-resizable-element';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
 import { ApproverWorkflowComponent } from './user-team/project-insight/components/approver-workflow/approver-workflow.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -249,6 +252,9 @@ import { TrainingContentViewComponent } from './training-content-view/training-c
 import { TrainingQuizConfigComponent } from './configuration/training-config/training-quiz-config/training-quiz-config.component';
 import { QuizBuilderComponent } from './configuration/training-config/training-quiz-config/quiz-builder/quiz-builder.component';
 import { QuizViewModalComponent } from './training-content-view/quiz-view-modal/quiz-view-modal.component';
+import { InterviewTrackerComponent } from './interview-tracker/interview-tracker.component';
+import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
+import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
@@ -257,12 +263,15 @@ import { RmgDashboardComponent } from './user-team/resource-management/new-rmg-d
 import { RmgProjectTableComponent } from './user-team/resource-management/rmg-project-table/rmg-project-table.component';
 import { NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
 import { ResizableDirective } from './resizable.directive';
-
+import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { DdMmYyyyDateAdapter, DD_MM_YYYY_FORMATS } from './dd-mm-yyyy-date-adapter';
+import { AclConfigComponent } from 'src/app/configuration/acl-config/acl-config.component';
 registerLocaleData(localeGb);
 
 
 @NgModule({
   declarations: [
+    AclConfigComponent,
     AppComponent,
     SidenavComponent,
     BodyComponent,
@@ -392,6 +401,8 @@ registerLocaleData(localeGb);
     TravelConfigComponent,
     ReimbursmentConfigComponent,
     ReimbursementRuleSetConfigComponent,
+    TravelApprovalMatrixConfigComponent,
+    TravelTicketModalComponent,
     HrDashboardComponent,
     TimesheetConfigComponent,
     TeamEmployeeTimesheetViewComponent,
@@ -439,6 +450,10 @@ registerLocaleData(localeGb);
     TrainingQuizConfigComponent,
     QuizBuilderComponent,
     QuizViewModalComponent,
+    QuizSubmit,
+    InterviewTrackerComponent,
+    InterviewListComponent,
+    ScheduleInterviewComponent,
     RmgProjectConfigComponent,
     MyTableComponent,
     RmgModalHostComponent,
@@ -482,6 +497,7 @@ registerLocaleData(localeGb);
     ResizableModule,
     MatMenuModule,
     MatButtonModule,
+    MatDividerModule,
     MatExpansionModule,
     NgxPaginationModule,
     NgxEditorModule,
@@ -514,6 +530,9 @@ registerLocaleData(localeGb);
     { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: EmployeePortalInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: SanitizeInterceptor, multi: true },   // Added here for sanitizerInput
+    { provide: MAT_DATE_LOCALE, useValue: 'en-GB' },
+    { provide: DateAdapter, useClass: DdMmYyyyDateAdapter, deps: [MAT_DATE_LOCALE] },
+    { provide: MAT_DATE_FORMATS, useValue: DD_MM_YYYY_FORMATS },  
   ],
   bootstrap: [AppComponent]
 })

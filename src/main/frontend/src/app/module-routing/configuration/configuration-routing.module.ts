@@ -24,6 +24,7 @@ import { UploadPoliciesComponent } from 'src/app/configuration/upload-policies/u
 import { TrainingConfigComponent } from 'src/app/configuration/training-config/training-config.component';
 import { TrainingQuizConfigComponent } from 'src/app/configuration/training-config/training-quiz-config/training-quiz-config.component';
 
+import { AclConfigComponent } from 'src/app/configuration/acl-config/acl-config.component';
 const routes: Routes = [
   {
     path: '', component: ConfigurationComponent,
@@ -50,6 +51,7 @@ const routes: Routes = [
       { path: 'skill-certfication-config', component: SkillCertfificationConfigComponent },
       { path: 'training-config', component: TrainingConfigComponent },
       { path: 'training-quiz-config', component: TrainingQuizConfigComponent },
+      { path: 'acl-config', component: AclConfigComponent },
     ]
   }
 ];

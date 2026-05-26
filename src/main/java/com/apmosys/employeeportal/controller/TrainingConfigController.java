@@ -50,11 +50,11 @@ public class TrainingConfigController {
 	@Autowired
 	private TrainingConfigService trainingConfigService;
 	
-	@Value("${file.location.documents.training}")
-	private String trainingFileLocation;
-	
 	@Autowired
 	private TrainingMappingService assignmentService;
+	
+	@Value("${file.location.documents.training}")
+	private String trainingFileLocation;
 	
 	@Autowired
     private ObjectMapper objectMapper;
@@ -401,62 +401,42 @@ public class TrainingConfigController {
 			throw e;
 		}
 	}
-
-	@GetMapping("/getEmployeesByFilter")
-	public ServiceResponse getEmployeesByFilter(
-			@RequestParam("filter") String filter,
-			@RequestParam(value = "searchName", required = false) String searchName,
-			@RequestParam(value = "ids", required = false) java.util.List<Long> ids,
-			@RequestParam(value = "page", defaultValue = "0") int page,
-			@RequestParam(value = "size", defaultValue = "10") int size) {
-		try {
-			if (filter == null) {
-				ServiceResponse response = new ServiceResponse();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Filter is required");
-				return response;
-			}
-			return trainingConfigService.getEmployeesByFilter(filter, searchName, ids, page, size);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
-		}
-	}
 	
-	@GetMapping("/{trainingId}/excludable-employees")
-    public ServiceResponse getExcludableEmployees(
-            @PathVariable Integer trainingId,
-            @RequestParam(required = false) List<Integer> deptId) {
+	 @GetMapping("/{trainingId}/excludable-employees")
+	    public ServiceResponse getExcludableEmployees(
+	            @PathVariable Integer trainingId,
+	            @RequestParam(required = false) List<Integer> deptId) {
 
-        ServiceResponse response = new ServiceResponse();
-        try {
-            response.setServiceResponse(
-                    assignmentService.getExcludableEmployees(trainingId.longValue(), deptId)
-            );
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceStatus(e.getMessage());
-        }
-        return response;
-    }
+	        ServiceResponse response = new ServiceResponse();
+	        try {
+	            response.setServiceResponse(
+	                    assignmentService.getExcludableEmployees(trainingId.longValue(), deptId)
+	            );
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceStatus(e.getMessage());
+	        }
+	        return response;
+	    }
+
+	    @PostMapping("/{trainingId}/exclude")
+	    public ServiceResponse excludeEmployees(
+	            @PathVariable Integer trainingId,
+	            @RequestBody TrainingMappingRequestDTO request) {
+
+	        ServiceResponse response = new ServiceResponse();
+	        try {
+	            assignmentService.excludeEmployeesToTraining(trainingId.longValue(), request);
+	            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+	            response.setServiceResponse("Employees Excluded successfully.");
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+	            response.setServiceStatus(e.getMessage());
+	        }
+	        return response;
+	    }
 	
-	@PostMapping("/{trainingId}/exclude")
-    public ServiceResponse excludeEmployees(
-            @PathVariable Integer trainingId,
-            @RequestBody TrainingMappingRequestDTO request) {
-
-        ServiceResponse response = new ServiceResponse();
-        try {
-            assignmentService.excludeEmployeesToTraining(trainingId.longValue(), request);
-            response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-            response.setServiceResponse("Employees Excluded successfully.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-            response.setServiceStatus(e.getMessage());
-        }
-        return response;
-    }
 }
