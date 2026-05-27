@@ -4,6 +4,15 @@
 </h2>
 
 <div class="rmb-dash" *ngIf="!loading && !loadError && reimbursementDashboard">
+  <div class="rmb-dash__overlay" *ngIf="exportingExcel">
+    <div class="rmb-dash__overlay-card">
+      <div class="spinner-border text-primary mr-2" role="status" aria-label="Preparing Excel"></div>
+      <div>
+        <div class="font-weight-bold">Preparing Excel…</div>
+        <div class="small text-muted">This may take a few seconds for large scopes.</div>
+      </div>
+    </div>
+  </div>
   <div class="rmb-dash__header">
     <div>
       <div class="rmb-dash__title">Reimbursement Analytics Dashboard</div>
@@ -14,8 +23,14 @@
       </div>
     </div>
     <div class="rmb-dash__header-actions">
-      <button type="button" class="btn btn-outline-primary btn-sm" disabled title="Export coming soon">Excel</button>
-      <button type="button" class="btn btn-primary btn-sm" disabled title="Export coming soon">PDF</button>
+      <button
+        type="button"
+        class="btn btn-outline-primary btn-sm"
+        [disabled]="exportingExcel"
+        (click)="exportDashboardExcel()">
+        <span *ngIf="!exportingExcel">Excel</span>
+        <span *ngIf="exportingExcel">Exporting…</span>
+      </button>
       <button type="button" class="btn btn-light btn-sm border" (click)="loadDashboard()">Refresh</button>
     </div>
   </div>
@@ -174,10 +189,7 @@
       <a class="nav-link" [class.active]="activeTab === 'lifecycle'" href="#" (click)="setTab('lifecycle'); $event.preventDefault()">Ticket lifecycle</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link" [class.active]="activeTab === 'approval'" href="#" (click)="setTab('approval'); $event.preventDefault()">Approval analytics</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" [class.active]="activeTab === 'rejection'" href="#" (click)="setTab('rejection'); $event.preventDefault()">Rejection analysis</a>
+      <a class="nav-link" [class.active]="activeTab === 'approval'" href="#" (click)="setTab('approval'); $event.preventDefault()">Approval &amp; Rejection</a>
     </li>
     <li class="nav-item">
       <a class="nav-link" [class.active]="activeTab === 'clientTrend'" href="#" (click)="setTab('clientTrend'); $event.preventDefault()">Client-based analysis</a>
@@ -242,11 +254,12 @@
         </div>
       </div>
 
+      <!-- Overview: approval config only (workflow panel removed per UAT feedback) -->
       <div class="rmb-dash__overview-approval mb-3">
         <div class="row">
-          <div class="col-lg-5 mb-3 mb-lg-0">
-            <div class="rmb-dash__chart-card h-100">
-              <div class="rmb-dash__chart-title">Configured approval paths</div>
+          <div class="col-12">
+            <div class="rmb-dash__chart-card">
+              <div class="rmb-dash__chart-title">Configured Approval Paths</div>
               <div class="rmb-dash__chart-sub text-muted">Active matrices from reimbursement rule configuration</div>
               <ng-container *ngIf="overviewActiveMatrices().length; else noMatrixConfig">
                 <div class="rmb-dash__matrix-config" *ngFor="let m of overviewActiveMatrices()">
@@ -259,56 +272,17 @@
               </ng-template>
             </div>
           </div>
-          <div class="col-lg-7">
-            <div class="rmb-dash__chart-card h-100">
-              <div class="rmb-dash__chart-title">In-flight workflow (filtered scope)</div>
-              <div class="rmb-dash__chart-sub text-muted">Ticket stages and matrix level queue for current filters</div>
-              <div class="rmb-dash__stage-chips mb-2" *ngIf="workflowStageRows().length">
-                <span
-                  class="rmb-dash__stage-chip"
-                  *ngFor="let s of workflowStageRows()"
-                  [attr.title]="workflowStageLabel(s.stage)">
-                  {{ workflowStageLabel(s.stage) }} <strong>{{ formatNumber(s.count) }}</strong>
-                </span>
-              </div>
-              <p class="text-muted small mb-2" *ngIf="!workflowStageRows().length">No tickets in scope.</p>
-              <div class="rmb-dash__matrix-queue mb-3" *ngIf="pendingMatrixLevelRows().length">
-                <div class="small font-weight-bold text-muted mb-1">Pending at matrix level</div>
-                <span class="rmb-dash__stage-chip rmb-dash__stage-chip--matrix" *ngFor="let lv of pendingMatrixLevelRows()">
-                  {{ lv.label }} <strong>{{ formatNumber(lv.count) }}</strong>
-                </span>
-              </div>
-              <div *ngIf="overviewUsesMatrixWorkflow() && reimbursementDashboard.approvalFunnelMatrix as MF">
-                <div class="small font-weight-bold text-muted mb-1">Matrix funnel ({{ formatNumber(reimbursementDashboard.matrixTicketCount) }} tickets)</div>
-                <div class="rmb-dash__funnel-row rmb-dash__funnel-row--compact" *ngFor="let step of matrixFunnelSteps">
-                  <div class="d-flex justify-content-between small mb-1">
-                    <span>{{ step.k }}</span>
-                    <span class="font-weight-bold">{{ formatNumber(funnelVal(MF, step.f)) }} · {{ funnelPct(funnelVal(MF, step.f), funnelVal(MF, 'submitted')) }}%</span>
-                  </div>
-                  <div class="progress rmb-dash__progress">
-                    <div
-                      class="progress-bar"
-                      role="progressbar"
-                      [style.width.%]="funnelPct(funnelVal(MF, step.f), funnelVal(MF, 'submitted'))"
-                      [ngClass]="{
-                        'bg-primary': step.f === 'submitted',
-                        'bg-info': step.f === 'pastMatrixQueue',
-                        'bg-warning': step.f === 'financeEngaged',
-                        'bg-success': step.f === 'paidClosed'
-                      }"
-                    ></div>
-                  </div>
-                </div>
-              </div>
-              <p class="text-muted small mb-0" *ngIf="!overviewUsesMatrixWorkflow() && (reimbursementDashboard.legacyTicketCount || 0) > 0">
-                Tickets in scope use the legacy HOD → HR → Finance path. See <strong>Approval analytics</strong> for the legacy funnel.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
       <div class="row">
+        <div class="col-lg-6 mb-3">
+          <div class="rmb-dash__chart-card">
+            <div class="rmb-dash__chart-title">Claim mode distribution</div>
+            <div class="rmb-dash__chart-sub text-muted">Claim lines raised as Recurring expense vs POC - Project</div>
+            <div id="rmbDashChartClaimMode" class="rmb-dash__chart-host"></div>
+          </div>
+        </div>
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card">
             <div class="rmb-dash__chart-title">Status breakdown</div>
@@ -345,7 +319,10 @@
     <!-- Lifecycle -->
     <div [style.display]="activeTab === 'lifecycle' ? 'block' : 'none'">
       <div class="d-flex justify-content-between align-items-center mb-2">
-        <div class="rmb-dash__section-title">Ticket lifecycle</div>
+        <div>
+          <div class="rmb-dash__section-title">Ticket Lifecycle Analytics</div>
+          <div class="small text-muted">Drill down to claim lines; totals reflect current filter scope.</div>
+        </div>
         <a routerLink="../approve-reimbursement" class="btn btn-sm btn-outline-primary">Open approvals</a>
       </div>
       <div class="table-responsive rmb-dash__table-wrap">
@@ -403,7 +380,10 @@
                         <tr>
                           <th>Claim</th>
                           <th>Type</th>
+                          <th>Mode</th>
                           <th>Project</th>
+                          <th>Justification</th>
+                          <th>HOD Pre-Approval</th>
                           <th class="text-right">Amount</th>
                           <th>Status</th>
                         </tr>
@@ -412,7 +392,17 @@
                         <tr *ngFor="let c of row.claims">
                           <td>{{ c.lineNo }}</td>
                           <td>{{ c.expenditureType }}</td>
+                          <td class="text-nowrap">
+                            <span class="badge badge-info mr-1" *ngIf="c.recurringExpense">Recurring</span>
+                            <span class="badge badge-warning" *ngIf="c.pocProject">POC</span>
+                            <span class="text-muted" *ngIf="!c.recurringExpense && !c.pocProject">—</span>
+                          </td>
                           <td class="small">{{ c.projectName }}</td>
+                          <td class="small">{{ c.businessJustification || '—' }}</td>
+                          <td class="small text-nowrap">
+                            <span *ngIf="c.preApprovalDate; else noPre">{{ c.preApprovalDate | date : 'dd MMM y' }}</span>
+                            <ng-template #noPre>—</ng-template>
+                          </td>
                           <td class="text-right">₹{{ formatRupee(c.amount) }}</td>
                           <td><span class="rmb-dash__badge-pill rmb-dash__badge-pill--muted">{{ c.claimStatus }}</span></td>
                         </tr>
@@ -434,109 +424,106 @@
       </div>
     </div>
 
-    <!-- Approval funnel -->
+    <!-- Approval & rejection analytics (redesigned) -->
     <div [style.display]="activeTab === 'approval' ? 'block' : 'none'">
-      <div class="row mb-3">
-        <div class="col-md-3 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Pending HOD</div>
-            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHodTickets) }}</div>
-          </div>
-        </div>
-        <div class="col-md-3 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Pending approval</div>
-            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingApprovalTickets || 0) }}</div>
-          </div>
-        </div>
-        <div class="col-md-3 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Pending HR</div>
-            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHrTickets) }}</div>
-          </div>
-        </div>
-        <div class="col-md-3 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Pending Finance</div>
-            <div class="rmb-dash__kpi-value text-primary">{{ formatNumber(reimbursementDashboard.pendingFinanceTickets) }}</div>
+      <div class="d-flex align-items-start justify-content-between flex-wrap mb-2">
+        <div>
+          <div class="rmb-dash__section-title">Approval &amp; Rejection Analytics</div>
+          <div class="small text-muted">
+            KPIs and charts respect the current filter scope. Use this view for quick operational decisions and trend checks.
           </div>
         </div>
       </div>
+
       <div class="row mb-3">
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Pending HOD</div>
+            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHodTickets) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Tickets waiting at HOD</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Pending approval level</div>
+            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingApprovalTickets || 0) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Matrix workflow queue</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Pending HR</div>
+            <div class="rmb-dash__kpi-value text-warning">{{ formatNumber(reimbursementDashboard.pendingHrTickets) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Tickets waiting at HR</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Pending Finance</div>
+            <div class="rmb-dash__kpi-value text-primary">{{ formatNumber(reimbursementDashboard.pendingFinanceTickets) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Tickets ready for payment</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Rejected claim lines</div>
+            <div class="rmb-dash__kpi-value text-danger">{{ formatNumber(reimbursementDashboard.rejectedClaimLines) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Total rejected lines</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 mb-2">
+          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
+            <div class="rmb-dash__kpi-label">Rejected amount</div>
+            <div class="rmb-dash__kpi-value text-danger">₹{{ formatRupee(reimbursementDashboard.totalRejectedClaimsAmount) }}</div>
+            <div class="rmb-dash__kpi-sub text-muted">Sum of rejected lines</div>
+          </div>
+        </div>
         <div class="col-md-3 col-6 mb-2">
           <div class="rmb-dash__kpi rmb-dash__kpi--compact">
             <div class="rmb-dash__kpi-label">Matrix-matched tickets</div>
             <div class="rmb-dash__kpi-value text-primary">{{ formatNumber(reimbursementDashboard.matrixTicketCount || 0) }}</div>
-            <div class="rmb-dash__kpi-sub text-muted">Uses reimbursement approval matrix</div>
+            <div class="rmb-dash__kpi-sub text-muted">Uses approval matrix</div>
           </div>
         </div>
         <div class="col-md-3 col-6 mb-2">
           <div class="rmb-dash__kpi rmb-dash__kpi--compact">
             <div class="rmb-dash__kpi-label">Legacy workflow tickets</div>
             <div class="rmb-dash__kpi-value">{{ formatNumber(reimbursementDashboard.legacyTicketCount || 0) }}</div>
-            <div class="rmb-dash__kpi-sub text-muted">HOD → HR → Finance path</div>
+            <div class="rmb-dash__kpi-sub text-muted">HOD → HR → Finance</div>
           </div>
         </div>
       </div>
+
       <div class="row mb-3">
-        <div class="col-lg-6 mb-3">
-          <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Tickets by workflow stage</div>
-            <div class="rmb-dash__chart-sub text-muted">Raw ticket counts in current filter scope</div>
-            <div class="table-responsive" *ngIf="workflowStageRows().length">
-              <table class="table table-sm rmb-dash__mini-table mb-0">
-                <thead><tr><th>Stage</th><th class="text-right">Tickets</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of workflowStageRows()">
-                    <td><code class="small">{{ r.stage }}</code></td>
-                    <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-muted small mb-0" *ngIf="!workflowStageRows().length">No tickets in scope.</p>
+        <div class="col-lg-4 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Workflow stage distribution</div>
+            <div class="rmb-dash__chart-sub text-muted">Tickets grouped by stage</div>
+            <div id="rmbDashChartWorkflowStage" class="rmb-dash__chart-host"></div>
           </div>
         </div>
-        <div class="col-lg-6 mb-3">
-          <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Pending at matrix level</div>
-            <div class="rmb-dash__chart-sub text-muted">Tickets in PENDING_LEVEL, by configured level order</div>
-            <div class="table-responsive" *ngIf="pendingMatrixLevelRows().length">
-              <table class="table table-sm rmb-dash__mini-table mb-0">
-                <thead><tr><th>Level</th><th class="text-right">Tickets</th></tr></thead>
-                <tbody>
-                  <tr *ngFor="let r of pendingMatrixLevelRows()">
-                    <td>{{ r.label }}</td>
-                    <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <p class="text-muted small mb-0" *ngIf="!pendingMatrixLevelRows().length">None — no tickets waiting on a matrix level.</p>
+        <div class="col-lg-4 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Claim lines by status</div>
+            <div class="rmb-dash__chart-sub text-muted">Operational view of claim-line backlog</div>
+            <div id="rmbDashChartClaimStatusLines" class="rmb-dash__chart-host"></div>
+          </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Rejections by channel</div>
+            <div class="rmb-dash__chart-sub text-muted">HOD vs matrix level vs HR vs Finance</div>
+            <div id="rmbDashChartRejectChannel" class="rmb-dash__chart-host"></div>
           </div>
         </div>
       </div>
-      <div class="rmb-dash__chart-card mb-3">
-        <div class="rmb-dash__chart-title">Claim lines by status</div>
-        <div class="rmb-dash__chart-sub text-muted">In-scope claim rows (respects project / client / claim-type filters)</div>
-        <div class="table-responsive" *ngIf="claimStatusLineRows().length">
-          <table class="table table-sm rmb-dash__mini-table mb-0">
-            <thead><tr><th>Claim status</th><th class="text-right">Lines</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let r of claimStatusLineRows()">
-                <td><code class="small">{{ r.status }}</code></td>
-                <td class="text-right font-weight-bold">{{ formatNumber(r.count) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+
       <div class="row mb-3">
         <div class="col-lg-6 mb-3">
           <div class="rmb-dash__chart-card h-100">
-            <div class="rmb-dash__chart-title">Approval funnel</div>
+            <div class="rmb-dash__chart-title">Approval funnel (legacy workflow)</div>
             <div class="rmb-dash__chart-sub text-muted">
-              All tickets — where each ticket sits between milestones (legacy HOD/HR path). Total submitted:
+              Ticket milestones for legacy workflow. Total submitted:
               {{ formatNumber(funnelVal(reimbursementDashboard.approvalFunnel, 'submitted')) }}
             </div>
             <div
@@ -573,53 +560,17 @@
           </div>
         </div>
       </div>
-      <p class="text-muted small mb-0">
-        Per-approver turnaround and scorecards need reimbursement audit aggregation — use ticket lifecycle and Finance queue for
-        operational follow-up today.
-      </p>
-    </div>
 
-    <!-- Rejection -->
-    <div [style.display]="activeTab === 'rejection' ? 'block' : 'none'">
-      <div class="row mb-2">
-        <div class="col-md-3 col-6 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Rejected claims</div>
-            <div class="rmb-dash__kpi-value text-danger">{{ formatNumber(reimbursementDashboard.rejectedClaimLines) }}</div>
-          </div>
-        </div>
-        <div class="col-md-3 col-6 mb-2">
-          <div class="rmb-dash__kpi">
-            <div class="rmb-dash__kpi-label">Rejected amount</div>
-            <div class="rmb-dash__kpi-value text-danger">₹{{ formatRupee(reimbursementDashboard.totalRejectedClaimsAmount) }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="row mb-3" *ngIf="(reimbursementDashboard.rejectedClaimLines || 0) > 0">
-        <div class="col-6 col-md-3 mb-2" *ngFor="let ch of rejectionByChannelList() | slice:0:4">
-          <div class="rmb-dash__kpi rmb-dash__kpi--compact">
-            <div class="rmb-dash__kpi-label">{{ ch.channel }}</div>
-            <div class="rmb-dash__kpi-value text-danger">{{ formatNumber(ch.count) }}</div>
-            <div class="rmb-dash__kpi-sub text-muted">{{ ch.pct }}% of rejected lines</div>
-          </div>
-        </div>
-      </div>
-      <div class="row">
+      <div class="row mb-3">
         <div class="col-lg-4 mb-3">
-          <div class="rmb-dash__chart-card">
+          <div class="rmb-dash__chart-card h-100">
             <div class="rmb-dash__chart-title">Rejections by claim type</div>
+            <div class="rmb-dash__chart-sub text-muted">Top claim types with rejected lines</div>
             <div id="rmbDashChartRejectType" class="rmb-dash__chart-host"></div>
           </div>
         </div>
         <div class="col-lg-4 mb-3">
-          <div class="rmb-dash__chart-card">
-            <div class="rmb-dash__chart-title">Rejections by channel</div>
-            <div class="rmb-dash__chart-sub text-muted">HOD vs matrix level vs HR vs Finance</div>
-            <div id="rmbDashChartRejectChannel" class="rmb-dash__chart-host rmb-dash__chart-host--short"></div>
-          </div>
-        </div>
-        <div class="col-lg-4 mb-3">
-          <div class="rmb-dash__chart-card">
+          <div class="rmb-dash__chart-card h-100">
             <div class="rmb-dash__chart-title">Rejection reasons</div>
             <div class="rmb-dash__chart-sub text-muted">From HOD / HR remarks and Finance reason</div>
             <div *ngFor="let r of rejectionReasonList()" class="mb-2">
@@ -633,30 +584,40 @@
             </div>
           </div>
         </div>
-      </div>
-      <div class="rmb-dash__chart-card mb-3" *ngIf="(reimbursementDashboard.rejectionByDepartmentTop || []).length">
-        <div class="rmb-dash__chart-title">Top departments by rejected claim lines</div>
-        <div class="table-responsive">
-          <table class="table table-sm rmb-dash__mini-table mb-0">
-            <thead>
-              <tr>
-                <th>Department</th>
-                <th class="text-right">Rejected lines</th>
-                <th class="text-right">Rejected amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let r of reimbursementDashboard.rejectionByDepartmentTop">
-                <td>{{ r.department }}</td>
-                <td class="text-right font-weight-bold">{{ formatNumber(r.rejectedLines) }}</td>
-                <td class="text-right text-danger">₹{{ formatRupee(r.rejectedAmount) }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="col-lg-4 mb-3">
+          <div class="rmb-dash__chart-card h-100">
+            <div class="rmb-dash__chart-title">Top departments (rejections)</div>
+            <div class="rmb-dash__chart-sub text-muted">Rejected lines and amount</div>
+            <div class="table-responsive" *ngIf="(reimbursementDashboard.rejectionByDepartmentTop || []).length">
+              <table class="table table-sm rmb-dash__mini-table mb-0">
+                <thead>
+                  <tr>
+                    <th>Department</th>
+                    <th class="text-right">Lines</th>
+                    <th class="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let r of reimbursementDashboard.rejectionByDepartmentTop">
+                    <td>{{ r.department }}</td>
+                    <td class="text-right font-weight-bold">{{ formatNumber(r.rejectedLines) }}</td>
+                    <td class="text-right text-danger">₹{{ formatRupee(r.rejectedAmount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="text-muted small mb-0" *ngIf="!(reimbursementDashboard.rejectionByDepartmentTop || []).length">
+              No rejected claim lines in scope.
+            </p>
+          </div>
         </div>
       </div>
+
       <div class="rmb-dash__chart-card">
         <div class="rmb-dash__chart-title">Rejection detail log</div>
+        <div class="rmb-dash__chart-sub text-muted">
+          “By” shows the actual actor (matrix level rejections use audit log to resolve the approver name).
+        </div>
         <div class="table-responsive">
           <table class="table table-sm rmb-dash__table mb-0">
             <thead>
@@ -679,7 +640,7 @@
                 <td>{{ r.expenditureType }}</td>
                 <td class="text-right text-danger">₹{{ formatRupee(r.amount) }}</td>
                 <td>{{ r.rejectedBy }}</td>
-                <td>{{ r.rejectionLevel }}</td>
+                <td><span class="badge badge-light border">{{ r.rejectionLevel }}</span></td>
                 <td class="small font-italic">{{ r.reason }}</td>
               </tr>
             </tbody>
@@ -1123,8 +1084,10 @@
     <!-- Employee -->
     <div [style.display]="activeTab === 'employee' ? 'block' : 'none'">
       <div class="rmb-dash__chart-card">
-        <div class="rmb-dash__chart-title">Top employees by requested amount</div>
-        <div class="rmb-dash__chart-sub text-muted">Scoped to current filters · paid = claims marked paid</div>
+        <div class="rmb-dash__chart-title">Employees in current reimbursement scope</div>
+        <div class="rmb-dash__chart-sub text-muted">
+          All employees who have raised tickets in the current filter scope, with claim mode, HOD, and project/client mapping.
+        </div>
         <div class="table-responsive">
           <table class="table table-sm rmb-dash__table mb-0">
             <thead>
@@ -1132,21 +1095,33 @@
                 <th>#</th>
                 <th>Employee</th>
                 <th>Dept</th>
+                <th>Employee type</th>
+                <th>HOD</th>
                 <th class="text-center">Tickets</th>
-                <th class="text-right">Requested</th>
-                <th class="text-right">Paid</th>
-                <th>Rej. %</th>
+                <th class="text-center">Recurring</th>
+                <th class="text-center">POC</th>
+                <th>Projects / clients</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let e of reimbursementDashboard.employeeLeaderboard || []; let i = index">
+              <tr *ngFor="let e of reimbursementDashboard.employeeAnalyticsRows || []; let i = index">
                 <td>{{ i + 1 }}</td>
                 <td class="font-weight-bold">{{ e.fullName }}</td>
                 <td>{{ e.department }}</td>
+                <td>{{ e.employeeType || '—' }}</td>
+                <td>
+                  <div class="font-weight-bold">{{ e.hodName || '—' }}</div>
+                </td>
                 <td class="text-center">{{ formatNumber(e.ticketCount) }}</td>
-                <td class="text-right">₹{{ formatRupee(e.requested) }}</td>
-                <td class="text-right text-success">₹{{ formatRupee(e.paid) }}</td>
-                <td>{{ e.rejectionRatePct }}%</td>
+                <td class="text-center"><span class="badge badge-info">{{ formatNumber(e.recurringClaims || 0) }}</span></td>
+                <td class="text-center"><span class="badge badge-primary">{{ formatNumber(e.pocClaims || 0) }}</span></td>
+                <td class="small">
+                  <div *ngIf="!(e.projects || []).length" class="text-muted">—</div>
+                  <div *ngFor="let p of e.projects || []" class="mb-1">
+                    <div class="font-weight-bold">{{ p.projectName }}</div>
+                    <div class="text-muted">{{ p.clientName }}</div>
+                  </div>
+                </td>
               </tr>
             </tbody>
           </table>

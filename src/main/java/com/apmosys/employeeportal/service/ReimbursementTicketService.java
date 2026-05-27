@@ -26,6 +26,16 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import java.io.ByteArrayOutputStream;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -1835,8 +1845,306 @@ public class ReimbursementTicketService {
 		return "";
 	}
 
-	private static long bigIntegerToLong(BigInteger b) {
-		return b == null ? 0L : b.longValue();
+	/** Employee type label used in Employee configuration (best-effort from flags on Employee master). */
+	private static String resolveConfiguredEmployeeType(Employee e) {
+		if (e == null) {
+			return null;
+		}
+		String isApmosysProduct = e.getIsApmosysProduct();
+		if (StringUtils.hasText(isApmosysProduct) && "true".equalsIgnoreCase(isApmosysProduct.trim())) {
+			return "Apmosys Product";
+		}
+		String isApprentice = e.getIsApprenticeship();
+		if (StringUtils.hasText(isApprentice) && "true".equalsIgnoreCase(isApprentice.trim())) {
+			return "Apprentice";
+		}
+		String isConsultant = e.getIsConsultant();
+		if (StringUtils.hasText(isConsultant) && "true".equalsIgnoreCase(isConsultant.trim())) {
+			return "Consultant";
+		}
+		// Default option label in Employee configuration dropdown
+		return "On Roll";
+	}
+
+	/**
+	 * Export reimbursement dashboard data (entire scope, not paginated UI slices) as a single Excel workbook.
+	 * Sheets: Summary, Tickets, Claims, Employees, Rejections.
+	 */
+	@Transactional(readOnly = true)
+	public byte[] exportDashboardExcel(ReimbursementDashboardFilterDTO filter) {
+		// Reuse the dashboard computation so the export matches UI filter scope.
+		ServiceResponse resp = dashboard(filter != null ? filter : new ReimbursementDashboardFilterDTO());
+		if (resp == null || !ServiceResponse.STATUS_SUCCESS.equals(resp.getServiceStatus())
+				|| !(resp.getServiceResponse() instanceof Map)) {
+			// Return an empty workbook with an error note rather than failing the download.
+			try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+				Sheet sh = wb.createSheet("Summary");
+				Row r0 = sh.createRow(0);
+				r0.createCell(0).setCellValue("Unable to export reimbursement dashboard at this time.");
+				wb.write(bos);
+				return bos.toByteArray();
+			} catch (Exception e) {
+				return new byte[0];
+			}
+		}
+		@SuppressWarnings("unchecked")
+		Map<String, Object> dash = (Map<String, Object>) resp.getServiceResponse();
+
+		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			Font headerFont = wb.createFont();
+			headerFont.setBold(true);
+			CellStyle header = wb.createCellStyle();
+			header.setFont(headerFont);
+			header.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+			header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+			writeSummarySheet(wb, header, dash);
+			writeTicketsSheet(wb, header, dash);
+			writeClaimsSheet(wb, header, dash);
+			writeEmployeesSheet(wb, header, dash);
+			writeRejectionsSheet(wb, header, dash);
+
+			wb.write(bos);
+			return bos.toByteArray();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new byte[0];
+		}
+	}
+
+	private void writeSummarySheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Summary");
+		int r = 0;
+		Row h = sh.createRow(r++);
+		String[] cols = { "Metric", "Value" };
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		Object[][] rows = {
+				{ "Total tickets", dash.get("ticketCount") },
+				{ "Total claims", dash.get("claimCount") },
+				{ "Total requested amount", dash.get("totalSubmittedAmount") },
+				{ "Total paid amount", dash.get("totalPaidAmount") },
+				{ "Pipeline pending amount", dash.get("pipelinePendingAmount") },
+				{ "Rejected claim lines", dash.get("rejectedClaimLines") },
+				{ "Rejected amount", dash.get("totalRejectedClaimsAmount") },
+				{ "Approved amount", dash.get("totalApprovedAmount") },
+				{ "Pending HOD tickets", dash.get("pendingHodTickets") },
+				{ "Pending approval level tickets", dash.get("pendingApprovalTickets") },
+				{ "Pending HR tickets", dash.get("pendingHrTickets") },
+				{ "Pending Finance tickets", dash.get("pendingFinanceTickets") }
+		};
+		for (Object[] rr : rows) {
+			Row row = sh.createRow(r++);
+			row.createCell(0).setCellValue(String.valueOf(rr[0]));
+			row.createCell(1).setCellValue(rr[1] == null ? "" : String.valueOf(rr[1]));
+		}
+		sh.autoSizeColumn(0);
+		sh.autoSizeColumn(1);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeTicketsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Tickets");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("ticketRows");
+		String[] cols = { "Ticket No", "Ticket ID", "Employee", "Emp ID", "Department", "Status", "Stage", "Submitted On",
+				"Total claim amount", "Payable approved amount", "Paid claim amount", "Processing cycle" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> t : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(t.getOrDefault("ticketNo", "")));
+				row.createCell(1).setCellValue(String.valueOf(t.getOrDefault("ticketId", "")));
+				row.createCell(2).setCellValue(String.valueOf(t.getOrDefault("fullName", "")));
+				row.createCell(3).setCellValue(String.valueOf(t.getOrDefault("empId", "")));
+				row.createCell(4).setCellValue(String.valueOf(t.getOrDefault("department", "")));
+				row.createCell(5).setCellValue(String.valueOf(t.getOrDefault("displayStatus", "")));
+				row.createCell(6).setCellValue(String.valueOf(t.getOrDefault("workflowStage", "")));
+				row.createCell(7).setCellValue(String.valueOf(t.getOrDefault("submittedOn", "")));
+				row.createCell(8).setCellValue(String.valueOf(t.getOrDefault("totalClaimAmount", "")));
+				row.createCell(9).setCellValue(String.valueOf(t.getOrDefault("payableApprovedAmount", "")));
+				row.createCell(10).setCellValue(String.valueOf(t.getOrDefault("paidClaimAmount", "")));
+				row.createCell(11).setCellValue(String.valueOf(t.getOrDefault("processingCycleLabel", "")));
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeClaimsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Claims");
+		List<Map<String, Object>> tickets = (List<Map<String, Object>>) dash.get("ticketRows");
+		String[] cols = { "Ticket No", "Ticket ID", "Employee", "Emp ID", "Department", "Employee type", "Line No",
+				"Claim ID", "Type", "Amount", "From", "To", "Purpose", "Mode (Recurring/POC)", "Project", "Client",
+				"Claim status" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		Map<Long, String> employeeTypeByEmpId = new HashMap<>();
+		try {
+			List<Map<String, Object>> emps = (List<Map<String, Object>>) dash.get("employeeAnalyticsRows");
+			if (emps != null) {
+				for (Map<String, Object> e : emps) {
+					Object id = e.get("empId");
+					if (id == null) {
+						continue;
+					}
+					Long empId = null;
+					try {
+						empId = Long.valueOf(String.valueOf(id));
+					} catch (Exception ignore) {
+						// best-effort only
+					}
+					if (empId != null) {
+						employeeTypeByEmpId.put(empId, String.valueOf(e.getOrDefault("employeeType", "")));
+					}
+				}
+			}
+		} catch (Exception ignore) {
+			// best-effort only
+		}
+
+		int r = 1;
+		if (tickets != null) {
+			for (Map<String, Object> t : tickets) {
+				Object ticketNo = t.get("ticketNo");
+				Object ticketId = t.get("ticketId");
+				Object empName = t.get("fullName");
+				Object empIdObj = t.get("empId");
+				Object dept = t.get("department");
+				Long empId = null;
+				try {
+					if (empIdObj != null && StringUtils.hasText(String.valueOf(empIdObj))) {
+						empId = Long.valueOf(String.valueOf(empIdObj));
+					}
+				} catch (Exception ignore) {
+					// best-effort only
+				}
+				String empType = empId != null ? employeeTypeByEmpId.get(empId) : null;
+				if (!StringUtils.hasText(empType) && empId != null) {
+					try {
+						Employee e = employeeRepository.findByEmpId(empId);
+						empType = resolveConfiguredEmployeeType(e);
+					} catch (Exception ignore) {
+						// best-effort only
+					}
+				}
+
+				List<Map<String, Object>> claims = (List<Map<String, Object>>) t.get("claims");
+				if (claims == null) {
+					continue;
+				}
+				for (Map<String, Object> c : claims) {
+					Row row = sh.createRow(r++);
+					row.createCell(0).setCellValue(String.valueOf(ticketNo == null ? "" : ticketNo));
+					row.createCell(1).setCellValue(String.valueOf(ticketId == null ? "" : ticketId));
+					row.createCell(2).setCellValue(String.valueOf(empName == null ? "" : empName));
+					row.createCell(3).setCellValue(String.valueOf(empIdObj == null ? "" : empIdObj));
+					row.createCell(4).setCellValue(String.valueOf(dept == null ? "" : dept));
+					row.createCell(5).setCellValue(String.valueOf(empType == null ? "" : empType));
+					row.createCell(6).setCellValue(String.valueOf(c.getOrDefault("lineNo", "")));
+					row.createCell(7).setCellValue(String.valueOf(c.getOrDefault("claimId", "")));
+					row.createCell(8).setCellValue(String.valueOf(c.getOrDefault("expenditureType", "")));
+					row.createCell(9).setCellValue(String.valueOf(c.getOrDefault("amount", "")));
+					row.createCell(10).setCellValue(String.valueOf(c.getOrDefault("fromDate", "")));
+					row.createCell(11).setCellValue(String.valueOf(c.getOrDefault("toDate", "")));
+					row.createCell(12).setCellValue(String.valueOf(c.getOrDefault("purpose", "")));
+					boolean rec = Boolean.TRUE.equals(c.get("recurringExpense"));
+					boolean poc = Boolean.TRUE.equals(c.get("pocProject"));
+					String mode = rec ? "Recurring Expense" : (poc ? "POC - Project" : "");
+					row.createCell(13).setCellValue(mode);
+					row.createCell(14).setCellValue(String.valueOf(c.getOrDefault("projectName", "")));
+					row.createCell(15).setCellValue(String.valueOf(c.getOrDefault("clientName", "")));
+					row.createCell(16).setCellValue(String.valueOf(c.getOrDefault("claimStatus", "")));
+				}
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeEmployeesSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Employees");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("employeeAnalyticsRows");
+		String[] cols = { "Employee", "Emp ID", "Department", "Employee type", "HOD", "Tickets", "Recurring claims", "POC claims",
+				"Projects / Clients" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> e : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(e.getOrDefault("fullName", "")));
+				row.createCell(1).setCellValue(String.valueOf(e.getOrDefault("empId", "")));
+				row.createCell(2).setCellValue(String.valueOf(e.getOrDefault("department", "")));
+				row.createCell(3).setCellValue(String.valueOf(e.getOrDefault("employeeType", "")));
+				row.createCell(4).setCellValue(String.valueOf(e.getOrDefault("hodName", "")));
+				row.createCell(5).setCellValue(String.valueOf(e.getOrDefault("ticketCount", "")));
+				row.createCell(6).setCellValue(String.valueOf(e.getOrDefault("recurringClaims", "")));
+				row.createCell(7).setCellValue(String.valueOf(e.getOrDefault("pocClaims", "")));
+				List<Map<String, Object>> projs = (List<Map<String, Object>>) e.get("projects");
+				if (projs != null && !projs.isEmpty()) {
+					String joined = projs.stream()
+							.map(p -> String.valueOf(p.getOrDefault("projectName", "")) + " (" + String.valueOf(p.getOrDefault("clientName", "")) + ")")
+							.collect(Collectors.joining(" | "));
+					row.createCell(8).setCellValue(joined);
+				} else {
+					row.createCell(8).setCellValue("");
+				}
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeRejectionsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Rejections");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("rejectionLog");
+		String[] cols = { "Ticket", "Employee", "Department", "Type", "Amount", "By", "Level", "Reason" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> x : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(x.getOrDefault("ticketNo", x.getOrDefault("ticketId", ""))));
+				row.createCell(1).setCellValue(String.valueOf(x.getOrDefault("employeeName", "")));
+				row.createCell(2).setCellValue(String.valueOf(x.getOrDefault("department", "")));
+				row.createCell(3).setCellValue(String.valueOf(x.getOrDefault("expenditureType", "")));
+				row.createCell(4).setCellValue(String.valueOf(x.getOrDefault("amount", "")));
+				row.createCell(5).setCellValue(String.valueOf(x.getOrDefault("rejectedBy", "")));
+				row.createCell(6).setCellValue(String.valueOf(x.getOrDefault("rejectionLevel", "")));
+				row.createCell(7).setCellValue(String.valueOf(x.getOrDefault("reason", "")));
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
 	}
 
 	private static BigDecimal claimAmountOrZero(ReimbursementTicketClaim c) {
@@ -2649,7 +2957,21 @@ public class ReimbursementTicketService {
 			return StringUtils.hasText(t.getHodName()) ? t.getHodName() : "Head of department";
 		}
 		if (ReimbursementTicketClaim.STATUS_LEVEL_REJECTED.equals(st)) {
-			return "Matrix approver";
+			try {
+				if (c.getClaimId() != null) {
+					ReimbursementTicketAuditLog log = auditLogRepository
+							.findTopByClaimIdAndActionOrderByCreatedOnDesc(c.getClaimId(), "MATRIX_LEVEL_DECISION");
+					if (log != null) {
+						String name = resolveAuditActorDisplayName(log.getActorEmpId(), log.getActorEmail());
+						if (StringUtils.hasText(name)) {
+							return name;
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// best-effort only
+			}
+			return "Approval level approver";
 		}
 		if (ReimbursementTicketClaim.STATUS_HR_REJECTED.equals(st)) {
 			String hrName = lookupEmployeeNameByEmail(workflowHrMail);
@@ -2733,11 +3055,25 @@ public class ReimbursementTicketService {
 			}
 
 			Map<String, Long> byCategory = new HashMap<>();
+			Map<String, Long> byClaimMode = new LinkedHashMap<>();
+			byClaimMode.put("Recurring Expense", 0L);
+			byClaimMode.put("POC - Project", 0L);
+			byClaimMode.put("Not specified", 0L);
 			for (ReimbursementTicket t : tickets) {
 				claimsForMetrics(t, filter).forEach(c -> {
 					String cat = c.getExpenditureType() != null ? c.getExpenditureType() : "Unknown";
 					byCategory.merge(cat, 1L, Long::sum);
+					if (c.getRecurringExpense() != null && c.getRecurringExpense() == 1) {
+						byClaimMode.merge("Recurring Expense", 1L, Long::sum);
+					} else if (c.getPocProject() != null && c.getPocProject() == 1) {
+						byClaimMode.merge("POC - Project", 1L, Long::sum);
+					} else {
+						byClaimMode.merge("Not specified", 1L, Long::sum);
+					}
 				});
+			}
+			if (byClaimMode.get("Not specified") == 0L) {
+				byClaimMode.remove("Not specified");
 			}
 
 			Map<String, BigDecimal> topClaimers = new LinkedHashMap<>();
@@ -2797,6 +3133,95 @@ public class ReimbursementTicketService {
 						out.remove("claimLines");
 						return out;
 					}).collect(Collectors.toList());
+
+			// Employee analytics: full list (not Top-N) with employee type, HOD, claim mode and project/client mapping.
+			Map<Long, Employee> employeeById = new HashMap<>();
+			List<Map<String, Object>> employeeAnalyticsRows = empBoard.values().stream()
+					.map(m -> {
+						Map<String, Object> out = new LinkedHashMap<>();
+						BigInteger empBig = (BigInteger) m.get("empId");
+						Long empId = empBig != null ? empBig.longValue() : null;
+						out.put("empId", empId);
+						out.put("fullName", m.get("fullName"));
+						out.put("department", m.get("department"));
+						out.put("ticketCount", m.get("ticketCount"));
+
+						// pick HOD from latest ticket in scope for this employee (best-effort)
+						String hodName = null;
+						String hodEmail = null;
+						if (empId != null) {
+							for (ReimbursementTicket t : tickets) {
+								if (t.getEmpId() != null && t.getEmpId().longValue() == empId.longValue()) {
+									if (StringUtils.hasText(t.getHodName())) {
+										hodName = t.getHodName();
+									}
+									if (StringUtils.hasText(t.getHodEmail())) {
+										hodEmail = t.getHodEmail();
+									}
+								}
+							}
+						}
+						out.put("hodName", hodName);
+						out.put("hodEmail", hodEmail);
+
+						// employee type from Employee master (UI label uses this field)
+						String employeeType = null;
+						try {
+							if (empId != null) {
+								Employee e = employeeById.computeIfAbsent(empId, k -> employeeRepository.findByEmpId(k));
+								employeeType = resolveConfiguredEmployeeType(e);
+							}
+						} catch (Exception ignore) {
+							// best-effort only
+						}
+						out.put("employeeType", employeeType);
+
+						long recurring = 0L;
+						long poc = 0L;
+						Map<String, Map<String, Object>> projMap = new LinkedHashMap<>();
+						if (empId != null) {
+							for (ReimbursementTicket t : tickets) {
+								if (t.getEmpId() == null || t.getEmpId().longValue() != empId.longValue()) {
+									continue;
+								}
+								for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
+									if (c.getRecurringExpense() != null && c.getRecurringExpense() == 1) {
+										recurring++;
+									}
+									if (c.getPocProject() != null && c.getPocProject() == 1) {
+										poc++;
+									}
+									String pkey = c.getProjectId() != null ? String.valueOf(c.getProjectId())
+											: ("p:" + String.valueOf(c.getProjectName()));
+									if (!projMap.containsKey(pkey) && (c.getProjectId() != null || StringUtils.hasText(c.getProjectName()))) {
+										Map<String, Object> pr = new LinkedHashMap<>();
+										pr.put("projectId", c.getProjectId());
+										pr.put("projectName", StringUtils.hasText(c.getProjectName()) ? c.getProjectName()
+												: (c.getProjectId() != null ? "Project " + c.getProjectId() : "—"));
+										String cn = c.getClientName();
+										if (!StringUtils.hasText(cn) && c.getClientId() != null) {
+											// best-effort client name resolution (already used elsewhere in toViewMap)
+											try {
+												cn = clientsRepository.findById(c.getClientId()).map(Client::getClientName).orElse(null);
+											} catch (Exception ignore) {
+												// best-effort
+											}
+										}
+										pr.put("clientName", StringUtils.hasText(cn) ? cn : "—");
+										projMap.put(pkey, pr);
+									}
+								}
+							}
+						}
+						out.put("recurringClaims", recurring);
+						out.put("pocClaims", poc);
+						out.put("projects", new ArrayList<>(projMap.values()));
+						return out;
+					})
+					.sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+							String.valueOf(a.getOrDefault("fullName", "")),
+							String.valueOf(b.getOrDefault("fullName", ""))))
+					.collect(Collectors.toList());
 
 			Timestamp cutoff = new Timestamp(System.currentTimeMillis() - 7L * 86400000L);
 			long aging = tickets.stream()
@@ -3087,12 +3512,14 @@ public class ReimbursementTicketService {
 			dash.put("partialApprovalTickets", partialApprovalTickets);
 			dash.put("pipelinePendingAmount", pipelinePendingAmt);
 			dash.put("employeeLeaderboard", employeeLeaderboard);
+			dash.put("employeeAnalyticsRows", employeeAnalyticsRows);
 			dash.put("pendingHodTickets", pendingHod);
 			dash.put("pendingApprovalTickets", pendingApproval);
 			dash.put("pendingHrTickets", pendingHr);
 			dash.put("pendingFinanceTickets", pendingFin);
 			dash.put("departmentSpending", byDept);
 			dash.put("claimsByExpenditureType", byCategory);
+			dash.put("claimsByClaimMode", byClaimMode);
 			dash.put("topClaimersByAmount", topClaimers);
 			dash.put("agingPendingTicketsOver7Days", aging);
 			dash.put("ticketStatusBreakdown", ticketStatusBreakdown);
