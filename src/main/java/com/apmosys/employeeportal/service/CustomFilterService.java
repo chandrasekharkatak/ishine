@@ -54,6 +54,7 @@ import com.apmosys.employeeportal.repository.ClientsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.repository.DomainRepository;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.EmployeeLeaveRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.JobRoleRepository;
@@ -94,6 +95,9 @@ public class CustomFilterService {
 
 	@Autowired
 	DepartmentRepository departmentRepository;
+
+	@Autowired
+	private EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Autowired
 	JobRoleRepository jobRoleRepository;
@@ -910,7 +914,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		return query;
 	}
 
-	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId) {
+	List<Object[]> getCustomEmployeeReport(String customQuery,Long empId, String subFeatureName) {
 		try {
 			Session session = entityManager.unwrap(Session.class);
 			String q;
@@ -1009,8 +1013,22 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //						+ "AND t.is_active != 'N' \n"
 //						+ "AND pr.active != 'false'\n"
 //						+ "GROUP BY etm.emp_id) emp_proj_client ON emp_proj_client.emp_id = e.emp_id  where " + customQuery;
-				if(empId != null) {
-					  String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+					if (empId != null) {
+						String deptList = departmentRepository.findAccessibleDeptIdsForEmp(empId);
+						if (subFeatureName != null) {
+							List<GetDeptIdByRoleDTO> overrideDepts = employeeAccessOverrideRepository.findActiveDeptIdsAndSubFeatureNameByEmpId(empId, subFeatureName);
+							
+							if (overrideDepts != null && !overrideDepts.isEmpty()) {
+								List<Long> overrideDeptIds = overrideDepts.stream().map(GetDeptIdByRoleDTO::getDeptId)
+										.filter(Objects::nonNull).collect(Collectors.toList());
+								if (deptList != null && !deptList.isEmpty()) {
+									deptList = deptList + "," + overrideDeptIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+								} else {
+									deptList = overrideDeptIds.stream().map(String::valueOf).collect(Collectors.joining(","));
+								}
+							}
+						}
+
 				 q = "SELECT \n"
 				 		+ "    e.employeement_id, e.aadhar, e.about_me, e.address, e.bank_account_no, e.bankifsccode, \n"
 						+ "    e.bank_name, e.blood_group, e.city, e.country, e.created_by, e.created_on, e.date_of_birth,\n"
@@ -1407,7 +1425,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			System.err.println(
 					" createQueryForEmployeeReport  :: employeeDTO.getQueryList()     " + employeeDTO.getQueryList());
 			StringBuilder subQuery = createQueryForEmployeeReport(employeeDTO.getQueryList());
-			List<Object[]> list = getCustomEmployeeReport(subQuery.toString(),employeeDTO.getEmpId());
+			List<Object[]> list = getCustomEmployeeReport(subQuery.toString(),employeeDTO.getEmpId(), employeeDTO.getSubFeatureName());
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			if (list != null) {

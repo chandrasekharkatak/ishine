@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.text.SimpleDateFormat;
 import com.apmosys.employeeportal.dto.AppreciationEventDTO;	
@@ -50,6 +51,7 @@ import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.PoSessionAccessLog;
 import com.apmosys.employeeportal.model.RoleFeatureMap;
 import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.FeatureMasterRepository;
 import com.apmosys.employeeportal.repository.PoSessionAccessLogRepository;
@@ -87,6 +89,9 @@ public class AuthenticationService {
 	
 	@Autowired
 	FeatureMasterRepository featureMasterRepository;
+
+	@Autowired
+	EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
 
 	@Value("${portal.static.otp}")
 	private String portalStaticOtp;
@@ -461,7 +466,14 @@ public class AuthenticationService {
 	                userSessionRepository.deleteById(existingUserSession.getUserSessionId());
 	            }
 	            List<Long> featureIds = featureMasterRepository.getAllFeatureIdsByJobRoleIds(employee.getJobRoleId());
-	            
+				List<Long> overrideFeatureIds = employeeAccessOverrideRepository.findActiveFeatureIdsByEmpId(employee.getEmpId());
+				if (overrideFeatureIds != null && !overrideFeatureIds.isEmpty()) {
+					if(featureIds == null){
+						featureIds = new ArrayList<>();
+					}
+					featureIds.addAll(overrideFeatureIds);
+				}
+
 	            String subFeatureIds = featureIds.stream()
 //	            	    .map(RoleFeatureMap::getSubFeatureMasterId)
 	            	    .map(String::valueOf)
@@ -1365,6 +1377,13 @@ public class AuthenticationService {
 		String rawSessionString = LocalDateTime.now().toString() + employee.getEmail();
 		String encSessionString = EncryptDecrypt.encrypt(rawSessionString);
 		List<Long> featureIds = featureMasterRepository.getAllFeatureIdsByJobRoleIds(employee.getJobRoleId());
+		List<Long> overrideFeatureIds = employeeAccessOverrideRepository.findActiveFeatureIdsByEmpId(employee.getEmpId());
+		if (overrideFeatureIds != null && !overrideFeatureIds.isEmpty()) {
+			if(featureIds == null){
+				featureIds = new ArrayList<>();
+			}
+			featureIds.addAll(overrideFeatureIds);
+		}
 		String subFeatureIds = featureIds.stream().map(String::valueOf).collect(Collectors.joining(","));
 
 		UserSession newSession = new UserSession();

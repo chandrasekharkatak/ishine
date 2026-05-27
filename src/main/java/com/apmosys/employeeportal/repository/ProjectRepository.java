@@ -4595,7 +4595,8 @@ boolean existsByProjectName(String projectName);
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Shadow' THEN e.emp_id ELSE NULL END) AS shadow,\n"
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Fixed Cost' THEN e.emp_id ELSE NULL END) AS fixed_cost,\n"
     				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'TNM' THEN e.emp_id ELSE NULL END) AS tnm,\n"
-    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id ELSE NULL END) AS internal\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'InternalRNDProducts' THEN e.emp_id ELSE NULL END) AS internal,\n"
+    				+ "    COUNT(DISTINCT CASE WHEN e.billable_type = 'Monitoring' THEN e.emp_id ELSE NULL END) AS monitoring\n"
     				+ "FROM projects p\n"
     				+ "INNER JOIN teams t ON p.project_id = t.project_id\n"
     				+ "INNER JOIN employee_team_mapping etm ON t.team_id = etm.team_id\n"
@@ -9081,5 +9082,8 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 			+ " GROUP BY CASE WHEN po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END) T1 \n")
 	public List<Object[]> getProjectTypeWiseProjectCount(Set<Integer> projectIds, List<Long> deptIds);
 
+	
+	@Query(nativeQuery = true, value = " select p.po_project_type from projects p where p.project_id = :projectId ")
+	public String isClientProject(Integer projectId);
 
 }

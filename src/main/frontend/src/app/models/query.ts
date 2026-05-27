@@ -11,4 +11,5 @@ export class Query {
     size: number;
     sort: string;
     valueOptionList: any[] = [];
+    subFeatureName:any;
 }

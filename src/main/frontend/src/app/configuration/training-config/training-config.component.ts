@@ -138,6 +138,20 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   { value: 'AUDIO', label: 'Audio' },
   { value: 'LINK', label: 'External Link' }
 ];
+
+selectedTrainingForAssign: any = null;
+assignableEmployees: any[]   = [];
+assignSelectedIds: Set<number> = new Set();
+assignDepartments: any[]     = [];
+assignDeptFilter: string     = '';
+assignSearchText: string     = '';
+assignLoading: boolean       = false;
+assignSaving: boolean        = false;
+
+@ViewChild('assign_training_modal') assignTrainingModal: any;
+pendingExcludedIds: number[] = [];
+assignStatusFilter: string = '';
+
   allTrainingResponse: any[] = [];
   sortResponseColumn: string = '';
   sortResponseColumnType: string = '';
@@ -477,8 +491,18 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.trainingService.createTrainingWithContent(formData).
     subscribe({
     next: (response: any) => {
-      console.log("success===> ",response)
       const createdTraining = response.serviceResponse;
+      const payload = {
+        excludedEmployeeIds: this.pendingExcludedIds,
+        allEmployeeIds: this.assignableEmployees.map((e: any) => e.empId),
+        updatedBy: this.currentUser.empId
+      };
+
+      this.trainingService.assignEmployees(createdTraining.trainingId, payload).subscribe({
+        next: () => { this.pendingExcludedIds = []; },
+        error: () => { this.pendingExcludedIds = []; }
+      });
+
       this.openCreateQuizModal(createdTraining);
     },
     error: (error: any) => {
@@ -572,14 +596,21 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       // Send training and content together
       this.trainingService.updateTrainingWithContent(formData).subscribe({
         next: (response: any) => {
-          this.openAlertMod(this.alertTemplate, 'Training and content updated successfully', 'success');
-          // Reload content list after update
-          if (this.trainingFormData.trainingId) {
-            this.getTrainingContent(this.trainingFormData.trainingId);
-          }
-          this.resetContentForm();
-          this.showTable();
-        },
+      const payload = {
+        excludedEmployeeIds: this.pendingExcludedIds,
+        allEmployeeIds: this.assignableEmployees.map((e: any) => e.empId),
+        updatedBy: this.currentUser.empId
+      };
+
+      this.trainingService.assignEmployees(this.trainingFormData.trainingId, payload).subscribe({
+        next: () => { this.pendingExcludedIds = []; },
+        error: () => { this.pendingExcludedIds = []; }
+      });
+
+      this.openAlertMod(this.alertTemplate, 'Training updated successfully', 'success');
+      this.resetContentForm();
+      this.showTable();
+    },
         error: (error: any) => {
           console.log("error=> ", error);
           this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to update training', 'error');
@@ -2106,6 +2137,253 @@ onImageClick(event: MouseEvent) {
     } else {
         this.nextSlide();
     }
+}
+
+
+onAssignTraining(training: any) {
+  this.selectedTrainingForAssign = training;
+  this.assignDeptFilter  = '';
+  this.assignSearchText  = '';
+  this.assignStatusFilter = ''; 
+  this.assignLoading     = true;
+  this.assignableEmployees = [];
+  this.assignSelectedIds   = new Set();
+
+  this.modalRef = this.modalService.open(this.assignTrainingModal, {
+    size: 'lg',
+    backdrop: 'static',
+    scrollable: true
+  });
+
+  this.loadAssignableEmployees();
+}
+
+loadAssignableEmployees() {
+  this.assignLoading = true;
+  const trainingId = this.selectedTrainingForAssign.trainingId;
+
+  this.trainingService.getAssignableEmployees(trainingId, undefined).subscribe({
+    next: (response: any) => {
+      const employees: any[] = response?.serviceResponse || [];
+
+      const seen = new Set<number>();
+      this.assignableEmployees = employees.filter((emp: any) => {
+        if (seen.has(emp.empId)) return false;
+        seen.add(emp.empId);
+        return true;
+      });
+
+      this.assignLoading = false;
+
+      const hasAnyMappingInDB = this.assignableEmployees.some(
+        (e: any) => e.alreadyAssigned !== null
+      );
+      this.assignSelectedIds = new Set();
+
+      if (hasAnyMappingInDB) {
+        this.assignableEmployees.forEach((emp: any) => {
+          if (emp.alreadyAssigned) {
+            this.assignSelectedIds.add(emp.empId); 
+          }
+        });
+      } else {
+        this.assignableEmployees.forEach((emp: any) => {
+          this.assignSelectedIds.add(emp.empId);  
+        });
+      }
+
+      // Build department dropdown
+      const deptMap = new Map<number, string>();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (emp.deptId && !deptMap.has(emp.deptId)) {
+          deptMap.set(emp.deptId, emp.departmentName);
+        }
+      });
+      this.assignDepartments = Array.from(deptMap.entries())
+        .map(([deptId, departmentName]) => ({ deptId, departmentName }))
+        .sort((a: any, b: any) => a.departmentName.localeCompare(b.departmentName));
+    },
+    error: (err: any) => {
+      this.assignLoading = false;
+      this.openAlertMod(this.alertTemplate, 'Failed to load employees', 'error');
+    }
+  });
+}
+
+getFilteredEmployees(): any[] {
+  let filtered = this.assignableEmployees;
+
+  if (this.assignDeptFilter) {
+    filtered = filtered.filter((emp: any) =>
+      emp.deptId === +this.assignDeptFilter
+    );
+  }
+
+  const search = this.assignSearchText.toLowerCase().trim();
+  if (search) {
+    filtered = filtered.filter((emp: any) =>
+      emp.name.toLowerCase().includes(search)
+    );
+  }
+
+  if (this.assignStatusFilter === 'included') {
+    filtered = filtered.filter((emp: any) =>
+      this.assignSelectedIds.has(emp.empId)
+    );
+  } else if (this.assignStatusFilter === 'excluded') {
+    filtered = filtered.filter((emp: any) =>
+      !this.assignSelectedIds.has(emp.empId)
+    );
+  }
+
+  return filtered;
+}
+
+toggleEmployeeSelection(empId: number) {
+  if (this.assignSelectedIds.has(empId)) {
+    this.assignSelectedIds.delete(empId);
+  } else {
+    this.assignSelectedIds.add(empId);
+  }
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+selectAllEmployees() {
+  this.assignableEmployees.forEach((emp: any) =>
+    this.assignSelectedIds.add(emp.empId)  // ✅ empId
+  );
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+deselectAllEmployees() {
+  this.assignSelectedIds = new Set();
+}
+
+getSelectedCount(): number {
+  return this.assignSelectedIds.size;
+}
+
+isAllFilteredSelected(): boolean {
+  const filtered = this.getFilteredEmployees();
+  return filtered.length > 0 &&
+    filtered.every((emp: any) => this.assignSelectedIds.has(emp.empId));  
+}
+
+toggleAllFiltered(event: any) {
+  const filtered = this.getFilteredEmployees();
+  if (event.target.checked) {
+    filtered.forEach((emp: any) => this.assignSelectedIds.add(emp.empId));    
+  } else {
+    filtered.forEach((emp: any) => this.assignSelectedIds.delete(emp.empId)); 
+  }
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+onUpdateAssignment() {
+  this.assignSaving = true;
+
+  const allUniqueIds = [...new Set(
+    this.assignableEmployees.map((emp: any) => emp.empId)
+  )];
+
+  const excludedIds = allUniqueIds.filter((id: number) =>
+    !this.assignSelectedIds.has(id)
+  );
+  if (this.isTrainingForm) {
+    this.pendingExcludedIds = excludedIds;
+    this.assignSaving = false;
+    this.modalRef.close();
+    this.openAlertMod(
+      this.alertTemplate,
+      excludedIds.length > 0
+        ? `${excludedIds.length} employee(s) will be excluded when training is saved.`
+        : 'All employees will be included.',
+      'info'
+    );
+    return;
+  }
+
+  const payload = {
+    excludedEmployeeIds: excludedIds,
+    allEmployeeIds: allUniqueIds,
+    updatedBy: this.currentUser.empId
+  };
+
+  this.trainingService.assignEmployees(
+    this.selectedTrainingForAssign.trainingId,
+    payload
+  ).subscribe({
+    next: () => {
+      this.assignSaving = false;
+      this.modalRef.close();
+      this.openAlertMod(this.alertTemplate, 'Training assignment updated successfully.', 'success');
+    },
+    error: (err: any) => {
+      this.assignSaving = false;
+      this.openAlertMod(this.alertTemplate, err.error?.message || 'Failed to update assignment.', 'error');
+    }
+  });
+}
+openExcludeFromForm() {
+  this.selectedTrainingForAssign = {
+    trainingId: this.trainingFormData.trainingId,
+    trainingName: this.trainingFormData.trainingName || 'New Training'
+  };
+
+  this.assignDeptFilter  = '';
+  this.assignSearchText  = '';
+  this.assignStatusFilter = ''; 
+  this.assignLoading     = true;
+  this.assignableEmployees = [];
+  this.assignSelectedIds   = new Set();
+
+  this.modalRef = this.modalService.open(this.assignTrainingModal, {
+    size: 'lg',
+    backdrop: 'static',
+    scrollable: true
+  });
+  if (this.isEditMode && this.trainingFormData.trainingId) {
+    this.loadAssignableEmployees(); 
+  } else {
+    this.loadAllEmployeesForNewTraining();
+  }
+}
+
+loadAllEmployeesForNewTraining() {
+  this.assignLoading = true;
+  this.trainingService.getAssignableEmployees(0, undefined).subscribe({
+    next: (response: any) => {
+      const employees: any[] = response?.serviceResponse || [];
+
+      const seen = new Set<number>();
+      this.assignableEmployees = employees.filter((emp: any) => {
+        if (seen.has(emp.empId)) return false;
+        seen.add(emp.empId);
+        return true;
+      });
+
+      this.assignLoading = false;
+      this.assignSelectedIds = new Set();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (!this.pendingExcludedIds.includes(emp.empId)) {
+          this.assignSelectedIds.add(emp.empId);
+        }
+      });
+      const deptMap = new Map<number, string>();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (emp.deptId && !deptMap.has(emp.deptId)) {
+          deptMap.set(emp.deptId, emp.departmentName);
+        }
+      });
+      this.assignDepartments = Array.from(deptMap.entries())
+        .map(([deptId, departmentName]) => ({ deptId, departmentName }))
+        .sort((a: any, b: any) => a.departmentName.localeCompare(b.departmentName));
+    },
+    error: () => {
+      this.assignLoading = false;
+      this.openAlertMod(this.alertTemplate, 'Failed to load employees', 'error');
+    }
+  });
 }
 
 }

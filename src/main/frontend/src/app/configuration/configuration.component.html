@@ -104,6 +104,10 @@
                     <a class="nav-link config__tab-item__link" id="training-config-tab" data-toggle="tab" role="tab"
                         aria-controls="training-config" aria-selected="false" routerLink="training-config">Training</a>
                 </li>
+                <li *ngIf="userMapping.acl_config" class="nav-item config__tab-item" (click)="removeActiveTab()">
+                    <a class="nav-link config__tab-item__link" id="acl-config-tab" data-toggle="tab" role="tab"
+                        aria-controls="acl-config" aria-selected="false" routerLink="acl-config">ACL</a>
+                </li>
             </ul>
         
             <!-- tab Containers -->

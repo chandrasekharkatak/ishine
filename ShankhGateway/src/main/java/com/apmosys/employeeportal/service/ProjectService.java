@@ -3070,10 +3070,6 @@ public class ProjectService {
 				empDTO.setMobileNo(record[20] != null ? Long.parseLong(record[20].toString()) : null);
 				empDTO.setEmail(record[21] != null ? record[21].toString() : null);
 				empDTO.setEmployeementIdAccToET(record[22] != null ? record[22].toString() : null);
-				if (record.length > 34) {
-					empDTO.setExperience(record[33] != null ? record[33].toString() : null);
-					empDTO.setDateOfJoining(record[34] != null ? record[34].toString() : null);
-				}
 
 				teamMap.get(teamKey).getMappedEmployeeDetails().add(empDTO);
 			}
@@ -4775,10 +4771,6 @@ public class ProjectService {
   	    dtoObj.setEffectiveStartDate(record[30] != null ? record[30].toString() : null);
   	    dtoObj.setEffectiveEndDate(record[31] != null ? record[31].toString() : null);
   	    dtoObj.setEmployeementIdAccToET(record[32] != null ? record[32].toString() : null);
-  	    if (record.length > 34) {
-  	    	dtoObj.setExperience(record[33] != null ? record[33].toString() : null);
-  	    	dtoObj.setDateOfJoining(record[34] != null ? record[34].toString() : null);
-  	    }
 
   	    return dtoObj;
   	}

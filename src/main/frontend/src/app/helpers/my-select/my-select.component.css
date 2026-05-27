@@ -155,6 +155,10 @@
   line-height: 1.35 !important;
 }
 
+::ng-deep .cdk-overlay-pane {
+  width: max-content !important;
+  max-width: 300px !important;
+}
 /* Material flips panel above trigger; tighten spacing (feat / RMG) */
 ::ng-deep .cdk-overlay-pane .mat-mdc-select-panel-above {
   margin-bottom: 4px !important;

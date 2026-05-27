@@ -38,7 +38,7 @@ export class ViewEmployeeComponent implements OnInit {
   filteredEmployeeData: any[] = [];
   expandedEmployees: Set<number> = new Set();
   expandedProjects = new Set<number>();
-  feature = "Resource Management";
+  feature = "Reports";
   userMapping: any = {};
   currentUser: User;
 

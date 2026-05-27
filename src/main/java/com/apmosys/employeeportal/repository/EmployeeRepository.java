@@ -1106,6 +1106,11 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     List<Employee> findByEmpIdIn(@Param("empIds") Set<Long> empIds);
     @Query("SELECT e FROM Employee e WHERE e.empId IN :empIds")
     List<Employee> findByEmpIdIn(@Param("empIds") List<Long> empIds);
+
+    @Query(nativeQuery = true, value = "SELECT DISTINCT e.emp_id FROM employee e "
+            + "INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id "
+            + "WHERE e.employmentstatus != 'InActive' AND jr.dept_id IN :deptIds")
+    List<Long> findActiveEmpIdsByDepartmentIds(@Param("deptIds") List<Long> deptIds);
     
     
     @Query(value ="select new com.apmosys.employeeportal.dto.EmployeeDTO( e.empId,e.employeementId,e.email,e.employmentstatus,e.mobileNo,e.managerId,em.name,jr.name,d.name ,e.name,e.isConsultant,e.isApprenticeship,e.isApmosysProduct) from Employee e  \n"
@@ -1216,7 +1221,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 			+ " CASE WHEN p.po_project_type IS NOT NULL AND TRIM(p.po_project_type) != '' THEN p.po_project_type ELSE p.internal_project_type END AS project_type, DATE(p.start_date) \n"
 			+ " from projects p \n"
 			+ " inner join teams t on t.project_id = p.project_id  \n"
-			+ " where p.po_project_type is not null and TRIM(p.po_project_type) != '' and (p.internal_project_type = 'InternalRNDProducts' or p.internal_project_type IS NULL) and p.active = 'true' and t.is_active = 'Y' ")
+			+ " where (p.internal_project_type = 'InternalRNDProducts' OR p.po_project_type is not null) and p.active = 'true' and t.is_active = 'Y' ")
 	List<Object[]> getAllProjectsThatAreNotBench();
     
 //    @Modifying
@@ -4964,6 +4969,50 @@ public List<Object[]> fetchInActivePOListOfProject(
         "AND is_apprenticeship = 'false' " ,
         nativeQuery = true)
     List<Employee> findByApEmployeementId(@Param("employmentId") Long employmentId);
+    
+    @Query(value = "SELECT "
+	        + "    e.employeement_id AS employeementId, "
+	        + "    e.name, "
+	        + "    e.created_by AS createdBy, "
+	        + "    e.created_on AS createdOn, "
+	        + "    e.gender, "
+	        + "    e.manager_id AS managerId, "
+	        + "    d.name AS departmentName, "
+	        + "    e.updated_by AS updatedBy, "
+	        + "    d.dept_id "
+	        + "FROM employee e "
+	        + "INNER JOIN job_role jr "
+	        + "    ON e.job_role_id = jr.job_role_id "
+	        + "INNER JOIN department d "
+	        + "    ON jr.dept_id = d.dept_id "
+	        + "WHERE e.employmentstatus != 'Inactive' "
+	        + "AND ( "
+	        + "      :dept_id IS NULL "
+	        + "      OR d.dept_id IN (:dept_id) "
+	        + ")"
+	        + "ORDER BY e.name",
+	        nativeQuery = true)
+    List<Object[]> getAllEmployeeToExcludeFromTraining(@Param("dept_id") List<Integer> deptId);
+	
+	@Query(value = "SELECT DISTINCT\n"
+			+ "		             e.employeement_id AS employeementId, \n"
+			+ "		             e.emp_id, \n"
+			+ "		             e.name, \n"
+			+ "		             e.created_by AS createdBy, \n"
+			+ "		             e.created_on AS createdOn, \n"
+			+ "		             e.gender, \n"
+			+ "		             e.manager_id AS managerId, \n"
+			+ "		             d.name AS departmentName, \n"
+			+ "		             e.updated_by AS updatedBy, \n"
+			+ "		             d.dept_id \n"
+			+ "		         FROM employee e \n"
+			+ "		         INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
+			+ "		         INNER JOIN department d ON jr.dept_id = d.dept_id \n"
+			+ "		         WHERE e.employmentstatus != 'Inactive'  and e.emp_id not in (1,2,3,4,5,6)\n"
+			+ "		         ORDER BY e.name",
+	        nativeQuery = true)
+	List<Object[]> getAllActiveEmployeesForAssignment();
+
 
 
 }

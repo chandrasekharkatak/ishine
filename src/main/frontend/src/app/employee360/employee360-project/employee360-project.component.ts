@@ -871,7 +871,7 @@ formatToLocalDateTime(date: any): string {
       return;
     }
 
-    const flag: boolean = await this.validateEmployeeProjectStartDate(this.projectObj.empId, this.projectObj.projectId, '', this.projectObj.teamId, edit_enddate_template);
+    const flag: boolean = await this.validateEmployeeProjectStartDate(edit_enddate_template);
     if (!flag) {
       return;
     }
@@ -1351,17 +1351,39 @@ console.log("mapping ID",this.employeeTeamMapId);
 		this.alertMessageModalRef = this.modalService?.open(this.alertTemplate, { modalDialogClass: 'modal-sm' });
 	}
 
-  async validateEmployeeProjectStartDate(empId: any, projectId: any, projectType: any, teamId:any, edit_enddate_template?: any): Promise<boolean> {
+  private resolveProjectTypeForValidation(project: any = this.projectObj): string {
+    if (!project) {
+      return this.projectType || '';
+    }
+    if (project.poProjectType != null && String(project.poProjectType).trim() !== '') {
+      return project.poProjectType;
+    }
+    if (project.internalProjectType != null && String(project.internalProjectType).trim() !== '') {
+      return project.internalProjectType;
+    }
+    return this.projectType || '';
+  }
+
+  async validateEmployeeProjectStartDate(edit_enddate_template?: any): Promise<boolean> {
+    const teamId = this.projectObj?.teamId;
+    if (teamId == null || teamId === '' || teamId === undefined) {
+      this.openAlertMessageModal('Team is required to validate the start date.');
+      return false;
+    }
     this.projectObj.isEndDateVisible = false;
     this.projectObj.memberMaxEndDate = null;
     let rmgMember: RmgTeamMember = new RmgTeamMember();
-    rmgMember.empId = empId;
+    rmgMember.empId = this.projectObj.empId;
     rmgMember.startDate = this.startDate;
     rmgMember.teamId = teamId;
+    rmgMember.etmId = this.projectObj?.employeeTeamMapId;
+    const projectId = this.projectObj.projectId;
+    const projectType = this.resolveProjectTypeForValidation();
     let projectData = {
       currentProjectId: projectId,
       projectIds: [projectId],
-      projectType: projectType
+      projectType,
+      validationContext: 'EMPLOYEE_360'
     };
     const response = await this.employeeProjectService.validateEmployeeProjectStartDateChange(rmgMember, projectData);
     if (response?.type === 'NO_CONFLICT' || response?.type === 'PROJECT_GAP') {

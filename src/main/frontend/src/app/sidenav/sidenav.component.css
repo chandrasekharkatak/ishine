@@ -1,4 +1,5 @@
-.sidenav{
+
+.sidenav {
     background: var(--dark-cornflower-blue);
     transition: all .5s ease;
     position: fixed;
@@ -6,120 +7,531 @@
     width: 4.25rem;
     min-height: 100vh;
     max-height: 100vh;
-    overflow-y: auto;
-    /* box-shadow: 0.063rem 0 1.25rem 0 #8690a3; */
+    /* overflow stays visible so position:fixed floating panels
+       are never clipped. Scrolling is handled by
+       .sidenav-nav-scroll-wrap — see below. */
+    overflow: visible;
 }
 
-.sidenav {
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
-    scrollbar-width: none;  /* Firefox */
-}
-.sidenav::-webkit-scrollbar { 
-    display: none;  /* Safari and Chrome */
-}
- 
-.sidenav .logo-container{
+.sidenav .logo-container {
     display: flex;
     align-items: center;
     padding: 0.938rem 0.938rem 0 0.938rem;
     width: 100%;
 }
 
-.sidenav .logo-container .logo{
-    /* background: var(--dark-red); */
-    /* color: var(--cultured); */
-    text-align: center;
-    /* width: 3rem;
-    min-width: 3rem; */
-    /* border-radius: 0.313rem; */
-    padding: 0.313rem;
-    font-size: 24px;
-    font-weight: 900;
-    cursor: pointer;
-    border: none;
+  .sidenav .logo-container .logo{
+      /* background: var(--dark-red); */
+      /* color: var(--cultured); */
+      text-align: center;
+      /* width: 3rem;
+      min-width: 3rem; */
+      /* border-radius: 0.313rem; */
+      padding: 0.313rem;
+      font-size: 24px;
+      font-weight: 900;
+      cursor: pointer;
+      border: none;
+      background-color: transparent;
+  }
+  .sidenav .logo-container .logo img {
+      width: 25px;
+      height: 25px;
+      object-fit: contain;
+      vertical-align: middle;
+  }
+  .sidenav .logo-container .logo-text{
+      margin-left: 1.5rem;
+      padding-right: 30px;
+      font-size: 24px;
+      padding-right: 30px;
+      font-weight: 700;
+      color: var(--cultured);
+  }
+
+  .sidenav .logo-container .btn-close{
+      margin-left: auto;
+      cursor: pointer;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background-color: transparent;
+      border: none;
+  }
+
+  .sidenav .logo-container .btn-close .fa-times{
+      color: var(--cultured);
+      font-size: 24px;
+  }
+
+.sidenav-collapsed {
+    width: 14.5rem;
 }
 
-.sidenav .logo-container .logo-text{
-    margin-left: 1.5rem;
-    padding-right: 30px;
-    font-size: 24px;
-    padding-right: 30px;
-    font-weight: 700;
-    color: var(--cultured);
+/* ============================================
+   SCROLL WRAPPER
+   Sits between .sidenav and .sidenav-nav.
+   This is the ONLY element that scrolls.
+   .sidenav must stay overflow:visible so
+   position:fixed floating panels are not clipped.
+   ============================================ */
+
+.sidenav-nav-scroll-wrap {
+    position: absolute;
+    top: 3.65rem;      /* exact height of .logo-container */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    overflow-x: visible;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
-.sidenav .logo-container .btn-close{
-    margin-left: auto;
-    cursor: pointer;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 50%;
-    background-color: transparent;
-    border: none;
+.sidenav-nav-scroll-wrap::-webkit-scrollbar {
+    display: none;
 }
 
-.sidenav .logo-container .btn-close .fa-times{
-    color: var(--cultured);
-    font-size: 24px;
-}
 
-.sidenav-collapsed{
-    width: 13rem;
-}
-
-.sidenav-nav{
+.sidenav-nav {
     list-style: none;
     padding: 0.938rem;
     margin: 0;
     display: flex;
     flex-direction: column;
-    height: calc(100% - 3.65rem);
     cursor: pointer;
+    /* no fixed height needed — scroll-wrap handles containment */
 }
 
-.sidenav-nav .sidenav-nav-item{
+  .sidenav-nav .sidenav-nav-item{
+      width: 100%;
+      margin-bottom: 0.4rem;
+  }
+
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link{
+      display: flex;
+      align-items: center;
+      height: 2.5rem;
+      color: #f3f3f3;
+      text-decoration: none;
+      border-radius: 0.625rem;
+      transition: all .3s ease;
+      padding-left: 0.225rem;
+  }
+
+  .sidenav-nav-link.active{
+      pointer-events: none;
+      cursor: default;
+  }
+
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-icon{
+      font-size: 16px;
+      width: 2rem;
+      min-width: 2rem;
+      margin: .5rem 0;
+      text-align: center;
+  }
+
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-text{
+      margin-left: 1.5rem;
+  }
+
+  .sidenav-nav .sidenav-nav-item .sidenav-nav-link:hover,
+  .nav-group-items-mini .sidenav-nav-link:hover{
+      background-color:var(--cultured);
+      color: var(--raisin-black);
+  }
+
+.sidenav-collapsed .sidenav-link-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 7.5rem;
+}
+
+.nav-group {
     width: 100%;
-    margin-bottom: 0.4rem;
+    list-style: none;
+    margin-bottom: 0.1rem;
+    position: relative;
 }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link{
+  /* Thin separator line between groups */
+  .nav-group + .nav-group {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 0.25rem;
+      margin-top: 0.25rem;
+  }
+
+
+.nav-group-header {
     display: flex;
     align-items: center;
-    height: 2.5rem;
-    color: #f3f3f3;
-    text-decoration: none;
-    border-radius: 0.625rem;
-    transition: all .3s ease;
-    padding-left: 0.225rem;
+    justify-content: space-between;
+    padding: 0.5rem 0.5rem 0.25rem 0.85rem;
+    cursor: pointer;
+    user-select: none;
+    border-radius: 0.375rem;
+    transition: background-color 0.2s ease;
 }
 
-.sidenav-nav-link.active{
+.nav-group-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nav-group-label {
+    font-size: 0.57rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nav-group-icon {
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.nav-group-chevron {
+    font-size: 0.6rem;
+    color: rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    margin-left: 0.25rem;
+    transition: transform 0.25s ease;
+}
+
+.nav-group-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    max-height: 600px;
+    opacity: 1;
+    transition: max-height 0.3s ease, opacity 0.25s ease;
+}
+
+.nav-group-items--collapsed {
+    max-height: 0 !important;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nav-group-items .sidenav-nav-item {
+    margin-bottom: 0.2rem;
+}
+
+.nav-group-items .sidenav-nav-link {
+    padding-left: 0.4rem;
+}
+
+.single-collapsed-link {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    height: 2.5rem !important;
+    width: 100% !important;
+    padding: 0 !important;
+    border-radius: 0.625rem !important;
+    text-decoration: none;
+    color: #ffffff;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.single-collapsed-link .sidenav-link-icon {
+    font-size: 18px;
+    color: #ffffff;
+    transition: color 0.2s ease;
+}
+
+.single-collapsed-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+
+.nav-group-header-collapsed {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.nav-group-header-collapsed .sidenav-link-icon,
+.nav-group-header-collapsed i {
+    font-size: 18px;
+    color: #ffffff !important;
+    transition: color 0.2s ease;
+}
+
+.nav-group-header-collapsed:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-group-header-collapsed.panel-open {
+    background-color: var(--cultured) !important;
+    border-radius: 0.625rem !important;
+}
+
+.nav-group-header-collapsed.panel-open .sidenav-link-icon,
+.nav-group-header-collapsed.panel-open i {
+    color: var(--raisin-black) !important;
+}
+
+.sidenav-nav-link.active,
+.sidenav-nav .sidenav-nav-item .sidenav-nav-link.active {
+    pointer-events: none;
+    cursor: default;
+    background-color: var(--cultured) !important;
+    color: var(--raisin-black) !important;
+    border-radius: 0.625rem !important;
+}
+
+.sidenav-nav-link.active .sidenav-link-icon,
+.sidenav-nav-link.active .sidenav-link-text {
+    color: var(--raisin-black) !important;
+}
+
+.single-collapsed-link.active {
+    background-color: var(--cultured) !important;
+    color: var(--raisin-black) !important;
     pointer-events: none;
     cursor: default;
 }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-icon{
-    font-size: 16px;
-    width: 2rem;
-    min-width: 2rem;
-    margin: .5rem 0;
-    text-align: center;
+.single-collapsed-link.active .sidenav-link-icon,
+.single-collapsed-link.active i {
+    color: var(--raisin-black) !important;
 }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link .sidenav-link-text{
-    margin-left: 1.5rem;
+/* ============================================
+   FLOATING PANEL
+   Uses position:fixed so it escapes the scroll
+   wrapper without being clipped. Top is set via
+   [style.top.px]="hoveredGroupTop" in the template,
+   which reads getBoundingClientRect().top of the
+   hovered nav-group row.
+   ============================================ */
+
+.floating-group-panel {
+    position: fixed;
+    left: 4.25rem;     /* flush with collapsed sidebar right edge */
+    margin-left: 8px;
+    /* top set by [style.top.px] binding in template */
+    z-index: 9999;
+    background: var(--dark-cornflower-blue);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.6rem 0.4rem;
+    min-width: 12rem;
+    box-shadow: 6px 4px 24px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    animation: panel-fade-in 0.18s ease forwards;
+
+    /* FIX FOR SCREEN CLIPPING: */
+    max-height: calc(100vh - 40px); /* Keeps panel bounded within screen */
+    overflow-y: auto;               /* Allows scrolling inside popup if items overflow */
 }
 
-.sidenav-nav .sidenav-nav-item .sidenav-nav-link:hover {
-    background-color:var(--cultured);
-    color: var(--raisin-black);
+@keyframes panel-fade-in {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-.active{
-    background-color: var(--cultured);
-
+.floating-group-label {
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    padding: 0.15rem 0.65rem 0.5rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    white-space: nowrap;
 }
 
-.active .sidenav-link-icon,.active .sidenav-link-text{
-    color: var(--raisin-black);
+.floating-group-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.floating-group-link {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.52rem 0.65rem;
+    color: rgba(255, 255, 255, 0.82);
+    text-decoration: none;
+    border-radius: 0.55rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    position: relative;
+    transition: background 0.2s ease,
+                color 0.2s ease,
+                padding-left 0.2s ease;
+}
+
+.floating-group-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 2.5px;
+    border-radius: 2px;
+    background: transparent;
+    transition: background 0.2s ease;
+}
+
+.floating-group-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    padding-left: 0.85rem;
+}
+
+.floating-group-link:hover::before {
+    background: rgba(255, 255, 255, 0.45);
+}
+
+.floating-group-link.active {
+    background-color: var(--cultured) !important;
+    color: var(--raisin-black) !important;
+    pointer-events: none;
+    cursor: default;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.floating-group-link.active::before {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.floating-group-link.active i,
+.floating-group-link.active span {
+    color: var(--raisin-black) !important;
+    pointer-events: none;
+    cursor: default;
+    font-weight: 600;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.floating-group-link.active::before {
+    background: rgba(0, 0, 0, 0.25) !important;
+}
+
+.floating-group-link.active i,
+.floating-group-link.active span {
+    color: var(--raisin-black) !important;
+}
+
+/* Icon bubble */
+.floating-group-link i {
+    font-size: 13px;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 0.375rem;
+    background: rgba(255, 255, 255, 0.08);
+    transition: background 0.2s ease;
+}
+
+.floating-group-link:hover i {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.floating-group-link.active i {
+    background: rgba(0, 0, 0, 0.07) !important;
+}
+
+/* ============================================
+   MOBILE — floating panel as icon-only squares
+   ============================================ */
+
+@media (max-width: 768px) {
+
+    .floating-group-panel {
+        left: 4rem !important;
+        min-width: unset !important;
+        width: auto !important;
+        padding: 0.3rem !important;
+        border-radius: 0.75rem !important;
+        overflow: visible !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .floating-group-label {
+        display: none !important;
+    }
+
+    .floating-group-list {
+        gap: 0.35rem !important;
+    }
+
+    .floating-group-link {
+        width: 2.8rem !important;
+        height: 2.8rem !important;
+        padding: 0 !important;
+        justify-content: center !important;
+        border-radius: 0.55rem !important;
+        background-color: var(--dark-cornflower-blue) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .floating-group-link:hover {
+        padding-left: 0 !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .floating-group-link::before {
+        display: none !important;
+    }
+
+    .floating-group-link span {
+        display: none !important;
+    }
+
+    .floating-group-link i {
+        font-size: 16px !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        color: #ffffff !important;
+    }
+
+    .floating-group-link:hover i {
+        background: transparent !important;
+    }
+
+    .floating-group-link.active {
+        background-color: var(--cultured) !important;
+        border-radius: 0.55rem !important;
+        border-color: transparent !important;
+    }
+
+    .floating-group-link.active i {
+        background: transparent !important;
+        color: var(--raisin-black) !important;
+    }
 }

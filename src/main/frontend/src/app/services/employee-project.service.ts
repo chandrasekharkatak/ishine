@@ -86,6 +86,14 @@ export class EmployeeProjectService {
     return str.replace(/\b(\d{4})-(\d{2})-(\d{2})(?:T\d{2}:\d{2}:\d{2})?\b/g, (_m, y, mm, dd) => `${dd}/${mm}/${y}`);
   }
 
+  private coerceTeamId(teamId: any): number | null {
+    if (teamId == null || teamId === '' || teamId === undefined) {
+      return null;
+    }
+    const parsed = Number(teamId);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
   async validateEmployeeProjectStartDateChange(member: any, projectData: any): Promise<any> {
     let result: AppResult;
     const selectedDate = this.normalizeDate(member.startDate);
@@ -97,7 +105,7 @@ export class EmployeeProjectService {
     rmgMember.projectType = projectData.projectType;
     rmgMember.startDate = selectedDate;
     rmgMember.projectIds = projectData.projectIds;
-    rmgMember.teamId = member.teamId;
+    rmgMember.teamId = this.coerceTeamId(member.teamId);
     rmgMember.etmId = member?.etmId;
     // Optional context and end date support (backward compatible)
     rmgMember.endDate = member?.endDate ? this.normalizeDate(member.endDate) : null;
@@ -113,7 +121,9 @@ export class EmployeeProjectService {
         validationContext: rmgMember.validationContext,
         validationSource: rmgMember.validationSource
       });
-      const response: any = await firstValueFrom(this.teamService.validateEmployeeProjectStartDate(rmgMember));
+      const response: any = await firstValueFrom(
+        this.teamService.validateEmployeeProjectStartDate(rmgMember)
+      );
       console.debug('[validateEmployeeProjectStartDateChange] response', response);
       if (response.serviceStatus === 'Success') {
         // Centralized same project/team validations

@@ -21,6 +21,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { UtilityService } from 'src/app/services/utility.service';
 import { Editor, Toolbar } from 'ngx-editor';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DOMSerializer } from 'prosemirror-model';
 
 @Component({
   standalone: false,
@@ -539,12 +540,44 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
 
   notificationId: number=0;
 
+  convertToHTML(json: any): string {
+  if (!json) return '';
+
+  const serializer = DOMSerializer.fromSchema(this.editor.schema);
+  const fragment = serializer.serializeFragment(
+    this.editor.schema.nodeFromJSON(json).content
+  );
+
+  const div = document.createElement('div');
+  div.appendChild(fragment);
+
+  return div.innerHTML;
+}
   onSetNotification(template: TemplateRef<any>) {
-    if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
+     // 🔥 Convert JSON → HTML
+  const htmlMessage = this.convertToHTML(this.notificationObj.notificationMessage);
+
+  if (!htmlMessage || htmlMessage.trim() === '') {
+    this.alertMessage = "Please enter Notification Message !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+
+  // Strip HTML for length validation
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlMessage;
+  const plainText = tempDiv.textContent || '';
+
+  if (plainText.length > 5000) {
+    this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
+    if(!this.validationService.validateNullUndefinedEmptyString(plainText)){
       this.alertMessage = "Please enter Notification Message !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
-    }else if(this.notificationObj.notificationMessage.length > 5000){
+    }else if(plainText.length > 5000){
       this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
@@ -557,8 +590,12 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
     }
 
     this.notificationObj.createdBy = this.currentUser.empId;
+    let payload = new NotificationMessage();
+    payload.notificationType = this.notificationObj.notificationType;
+    payload.notificationMessage = htmlMessage; // ✅ CLEAN HTML
+    payload.createdBy = this.currentUser.empId;
 
-    this.notificationService.addNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
+    this.notificationService.addNotification(payload).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
         this.showNotificationTable();
@@ -589,6 +626,12 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
   }
 
   onUpdateNotification(template: TemplateRef<any>) {
+
+  if (this.notificationObj.notificationMessage.length > 5000) {
+    this.alertMessage = "Please enter Valid Notification Message, Use under 5000 characters !!";
+    this.openAlertMod(template, this.alertMessage);
+    return false;
+  }
     if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationMessage)){
       this.alertMessage = "Please enter Notification Message !!"
       this.openAlertMod(template, this.alertMessage);
@@ -599,7 +642,14 @@ if (uploadedFiles[0] && allowedTypes.indexOf(uploadedFiles[0].type) === -1) {
       return false;
     }
 
-    this.notificationObj.updatedBy = this.currentUser.empId;
+    if(!this.validationService.validateNullUndefinedEmptyString(this.notificationObj.notificationType)){
+      this.alertMessage = "Please select Notification Type !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+
+    
+    this.notificationObj.createdBy = this.currentUser.empId;
     this.notificationService.updateNotification(this.notificationObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);

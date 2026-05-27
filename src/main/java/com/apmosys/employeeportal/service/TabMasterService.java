@@ -2,6 +2,7 @@ package com.apmosys.employeeportal.service;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.apmosys.employeeportal.dto.JobRoleDTO;
 import com.apmosys.employeeportal.dto.RoleFeatureMapDTO;
 import com.apmosys.employeeportal.dto.TabMasterDTO;
+import com.apmosys.employeeportal.repository.EmployeeAccessOverrideRepository;
 import com.apmosys.employeeportal.repository.RoleFeatureMapRepository;
 import com.apmosys.employeeportal.repository.TabMasterRepository;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -22,13 +24,22 @@ public class TabMasterService {
 	@Autowired
 	RoleFeatureMapRepository roleFeatureMapRepository;
 
+	@Autowired
+	EmployeeAccessOverrideRepository employeeAccessOverrideRepository;
+
 	public ServiceResponse getTabsByRoleId(Long jobRoleId, Long empId) {
 		ServiceResponse response = new ServiceResponse();
 		try {
 			List<Object[]> tabArrayList = roleFeatureMapRepository.getTabsByRoleId(jobRoleId);
-			
-			if(tabArrayList != null)
-			{
+			List<Object[]> overrideTabArrayList  = employeeAccessOverrideRepository.findActiveTabRowsByEmpId(empId);
+			if (overrideTabArrayList != null && !overrideTabArrayList.isEmpty()) {
+				if(tabArrayList == null){
+					tabArrayList = new ArrayList<>();
+				}
+				tabArrayList.addAll(overrideTabArrayList);
+			}
+
+			if(tabArrayList != null  && !tabArrayList.isEmpty()){
 				List<RoleFeatureMapDTO> dtoList = new ArrayList<RoleFeatureMapDTO>();
 				for(Object[] tab :tabArrayList)
 				{
@@ -39,12 +50,20 @@ public class TabMasterService {
 					dto.setFeatureName(tab[3] != null ? tab[3].toString() : null);
 					dto.setTabName(tab[4] != null ? tab[4].toString() : null);
 					dto.setTabIcon(tab[5] != null ? tab[5].toString() : null);
-					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);					
+					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);
+					
+					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);	
+					 dto.setTabGroup(tab[8] != null ? tab[8].toString() : "OTHER");                    // ✅ shifted to index 8
+		             dto.setGroupSequence(tab[9] != null ? Integer.parseInt(tab[9].toString()) : 999); // ✅ shifted to index 9
+		             dto.setGroupIcon(tab[10] != null ? tab[10].toString() : "fa-solid fa-folder");    // ✅ shifted to index 10
+		                
 					dtoList.add(dto);
 					
 				}
+
+				List<RoleFeatureMapDTO> sortedDtoList = dtoList.stream().sorted(Comparator.comparing(RoleFeatureMapDTO::getTabSequence)).collect(Collectors.toList());
 				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-				response.setServiceResponse(dtoList);
+				response.setServiceResponse(sortedDtoList);
 			}
 			else
 			{

@@ -41,6 +41,8 @@ public interface TrainingQuizMappingRepository extends JpaRepository<TrainingQui
 	@Query("SELECT tqm.survey.surveyId FROM TrainingQuizMapping tqm WHERE tqm.trainingMaster.trainingId = :trainingId AND tqm.activeStatus = 'true'")
 	Long findActiveSurveyIdByTraining(@Param("trainingId") Integer trainingId);
 
+
+
 	// @Modifying
 	// @Transactional
 	// @Query(value ="UPDATE training_quiz_mapping\n"+
