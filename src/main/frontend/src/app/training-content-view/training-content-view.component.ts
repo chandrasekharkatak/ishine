@@ -146,7 +146,7 @@ export class TrainingContentViewComponent implements OnDestroy {
         this.minTimeReached = true;
         clearInterval(this.timerInterval);
       }
-    }, 10);
+    }, 1000);
   }
 
   // PDF Methods
