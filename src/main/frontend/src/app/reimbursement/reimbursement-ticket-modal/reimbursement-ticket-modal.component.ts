@@ -470,9 +470,18 @@ export class ReimbursementTicketModalComponent {
   }
 
   openProofsModal(claim: any): void {
+    this.openClaimDocumentsModal(claim, claim?.docIds || [], 'Supporting Documents');
+  }
+
+  openPreApprovalProofsModal(claim: any): void {
+    this.openClaimDocumentsModal(claim, claim?.preApprovalDocIds || [], 'HOD Pre-Approval Emails');
+  }
+
+  private openClaimDocumentsModal(claim: any, raw: any, _title: string): void {
     this.selectedClaim = claim || null;
-    const raw = claim?.docIds || [];
-    this.selectedClaimDocIds = Array.isArray(raw) ? raw.map((x: any) => Number(x)).filter((n: number) => Number.isFinite(n)) : [];
+    this.selectedClaimDocIds = Array.isArray(raw)
+      ? raw.map((x: any) => Number(x)).filter((n: number) => Number.isFinite(n))
+      : [];
     this.selectedDocument = null;
     this.docError = null;
     this.proofsModalRef = this.modalService.open(this.proofsModalTpl, {
@@ -480,7 +489,9 @@ export class ReimbursementTicketModalComponent {
       backdrop: 'static',
       windowClass: 'rmbtm-proof-modal'
     });
-    if (this.selectedClaimDocIds.length > 0) void this.previewDoc(this.selectedClaimDocIds[0]);
+    if (this.selectedClaimDocIds.length > 0) {
+      void this.previewDoc(this.selectedClaimDocIds[0]);
+    }
   }
 
   closeProofsModal(): void {
