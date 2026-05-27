@@ -26,6 +26,16 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
+import java.io.ByteArrayOutputStream;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -52,6 +62,7 @@ import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Project;
 import com.apmosys.employeeportal.model.ReimbursementTicket;
 import com.apmosys.employeeportal.model.ReimbursementTicketAuditLog;
+import com.apmosys.employeeportal.model.ReimbursementClient;
 import com.apmosys.employeeportal.model.ReimbursementTicketClaim;
 import com.apmosys.employeeportal.model.ReimbursementTicketDaySeq;
 import com.apmosys.employeeportal.repository.ClientsRepository;
@@ -61,6 +72,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ExpenditureTypeRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ReimbursementClientRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTicketAuditLogRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTicketDaySeqRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTicketRepository;
@@ -100,6 +112,9 @@ public class ReimbursementTicketService {
 	private ClientsRepository clientsRepository;
 
 	@Autowired
+	private ReimbursementClientRepository reimbursementClientRepository;
+
+	@Autowired
 	private ExpenditureTypeRepository expenditureTypeRepository;
 
 	@Autowired
@@ -122,6 +137,9 @@ public class ReimbursementTicketService {
 
 	/** Sentinel project id for manual "Others" line (not a real projects.project_id). */
 	public static final long REIMBURSEMENT_PROJECT_OTHERS_ID = -1L;
+	public static final long REIMBURSEMENT_PROJECT_POC_ID = -2L;
+	public static final String CLIENT_CATEGORY_MASTER = "MASTER";
+	public static final String CLIENT_CATEGORY_PROSPECTIVE = ReimbursementClient.CATEGORY_PROSPECTIVE_NEW;
 
 	private static String normEmail(String e) {
 		return e == null ? "" : e.trim().toLowerCase(Locale.ROOT);
@@ -178,6 +196,12 @@ public class ReimbursementTicketService {
 
 	private String displayTicketStatus(ReimbursementTicket t) {
 		switch (t.getWorkflowStage()) {
+		case ReimbursementTicket.STAGE_HELD_FOR_CYCLE:
+			String cycleLabel = reimbursementSubmissionSettingsService
+					.formatProcessingCycleLabel(t.getProcessingCycleYearMonth());
+			return StringUtils.hasText(cycleLabel)
+					? "Queued for " + cycleLabel + " cycle"
+					: "Queued for next cycle";
 		case ReimbursementTicket.STAGE_PENDING_HOD:
 			return "Submitted";
 		case ReimbursementTicket.STAGE_PENDING_LEVEL:
@@ -199,6 +223,9 @@ public class ReimbursementTicketService {
 	 * Roll up per-claim statuses into one label per approval level for list/detail views.
 	 */
 	private String aggregateLevel1ApproverStatus(ReimbursementTicket t) {
+		if (ReimbursementTicket.STAGE_HELD_FOR_CYCLE.equals(t.getWorkflowStage())) {
+			return "Queued";
+		}
 		List<ReimbursementTicketClaim> claims = t.getClaims();
 		if (claims == null || claims.isEmpty()) {
 			return "—";
@@ -225,6 +252,9 @@ public class ReimbursementTicketService {
 	}
 
 	private String aggregateLevel2ApproverStatus(ReimbursementTicket t) {
+		if (ReimbursementTicket.STAGE_HELD_FOR_CYCLE.equals(t.getWorkflowStage())) {
+			return "Queued";
+		}
 		List<ReimbursementTicketClaim> claims = t.getClaims();
 		if (claims == null || claims.isEmpty()) {
 			return "—";
@@ -262,6 +292,9 @@ public class ReimbursementTicketService {
 	}
 
 	private String aggregateLevel3ApproverStatus(ReimbursementTicket t) {
+		if (ReimbursementTicket.STAGE_HELD_FOR_CYCLE.equals(t.getWorkflowStage())) {
+			return "Queued";
+		}
 		List<ReimbursementTicketClaim> claims = t.getClaims();
 		if (claims == null || claims.isEmpty()) {
 			return "—";
@@ -371,7 +404,8 @@ public class ReimbursementTicketService {
 		sb.append("<tr><th style='").append(th).append("'>#</th><th style='").append(th)
 				.append("'>Type</th><th style='").append(th).append("'>Project</th><th style='").append(th)
 				.append("'>Client</th><th style='").append(th).append("'>Amount</th><th style='").append(th)
-				.append("'>Status</th><th style='").append(th).append("'>Purpose</th></tr>");
+				.append("'>Status</th><th style='").append(th).append("'>Purpose</th><th style='").append(th)
+				.append("'>Business justification</th><th style='").append(th).append("'>HOD pre-approval</th></tr>");
 		boolean alt = false;
 		for (ReimbursementTicketClaim c : ticket.getClaims().stream()
 				.sorted(Comparator.comparing(ReimbursementTicketClaim::getLineNo)).collect(Collectors.toList())) {
@@ -389,7 +423,11 @@ public class ReimbursementTicketService {
 			sb.append("<td style='").append(td).append(rowBg).append("'>")
 					.append(esc(friendlyClaimStatusLabel(c.getClaimStatus()))).append("</td>");
 			sb.append("<td style='").append(td).append(rowBg).append("'>").append(esc(shorten(c.getPurpose(), 80)))
-					.append("</td></tr>");
+					.append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("'>")
+					.append(esc(shorten(c.getBusinessJustification(), 80))).append("</td>");
+			sb.append("<td style='").append(td).append(rowBg).append("'>")
+					.append(c.getHodApproval() != null && c.getHodApproval() == 1 ? "Yes" : "No").append("</td></tr>");
 		}
 		sb.append("</table>");
 		return sb.toString();
@@ -553,6 +591,32 @@ public class ReimbursementTicketService {
 	 * After submit or level decision: notify next approver (CC employee), or finance, or employee-only on terminal
 	 * states.
 	 */
+	private void notifyApproversOnTicketSubmitted(ReimbursementTicket saved) {
+		if (matrixWorkflowService.usesMatrixWorkflow(saved)) {
+			notifyAfterMatrixWorkflowTransition(saved,
+					"A new reimbursement ticket has been submitted. Please review and approve at your approval level.",
+					null, null);
+		} else {
+			String subj = "Reimbursement " + ticketDisplayRef(saved) + " – Action Required";
+			String body = reimbursementEmailWrapper("Action Required",
+					"Dear <strong>" + esc(saved.getHodName()) + "</strong>,",
+					"An employee has submitted a reimbursement ticket for your review.",
+					matrixTicketSummaryHtml(saved), "Claim details", claimSummaryHtml(saved), null,
+					"Please sign in to <strong>iShine</strong> and open <strong>Reimbursements &rarr; Approve Reimbursements</strong>.");
+			sendMailSafe(saved.getHodEmail(), submitterCc(saved), subj, body);
+		}
+	}
+
+	private boolean rejectIfHeldForCycle(ReimbursementTicket ticket, ServiceResponse resp) {
+		if (ReimbursementTicket.STAGE_HELD_FOR_CYCLE.equals(ticket.getWorkflowStage())) {
+			resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			resp.setServiceError(
+					"This ticket is queued for its processing cycle and cannot be approved until the 1st of that month.");
+			return true;
+		}
+		return false;
+	}
+
 	private void notifyAfterMatrixWorkflowTransition(ReimbursementTicket ticket, String introForApprover,
 			String introForSubmitterIfTerminal, String terminalExtraHtml) {
 		if (!matrixWorkflowService.usesMatrixWorkflow(ticket)) {
@@ -641,7 +705,7 @@ public class ReimbursementTicketService {
 	}
 
 	private String resolveProjectNameForClaim(Long empId, Long projectId) {
-		if (projectId != null && projectId.longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
+		if (isManualProjectId(projectId)) {
 			return null;
 		}
 		String team = resolveProjectNameFromTeamMapping(empId, projectId);
@@ -732,6 +796,12 @@ public class ReimbursementTicketService {
 		return empId != null;
 	}
 
+	private boolean isManualProjectId(Long projectId) {
+		return projectId != null
+				&& (projectId.longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID
+						|| projectId.longValue() == REIMBURSEMENT_PROJECT_POC_ID);
+	}
+
 	private void addOthersRowIfApplicable(List<Map<String, Object>> projects, boolean showOthers) {
 		if (!showOthers) {
 			return;
@@ -751,7 +821,7 @@ public class ReimbursementTicketService {
 	}
 
 	private boolean isProjectAllowedForReimbursement(Long empId, Long projectId) {
-		if (projectId != null && projectId.longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
+		if (isManualProjectId(projectId)) {
 			return showOthersProjectOption(empId);
 		}
 		return resolveProjectNameForClaim(empId, projectId) != null;
@@ -828,32 +898,165 @@ public class ReimbursementTicketService {
 	}
 
 	/**
-	 * All rows from {@code clients} (via JPA) for "Others" claim line — not client_locations join.
+	 * Union of master {@code clients} and reimbursement-only clients, plus a virtual
+	 * "Prospective New Client" entry for free-text capture.
 	 */
 	@Transactional(readOnly = true)
 	public ServiceResponse fetchReimbursementClientsFromMaster() {
 		ServiceResponse resp = new ServiceResponse();
 		try {
-			List<ClientIdAndName> rows = clientsRepository.findAllClientIdAndName();
-			List<Map<String, Object>> list = new ArrayList<>();
-			for (ClientIdAndName row : rows) {
-				if (row == null || row.getClientId() == null) {
-					continue;
-				}
-				Map<String, Object> m = new LinkedHashMap<>();
-				m.put("clientId", row.getClientId());
-				m.put("clientName", row.getClientName() != null ? row.getClientName() : "");
-				list.add(m);
-			}
-			list.sort(Comparator.comparing(o -> String.valueOf(o.get("clientName")), String.CASE_INSENSITIVE_ORDER));
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-			resp.setServiceResponse(list);
+			resp.setServiceResponse(buildReimbursementClientPickerOptions());
 		} catch (Exception e) {
 			e.printStackTrace();
 			resp.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			resp.setServiceError(e.getMessage());
 		}
 		return resp;
+	}
+
+	private List<Map<String, Object>> buildReimbursementClientPickerOptions() {
+		List<Map<String, Object>> list = new ArrayList<>();
+		for (ClientIdAndName row : clientsRepository.findAllClientIdAndName()) {
+			if (row == null || row.getClientId() == null) {
+				continue;
+			}
+			Map<String, Object> m = new LinkedHashMap<>();
+			m.put("pickerKey", "M:" + row.getClientId());
+			m.put("clientId", row.getClientId());
+			m.put("reimbursementClientId", null);
+			m.put("clientName", row.getClientName() != null ? row.getClientName() : "");
+			m.put("clientCategory", CLIENT_CATEGORY_MASTER);
+			m.put("prospectiveEntry", false);
+			list.add(m);
+		}
+		for (ReimbursementClient rc : reimbursementClientRepository.findByIsActiveOrderByClientNameAsc(1)) {
+			if (rc == null || rc.getReimbursementClientId() == null || !StringUtils.hasText(rc.getClientName())) {
+				continue;
+			}
+			Map<String, Object> m = new LinkedHashMap<>();
+			m.put("pickerKey", "R:" + rc.getReimbursementClientId());
+			m.put("clientId", null);
+			m.put("reimbursementClientId", rc.getReimbursementClientId());
+			m.put("clientName", rc.getClientName().trim());
+			m.put("clientCategory",
+					StringUtils.hasText(rc.getClientCategory()) ? rc.getClientCategory() : CLIENT_CATEGORY_PROSPECTIVE);
+			m.put("prospectiveEntry", false);
+			list.add(m);
+		}
+		Map<String, Object> prospective = new LinkedHashMap<>();
+		prospective.put("pickerKey", "PROSPECTIVE_NEW");
+		prospective.put("clientId", null);
+		prospective.put("reimbursementClientId", null);
+		prospective.put("clientName", "Prospective New Client");
+		prospective.put("clientCategory", CLIENT_CATEGORY_PROSPECTIVE);
+		prospective.put("prospectiveEntry", true);
+		list.add(0, prospective);
+		list.sort(Comparator
+				.<Map<String, Object>, Integer>comparing(m -> Boolean.TRUE.equals(m.get("prospectiveEntry")) ? 0 : 1)
+				.thenComparing(m -> String.valueOf(m.get("clientName")), String.CASE_INSENSITIVE_ORDER));
+		return list;
+	}
+
+	private ReimbursementClient findOrCreateProspectiveClient(String name, BigInteger createdByEmpId) {
+		String trimmed = name.trim();
+		if (trimmed.length() > 500) {
+			throw new IllegalArgumentException("Prospective client name must be at most 500 characters.");
+		}
+		return reimbursementClientRepository.findByIsActiveAndClientNameIgnoreCase(1, trimmed)
+				.orElseGet(() -> {
+					ReimbursementClient rc = new ReimbursementClient();
+					rc.setClientName(trimmed);
+					rc.setClientCategory(CLIENT_CATEGORY_PROSPECTIVE);
+					rc.setCreatedByEmpId(createdByEmpId);
+					rc.setIsActive(1);
+					Timestamp now = new Timestamp(System.currentTimeMillis());
+					rc.setCreatedOn(now);
+					return reimbursementClientRepository.save(rc);
+				});
+	}
+
+	private void applyManualProjectClient(ReimbursementTicketClaim cl, ReimbursementTicketClaimInputDTO in,
+			BigInteger submitterEmpId, int index) {
+		if (StringUtils.hasText(in.getProspectiveClientName())) {
+			ReimbursementClient rc = findOrCreateProspectiveClient(in.getProspectiveClientName(), submitterEmpId);
+			cl.setReimbursementClientId(rc.getReimbursementClientId());
+			cl.setClientId(null);
+			cl.setClientName(rc.getClientName());
+			cl.setClientCategory(CLIENT_CATEGORY_PROSPECTIVE);
+			return;
+		}
+		if (in.getReimbursementClientId() != null) {
+			ReimbursementClient rc = reimbursementClientRepository.findById(in.getReimbursementClientId()).orElse(null);
+			if (rc == null || rc.getIsActive() == null || rc.getIsActive() != 1) {
+				throw new IllegalArgumentException("Claim " + index + ": invalid reimbursement client selection.");
+			}
+			cl.setReimbursementClientId(rc.getReimbursementClientId());
+			cl.setClientId(null);
+			cl.setClientName(rc.getClientName());
+			cl.setClientCategory(StringUtils.hasText(rc.getClientCategory()) ? rc.getClientCategory()
+					: CLIENT_CATEGORY_PROSPECTIVE);
+			return;
+		}
+		if (in.getClientId() != null) {
+			Client client = clientsRepository.findByClientId(in.getClientId());
+			if (client == null) {
+				throw new IllegalArgumentException("Claim " + index + ": invalid client selection.");
+			}
+			cl.setClientId(in.getClientId());
+			cl.setReimbursementClientId(null);
+			cl.setClientName(client.getClientName());
+			cl.setClientCategory(CLIENT_CATEGORY_MASTER);
+			return;
+		}
+		throw new IllegalArgumentException("Claim " + index + ": choose a client or enter a prospective new client name.");
+	}
+
+	private void applyClaimProjectAndClient(ReimbursementTicketClaim cl, ReimbursementTicketClaimInputDTO in,
+			BigInteger submitterEmpId, int index) {
+		cl.setRecurringExpense(Boolean.TRUE.equals(in.getRecurringExpense()) ? 1 : 0);
+		boolean pocFlag = Boolean.TRUE.equals(in.getPocProject())
+				|| (in.getProjectId() != null && in.getProjectId().longValue() == REIMBURSEMENT_PROJECT_POC_ID);
+		cl.setPocProject(pocFlag ? 1 : 0);
+
+		Long pid = in.getProjectId();
+		if (pid != null && pid.longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
+			if (!StringUtils.hasText(in.getOthersProjectName()) || in.getOthersProjectName().trim().isEmpty()) {
+				throw new IllegalArgumentException("Claim " + index + ": enter the project name for Others.");
+			}
+			if (in.getOthersProjectName().trim().length() > 500) {
+				throw new IllegalArgumentException("Claim " + index + ": project name must be at most 500 characters.");
+			}
+			cl.setProjectId(null);
+			cl.setProjectName(in.getOthersProjectName().trim());
+			applyManualProjectClient(cl, in, submitterEmpId, index);
+			return;
+		}
+		if (pid != null && pid.longValue() == REIMBURSEMENT_PROJECT_POC_ID) {
+			String pocName = StringUtils.hasText(in.getPocProjectName()) ? in.getPocProjectName().trim()
+					: (StringUtils.hasText(in.getOthersProjectName()) ? in.getOthersProjectName().trim() : "");
+			if (!StringUtils.hasText(pocName)) {
+				throw new IllegalArgumentException("Claim " + index + ": enter the project name for POC.");
+			}
+			if (pocName.length() > 500) {
+				throw new IllegalArgumentException("Claim " + index + ": project name must be at most 500 characters.");
+			}
+			cl.setProjectId(null);
+			cl.setProjectName(pocName);
+			applyManualProjectClient(cl, in, submitterEmpId, index);
+			return;
+		}
+		cl.setProjectId(in.getProjectId());
+		cl.setProjectName(resolveProjectNameForClaim(submitterEmpId.longValue(), in.getProjectId()));
+		cl.setReimbursementClientId(null);
+		cl.setClientCategory(null);
+		if (in.getProjectId() != null) {
+			Project p = projectRepository.findByProjectId(in.getProjectId().intValue());
+			if (p != null) {
+				cl.setClientId(p.getClientId());
+				cl.setClientName(p.getClientName());
+			}
+		}
 	}
 
 	private void validateClaimInput(ReimbursementTicketClaimInputDTO c, int index, BigInteger empId) {
@@ -871,19 +1074,24 @@ public class ReimbursementTicketService {
 			throw new IllegalArgumentException("Claim " + index + ": employee context is required.");
 		}
 		long eid = empId.longValue();
-		if (c.getProjectId().longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
-			if (!StringUtils.hasText(c.getOthersProjectName()) || c.getOthersProjectName().trim().isEmpty()) {
-				throw new IllegalArgumentException("Claim " + index + ": enter the project name for Others.");
+		if (isManualProjectId(c.getProjectId())) {
+			if (c.getProjectId().longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
+				if (!StringUtils.hasText(c.getOthersProjectName()) || c.getOthersProjectName().trim().isEmpty()) {
+					throw new IllegalArgumentException("Claim " + index + ": enter the project name for Others.");
+				}
 			}
-			if (c.getOthersProjectName().trim().length() > 500) {
-				throw new IllegalArgumentException("Claim " + index + ": project name must be at most 500 characters.");
+			if (c.getProjectId().longValue() == REIMBURSEMENT_PROJECT_POC_ID) {
+				String pocName = StringUtils.hasText(c.getPocProjectName()) ? c.getPocProjectName().trim()
+						: (StringUtils.hasText(c.getOthersProjectName()) ? c.getOthersProjectName().trim() : "");
+				if (!StringUtils.hasText(pocName)) {
+					throw new IllegalArgumentException("Claim " + index + ": enter the project name for POC.");
+				}
 			}
-			if (c.getClientId() == null) {
-				throw new IllegalArgumentException("Claim " + index + ": choose a client when using Others.");
-			}
-			Client client = clientsRepository.findByClientId(c.getClientId());
-			if (client == null) {
-				throw new IllegalArgumentException("Claim " + index + ": invalid client selection.");
+			boolean hasClient = c.getClientId() != null || c.getReimbursementClientId() != null
+					|| StringUtils.hasText(c.getProspectiveClientName());
+			if (!hasClient) {
+				throw new IllegalArgumentException("Claim " + index
+						+ ": choose a client or enter a prospective new client name.");
 			}
 		} else if (!isProjectAllowedForReimbursement(eid, c.getProjectId())) {
 			throw new IllegalArgumentException("Claim " + index
@@ -897,6 +1105,16 @@ public class ReimbursementTicketService {
 		}
 		if (!StringUtils.hasText(c.getPurpose()) || c.getPurpose().trim().isEmpty()) {
 			throw new IllegalArgumentException("Claim " + index + ": purpose is required.");
+		}
+		if (!StringUtils.hasText(c.getBusinessJustification()) || c.getBusinessJustification().trim().isEmpty()) {
+			throw new IllegalArgumentException("Claim " + index + ": business justification is required.");
+		}
+		if (c.getPreApprovalDate() == null) {
+			throw new IllegalArgumentException("Claim " + index + ": HOD pre-approval date is required.");
+		}
+		if (c.getPreApprovalDocIds() == null || c.getPreApprovalDocIds().isEmpty()) {
+			throw new IllegalArgumentException("Claim " + index
+					+ ": at least one HOD pre-approval email is required (from your assigned HOD only, not other approvers).");
 		}
 		String exp = c.getExpenditureType();
 		if ("Food".equalsIgnoreCase(exp)) {
@@ -927,6 +1145,56 @@ public class ReimbursementTicketService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Releases tickets queued after the monthly deadline once their processing cycle month has started.
+	 * Invoked daily by {@link ReimbursementHeldTicketReleaseScheduler}.
+	 */
+	@Transactional
+	public int releaseDueHeldTickets() {
+		LocalDate today = reimbursementSubmissionSettingsService.todayInReimbursementZone();
+		List<ReimbursementTicket> held = ticketRepository
+				.findTicketsWithClaimsByStage(ReimbursementTicket.STAGE_HELD_FOR_CYCLE);
+		int released = 0;
+		for (ReimbursementTicket ticket : held) {
+			if (!reimbursementSubmissionSettingsService.isProcessingCycleOpen(
+					ticket.getProcessingCycleYearMonth(), today)) {
+				continue;
+			}
+			matrixWorkflowService.initializeOnSubmit(ticket);
+			ReimbursementTicket saved = ticketRepository.save(ticket);
+			audit(saved.getTicketId(), null, null, null, "TICKET_RELEASED_FOR_APPROVAL", null);
+			notifyApproversOnTicketSubmitted(saved);
+			released++;
+		}
+		return released;
+	}
+
+	/** Manual / UAT trigger — same logic as the nightly scheduler. */
+	@Transactional
+	public ServiceResponse releaseHeldReimbursementTicketsManual() {
+		ServiceResponse resp = new ServiceResponse();
+		try {
+			int heldCount = ticketRepository
+					.findTicketsWithClaimsByStage(ReimbursementTicket.STAGE_HELD_FOR_CYCLE).size();
+			int released = releaseDueHeldTickets();
+			Map<String, Object> out = new LinkedHashMap<>();
+			out.put("heldBefore", heldCount);
+			out.put("released", released);
+			out.put("heldAfter", heldCount - released);
+			out.put("asOfDate", reimbursementSubmissionSettingsService.todayInReimbursementZone().toString());
+			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+			resp.setServiceResponse(out);
+			resp.setServiceMessage(released > 0
+					? "Released " + released + " held ticket(s) for approval."
+					: "No held tickets were due for release (cycle month may not have started yet).");
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			resp.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
+			resp.setServiceError(ex.getMessage());
+		}
+		return resp;
 	}
 
 	@Transactional
@@ -960,6 +1228,9 @@ public class ReimbursementTicketService {
 			ticket.setHodName(req.getHodName());
 			ticket.setHodEmail(req.getHodEmail().trim());
 			ticket.setSubmittedOn(nowTs());
+			ticket.setProcessingCycleYearMonth(
+					reimbursementSubmissionSettingsService.resolveProcessingCycleYearMonth(
+							reimbursementSubmissionSettingsService.todayInReimbursementZone()));
 			ticket.setIsActive(1);
 			ticket.setTicketNo(allocateNextPublicTicketNo());
 
@@ -980,47 +1251,45 @@ public class ReimbursementTicketService {
 				cl.setFromDate(in.getFromDate() != null ? new Timestamp(in.getFromDate().getTime()) : null);
 				cl.setToDate(in.getToDate() != null ? new Timestamp(in.getToDate().getTime()) : null);
 				cl.setPurpose(in.getPurpose().trim());
-				if (in.getProjectId() != null && in.getProjectId().longValue() == REIMBURSEMENT_PROJECT_OTHERS_ID) {
-					cl.setProjectId(null);
-					cl.setProjectName(in.getOthersProjectName().trim());
-					cl.setClientId(in.getClientId());
-					Client client = clientsRepository.findByClientId(in.getClientId());
-					cl.setClientName(client != null ? client.getClientName() : null);
-				} else {
-					cl.setProjectId(in.getProjectId());
-					cl.setProjectName(resolveProjectNameForClaim(req.getEmpId().longValue(), in.getProjectId()));
-					Project p = projectRepository.findByProjectId(in.getProjectId().intValue());
-					if (p != null) {
-						cl.setClientId(p.getClientId());
-						cl.setClientName(p.getClientName());
-					}
-				}
+				cl.setBusinessJustification(in.getBusinessJustification().trim());
+				cl.setHodApproval(1);
+				cl.setPreApprovalDate(new java.sql.Date(in.getPreApprovalDate().getTime()));
+				cl.setPreApprovalDocIds(in.getPreApprovalDocIds().stream().map(String::valueOf)
+						.collect(Collectors.joining(",")));
+				applyClaimProjectAndClient(cl, in, req.getEmpId(), line - 1);
 				cl.setDocIds(in.getDocIds().stream().map(String::valueOf).collect(Collectors.joining(",")));
 				ticket.getClaims().add(cl);
 			}
 
-			matrixWorkflowService.initializeOnSubmit(ticket);
+			boolean holdForCycle = reimbursementSubmissionSettingsService
+					.isCarriedToNextCycle(reimbursementSubmissionSettingsService.todayInReimbursementZone());
+			if (holdForCycle) {
+				ticket.setWorkflowStage(ReimbursementTicket.STAGE_HELD_FOR_CYCLE);
+				for (ReimbursementTicketClaim cl : ticket.getClaims()) {
+					cl.setClaimStatus(ReimbursementTicketClaim.STATUS_HELD_FOR_CYCLE);
+				}
+			} else {
+				matrixWorkflowService.initializeOnSubmit(ticket);
+			}
 
 			ReimbursementTicket saved = ticketRepository.save(ticket);
-			audit(saved.getTicketId(), null, req.getEmpId(), req.getEmail(), "TICKET_SUBMITTED", null);
-
-			if (matrixWorkflowService.usesMatrixWorkflow(saved)) {
-				notifyAfterMatrixWorkflowTransition(saved,
-						"A new reimbursement ticket has been submitted. Please review and approve at your approval level.",
-						null, null);
+			if (holdForCycle) {
+				audit(saved.getTicketId(), null, req.getEmpId(), req.getEmail(), "TICKET_QUEUED_FOR_CYCLE", null);
 			} else {
-				String subj = "Reimbursement " + ticketDisplayRef(saved) + " – Action Required";
-				String body = reimbursementEmailWrapper("Action Required",
-						"Dear <strong>" + esc(saved.getHodName()) + "</strong>,",
-						"An employee has submitted a reimbursement ticket for your review.",
-						matrixTicketSummaryHtml(saved), "Claim details", claimSummaryHtml(saved), null,
-						"Please sign in to <strong>iShine</strong> and open <strong>Reimbursements &rarr; Approve Reimbursements</strong>.");
-				sendMailSafe(saved.getHodEmail(), submitterCc(saved), subj, body);
+				audit(saved.getTicketId(), null, req.getEmpId(), req.getEmail(), "TICKET_SUBMITTED", null);
+				notifyApproversOnTicketSubmitted(saved);
 			}
 
 			resp.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			resp.setServiceResponse(toViewMap(saved));
-			resp.setServiceMessage("Ticket submitted successfully.");
+			String cycleLabel = reimbursementSubmissionSettingsService
+					.formatProcessingCycleLabel(saved.getProcessingCycleYearMonth());
+			if (holdForCycle) {
+				resp.setServiceMessage("Ticket submitted successfully and queued for the " + cycleLabel
+						+ " processing cycle. Approvers will receive it from the 1st of that month.");
+			} else {
+				resp.setServiceMessage("Ticket submitted successfully for the " + cycleLabel + " cycle.");
+			}
 		} catch (IllegalArgumentException ex) {
 			resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
 			resp.setServiceError(ex.getMessage());
@@ -1148,6 +1417,9 @@ public class ReimbursementTicketService {
 	private ServiceResponse processMatrixLevelDecisions(ReimbursementTicketStageActionDTO action,
 			ReimbursementTicket ticket, ServiceResponse resp) {
 		try {
+			if (rejectIfHeldForCycle(ticket, resp)) {
+				return resp;
+			}
 			if (!matrixWorkflowService.canActorApprove(ticket, action.getActorEmpId(), action.getActorEmail())) {
 				resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				resp.setServiceError("You are not authorized to act on this approval level.");
@@ -1254,6 +1526,9 @@ public class ReimbursementTicketService {
 				return resp;
 			}
 			ReimbursementTicket ticket = opt.get();
+			if (rejectIfHeldForCycle(ticket, resp)) {
+				return resp;
+			}
 			if (matrixWorkflowService.usesMatrixWorkflow(ticket)
 					&& ReimbursementTicket.STAGE_PENDING_LEVEL.equals(ticket.getWorkflowStage())) {
 				return processMatrixLevelDecisions(action, ticket, resp);
@@ -1417,6 +1692,9 @@ public class ReimbursementTicketService {
 				return resp;
 			}
 			ReimbursementTicket ticket = opt.get();
+			if (rejectIfHeldForCycle(ticket, resp)) {
+				return resp;
+			}
 			if (!ReimbursementTicket.STAGE_PENDING_FINANCE.equals(ticket.getWorkflowStage())) {
 				resp.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				resp.setServiceError("Ticket is not with Finance.");
@@ -1567,8 +1845,306 @@ public class ReimbursementTicketService {
 		return "";
 	}
 
-	private static long bigIntegerToLong(BigInteger b) {
-		return b == null ? 0L : b.longValue();
+	/** Employee type label used in Employee configuration (best-effort from flags on Employee master). */
+	private static String resolveConfiguredEmployeeType(Employee e) {
+		if (e == null) {
+			return null;
+		}
+		String isApmosysProduct = e.getIsApmosysProduct();
+		if (StringUtils.hasText(isApmosysProduct) && "true".equalsIgnoreCase(isApmosysProduct.trim())) {
+			return "Apmosys Product";
+		}
+		String isApprentice = e.getIsApprenticeship();
+		if (StringUtils.hasText(isApprentice) && "true".equalsIgnoreCase(isApprentice.trim())) {
+			return "Apprentice";
+		}
+		String isConsultant = e.getIsConsultant();
+		if (StringUtils.hasText(isConsultant) && "true".equalsIgnoreCase(isConsultant.trim())) {
+			return "Consultant";
+		}
+		// Default option label in Employee configuration dropdown
+		return "On Roll";
+	}
+
+	/**
+	 * Export reimbursement dashboard data (entire scope, not paginated UI slices) as a single Excel workbook.
+	 * Sheets: Summary, Tickets, Claims, Employees, Rejections.
+	 */
+	@Transactional(readOnly = true)
+	public byte[] exportDashboardExcel(ReimbursementDashboardFilterDTO filter) {
+		// Reuse the dashboard computation so the export matches UI filter scope.
+		ServiceResponse resp = dashboard(filter != null ? filter : new ReimbursementDashboardFilterDTO());
+		if (resp == null || !ServiceResponse.STATUS_SUCCESS.equals(resp.getServiceStatus())
+				|| !(resp.getServiceResponse() instanceof Map)) {
+			// Return an empty workbook with an error note rather than failing the download.
+			try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+				Sheet sh = wb.createSheet("Summary");
+				Row r0 = sh.createRow(0);
+				r0.createCell(0).setCellValue("Unable to export reimbursement dashboard at this time.");
+				wb.write(bos);
+				return bos.toByteArray();
+			} catch (Exception e) {
+				return new byte[0];
+			}
+		}
+		@SuppressWarnings("unchecked")
+		Map<String, Object> dash = (Map<String, Object>) resp.getServiceResponse();
+
+		try (XSSFWorkbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+			Font headerFont = wb.createFont();
+			headerFont.setBold(true);
+			CellStyle header = wb.createCellStyle();
+			header.setFont(headerFont);
+			header.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
+			header.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+			writeSummarySheet(wb, header, dash);
+			writeTicketsSheet(wb, header, dash);
+			writeClaimsSheet(wb, header, dash);
+			writeEmployeesSheet(wb, header, dash);
+			writeRejectionsSheet(wb, header, dash);
+
+			wb.write(bos);
+			return bos.toByteArray();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new byte[0];
+		}
+	}
+
+	private void writeSummarySheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Summary");
+		int r = 0;
+		Row h = sh.createRow(r++);
+		String[] cols = { "Metric", "Value" };
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		Object[][] rows = {
+				{ "Total tickets", dash.get("ticketCount") },
+				{ "Total claims", dash.get("claimCount") },
+				{ "Total requested amount", dash.get("totalSubmittedAmount") },
+				{ "Total paid amount", dash.get("totalPaidAmount") },
+				{ "Pipeline pending amount", dash.get("pipelinePendingAmount") },
+				{ "Rejected claim lines", dash.get("rejectedClaimLines") },
+				{ "Rejected amount", dash.get("totalRejectedClaimsAmount") },
+				{ "Approved amount", dash.get("totalApprovedAmount") },
+				{ "Pending HOD tickets", dash.get("pendingHodTickets") },
+				{ "Pending approval level tickets", dash.get("pendingApprovalTickets") },
+				{ "Pending HR tickets", dash.get("pendingHrTickets") },
+				{ "Pending Finance tickets", dash.get("pendingFinanceTickets") }
+		};
+		for (Object[] rr : rows) {
+			Row row = sh.createRow(r++);
+			row.createCell(0).setCellValue(String.valueOf(rr[0]));
+			row.createCell(1).setCellValue(rr[1] == null ? "" : String.valueOf(rr[1]));
+		}
+		sh.autoSizeColumn(0);
+		sh.autoSizeColumn(1);
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeTicketsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Tickets");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("ticketRows");
+		String[] cols = { "Ticket No", "Ticket ID", "Employee", "Emp ID", "Department", "Status", "Stage", "Submitted On",
+				"Total claim amount", "Payable approved amount", "Paid claim amount", "Processing cycle" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> t : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(t.getOrDefault("ticketNo", "")));
+				row.createCell(1).setCellValue(String.valueOf(t.getOrDefault("ticketId", "")));
+				row.createCell(2).setCellValue(String.valueOf(t.getOrDefault("fullName", "")));
+				row.createCell(3).setCellValue(String.valueOf(t.getOrDefault("empId", "")));
+				row.createCell(4).setCellValue(String.valueOf(t.getOrDefault("department", "")));
+				row.createCell(5).setCellValue(String.valueOf(t.getOrDefault("displayStatus", "")));
+				row.createCell(6).setCellValue(String.valueOf(t.getOrDefault("workflowStage", "")));
+				row.createCell(7).setCellValue(String.valueOf(t.getOrDefault("submittedOn", "")));
+				row.createCell(8).setCellValue(String.valueOf(t.getOrDefault("totalClaimAmount", "")));
+				row.createCell(9).setCellValue(String.valueOf(t.getOrDefault("payableApprovedAmount", "")));
+				row.createCell(10).setCellValue(String.valueOf(t.getOrDefault("paidClaimAmount", "")));
+				row.createCell(11).setCellValue(String.valueOf(t.getOrDefault("processingCycleLabel", "")));
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeClaimsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Claims");
+		List<Map<String, Object>> tickets = (List<Map<String, Object>>) dash.get("ticketRows");
+		String[] cols = { "Ticket No", "Ticket ID", "Employee", "Emp ID", "Department", "Employee type", "Line No",
+				"Claim ID", "Type", "Amount", "From", "To", "Purpose", "Mode (Recurring/POC)", "Project", "Client",
+				"Claim status" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		Map<Long, String> employeeTypeByEmpId = new HashMap<>();
+		try {
+			List<Map<String, Object>> emps = (List<Map<String, Object>>) dash.get("employeeAnalyticsRows");
+			if (emps != null) {
+				for (Map<String, Object> e : emps) {
+					Object id = e.get("empId");
+					if (id == null) {
+						continue;
+					}
+					Long empId = null;
+					try {
+						empId = Long.valueOf(String.valueOf(id));
+					} catch (Exception ignore) {
+						// best-effort only
+					}
+					if (empId != null) {
+						employeeTypeByEmpId.put(empId, String.valueOf(e.getOrDefault("employeeType", "")));
+					}
+				}
+			}
+		} catch (Exception ignore) {
+			// best-effort only
+		}
+
+		int r = 1;
+		if (tickets != null) {
+			for (Map<String, Object> t : tickets) {
+				Object ticketNo = t.get("ticketNo");
+				Object ticketId = t.get("ticketId");
+				Object empName = t.get("fullName");
+				Object empIdObj = t.get("empId");
+				Object dept = t.get("department");
+				Long empId = null;
+				try {
+					if (empIdObj != null && StringUtils.hasText(String.valueOf(empIdObj))) {
+						empId = Long.valueOf(String.valueOf(empIdObj));
+					}
+				} catch (Exception ignore) {
+					// best-effort only
+				}
+				String empType = empId != null ? employeeTypeByEmpId.get(empId) : null;
+				if (!StringUtils.hasText(empType) && empId != null) {
+					try {
+						Employee e = employeeRepository.findByEmpId(empId);
+						empType = resolveConfiguredEmployeeType(e);
+					} catch (Exception ignore) {
+						// best-effort only
+					}
+				}
+
+				List<Map<String, Object>> claims = (List<Map<String, Object>>) t.get("claims");
+				if (claims == null) {
+					continue;
+				}
+				for (Map<String, Object> c : claims) {
+					Row row = sh.createRow(r++);
+					row.createCell(0).setCellValue(String.valueOf(ticketNo == null ? "" : ticketNo));
+					row.createCell(1).setCellValue(String.valueOf(ticketId == null ? "" : ticketId));
+					row.createCell(2).setCellValue(String.valueOf(empName == null ? "" : empName));
+					row.createCell(3).setCellValue(String.valueOf(empIdObj == null ? "" : empIdObj));
+					row.createCell(4).setCellValue(String.valueOf(dept == null ? "" : dept));
+					row.createCell(5).setCellValue(String.valueOf(empType == null ? "" : empType));
+					row.createCell(6).setCellValue(String.valueOf(c.getOrDefault("lineNo", "")));
+					row.createCell(7).setCellValue(String.valueOf(c.getOrDefault("claimId", "")));
+					row.createCell(8).setCellValue(String.valueOf(c.getOrDefault("expenditureType", "")));
+					row.createCell(9).setCellValue(String.valueOf(c.getOrDefault("amount", "")));
+					row.createCell(10).setCellValue(String.valueOf(c.getOrDefault("fromDate", "")));
+					row.createCell(11).setCellValue(String.valueOf(c.getOrDefault("toDate", "")));
+					row.createCell(12).setCellValue(String.valueOf(c.getOrDefault("purpose", "")));
+					boolean rec = Boolean.TRUE.equals(c.get("recurringExpense"));
+					boolean poc = Boolean.TRUE.equals(c.get("pocProject"));
+					String mode = rec ? "Recurring Expense" : (poc ? "POC - Project" : "");
+					row.createCell(13).setCellValue(mode);
+					row.createCell(14).setCellValue(String.valueOf(c.getOrDefault("projectName", "")));
+					row.createCell(15).setCellValue(String.valueOf(c.getOrDefault("clientName", "")));
+					row.createCell(16).setCellValue(String.valueOf(c.getOrDefault("claimStatus", "")));
+				}
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeEmployeesSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Employees");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("employeeAnalyticsRows");
+		String[] cols = { "Employee", "Emp ID", "Department", "Employee type", "HOD", "Tickets", "Recurring claims", "POC claims",
+				"Projects / Clients" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> e : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(e.getOrDefault("fullName", "")));
+				row.createCell(1).setCellValue(String.valueOf(e.getOrDefault("empId", "")));
+				row.createCell(2).setCellValue(String.valueOf(e.getOrDefault("department", "")));
+				row.createCell(3).setCellValue(String.valueOf(e.getOrDefault("employeeType", "")));
+				row.createCell(4).setCellValue(String.valueOf(e.getOrDefault("hodName", "")));
+				row.createCell(5).setCellValue(String.valueOf(e.getOrDefault("ticketCount", "")));
+				row.createCell(6).setCellValue(String.valueOf(e.getOrDefault("recurringClaims", "")));
+				row.createCell(7).setCellValue(String.valueOf(e.getOrDefault("pocClaims", "")));
+				List<Map<String, Object>> projs = (List<Map<String, Object>>) e.get("projects");
+				if (projs != null && !projs.isEmpty()) {
+					String joined = projs.stream()
+							.map(p -> String.valueOf(p.getOrDefault("projectName", "")) + " (" + String.valueOf(p.getOrDefault("clientName", "")) + ")")
+							.collect(Collectors.joining(" | "));
+					row.createCell(8).setCellValue(joined);
+				} else {
+					row.createCell(8).setCellValue("");
+				}
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void writeRejectionsSheet(XSSFWorkbook wb, CellStyle header, Map<String, Object> dash) {
+		Sheet sh = wb.createSheet("Rejections");
+		List<Map<String, Object>> rows = (List<Map<String, Object>>) dash.get("rejectionLog");
+		String[] cols = { "Ticket", "Employee", "Department", "Type", "Amount", "By", "Level", "Reason" };
+		Row h = sh.createRow(0);
+		for (int i = 0; i < cols.length; i++) {
+			Cell c = h.createCell(i);
+			c.setCellValue(cols[i]);
+			c.setCellStyle(header);
+		}
+		int r = 1;
+		if (rows != null) {
+			for (Map<String, Object> x : rows) {
+				Row row = sh.createRow(r++);
+				row.createCell(0).setCellValue(String.valueOf(x.getOrDefault("ticketNo", x.getOrDefault("ticketId", ""))));
+				row.createCell(1).setCellValue(String.valueOf(x.getOrDefault("employeeName", "")));
+				row.createCell(2).setCellValue(String.valueOf(x.getOrDefault("department", "")));
+				row.createCell(3).setCellValue(String.valueOf(x.getOrDefault("expenditureType", "")));
+				row.createCell(4).setCellValue(String.valueOf(x.getOrDefault("amount", "")));
+				row.createCell(5).setCellValue(String.valueOf(x.getOrDefault("rejectedBy", "")));
+				row.createCell(6).setCellValue(String.valueOf(x.getOrDefault("rejectionLevel", "")));
+				row.createCell(7).setCellValue(String.valueOf(x.getOrDefault("reason", "")));
+			}
+		}
+		for (int i = 0; i < cols.length; i++) {
+			sh.autoSizeColumn(i);
+		}
 	}
 
 	private static BigDecimal claimAmountOrZero(ReimbursementTicketClaim c) {
@@ -2381,7 +2957,21 @@ public class ReimbursementTicketService {
 			return StringUtils.hasText(t.getHodName()) ? t.getHodName() : "Head of department";
 		}
 		if (ReimbursementTicketClaim.STATUS_LEVEL_REJECTED.equals(st)) {
-			return "Matrix approver";
+			try {
+				if (c.getClaimId() != null) {
+					ReimbursementTicketAuditLog log = auditLogRepository
+							.findTopByClaimIdAndActionOrderByCreatedOnDesc(c.getClaimId(), "MATRIX_LEVEL_DECISION");
+					if (log != null) {
+						String name = resolveAuditActorDisplayName(log.getActorEmpId(), log.getActorEmail());
+						if (StringUtils.hasText(name)) {
+							return name;
+						}
+					}
+				}
+			} catch (Exception ignore) {
+				// best-effort only
+			}
+			return "Approval level approver";
 		}
 		if (ReimbursementTicketClaim.STATUS_HR_REJECTED.equals(st)) {
 			String hrName = lookupEmployeeNameByEmail(workflowHrMail);
@@ -2465,11 +3055,25 @@ public class ReimbursementTicketService {
 			}
 
 			Map<String, Long> byCategory = new HashMap<>();
+			Map<String, Long> byClaimMode = new LinkedHashMap<>();
+			byClaimMode.put("Recurring Expense", 0L);
+			byClaimMode.put("POC - Project", 0L);
+			byClaimMode.put("Not specified", 0L);
 			for (ReimbursementTicket t : tickets) {
 				claimsForMetrics(t, filter).forEach(c -> {
 					String cat = c.getExpenditureType() != null ? c.getExpenditureType() : "Unknown";
 					byCategory.merge(cat, 1L, Long::sum);
+					if (c.getRecurringExpense() != null && c.getRecurringExpense() == 1) {
+						byClaimMode.merge("Recurring Expense", 1L, Long::sum);
+					} else if (c.getPocProject() != null && c.getPocProject() == 1) {
+						byClaimMode.merge("POC - Project", 1L, Long::sum);
+					} else {
+						byClaimMode.merge("Not specified", 1L, Long::sum);
+					}
 				});
+			}
+			if (byClaimMode.get("Not specified") == 0L) {
+				byClaimMode.remove("Not specified");
 			}
 
 			Map<String, BigDecimal> topClaimers = new LinkedHashMap<>();
@@ -2529,6 +3133,95 @@ public class ReimbursementTicketService {
 						out.remove("claimLines");
 						return out;
 					}).collect(Collectors.toList());
+
+			// Employee analytics: full list (not Top-N) with employee type, HOD, claim mode and project/client mapping.
+			Map<Long, Employee> employeeById = new HashMap<>();
+			List<Map<String, Object>> employeeAnalyticsRows = empBoard.values().stream()
+					.map(m -> {
+						Map<String, Object> out = new LinkedHashMap<>();
+						BigInteger empBig = (BigInteger) m.get("empId");
+						Long empId = empBig != null ? empBig.longValue() : null;
+						out.put("empId", empId);
+						out.put("fullName", m.get("fullName"));
+						out.put("department", m.get("department"));
+						out.put("ticketCount", m.get("ticketCount"));
+
+						// pick HOD from latest ticket in scope for this employee (best-effort)
+						String hodName = null;
+						String hodEmail = null;
+						if (empId != null) {
+							for (ReimbursementTicket t : tickets) {
+								if (t.getEmpId() != null && t.getEmpId().longValue() == empId.longValue()) {
+									if (StringUtils.hasText(t.getHodName())) {
+										hodName = t.getHodName();
+									}
+									if (StringUtils.hasText(t.getHodEmail())) {
+										hodEmail = t.getHodEmail();
+									}
+								}
+							}
+						}
+						out.put("hodName", hodName);
+						out.put("hodEmail", hodEmail);
+
+						// employee type from Employee master (UI label uses this field)
+						String employeeType = null;
+						try {
+							if (empId != null) {
+								Employee e = employeeById.computeIfAbsent(empId, k -> employeeRepository.findByEmpId(k));
+								employeeType = resolveConfiguredEmployeeType(e);
+							}
+						} catch (Exception ignore) {
+							// best-effort only
+						}
+						out.put("employeeType", employeeType);
+
+						long recurring = 0L;
+						long poc = 0L;
+						Map<String, Map<String, Object>> projMap = new LinkedHashMap<>();
+						if (empId != null) {
+							for (ReimbursementTicket t : tickets) {
+								if (t.getEmpId() == null || t.getEmpId().longValue() != empId.longValue()) {
+									continue;
+								}
+								for (ReimbursementTicketClaim c : claimsForMetrics(t, filter).collect(Collectors.toList())) {
+									if (c.getRecurringExpense() != null && c.getRecurringExpense() == 1) {
+										recurring++;
+									}
+									if (c.getPocProject() != null && c.getPocProject() == 1) {
+										poc++;
+									}
+									String pkey = c.getProjectId() != null ? String.valueOf(c.getProjectId())
+											: ("p:" + String.valueOf(c.getProjectName()));
+									if (!projMap.containsKey(pkey) && (c.getProjectId() != null || StringUtils.hasText(c.getProjectName()))) {
+										Map<String, Object> pr = new LinkedHashMap<>();
+										pr.put("projectId", c.getProjectId());
+										pr.put("projectName", StringUtils.hasText(c.getProjectName()) ? c.getProjectName()
+												: (c.getProjectId() != null ? "Project " + c.getProjectId() : "—"));
+										String cn = c.getClientName();
+										if (!StringUtils.hasText(cn) && c.getClientId() != null) {
+											// best-effort client name resolution (already used elsewhere in toViewMap)
+											try {
+												cn = clientsRepository.findById(c.getClientId()).map(Client::getClientName).orElse(null);
+											} catch (Exception ignore) {
+												// best-effort
+											}
+										}
+										pr.put("clientName", StringUtils.hasText(cn) ? cn : "—");
+										projMap.put(pkey, pr);
+									}
+								}
+							}
+						}
+						out.put("recurringClaims", recurring);
+						out.put("pocClaims", poc);
+						out.put("projects", new ArrayList<>(projMap.values()));
+						return out;
+					})
+					.sorted((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(
+							String.valueOf(a.getOrDefault("fullName", "")),
+							String.valueOf(b.getOrDefault("fullName", ""))))
+					.collect(Collectors.toList());
 
 			Timestamp cutoff = new Timestamp(System.currentTimeMillis() - 7L * 86400000L);
 			long aging = tickets.stream()
@@ -2819,12 +3512,14 @@ public class ReimbursementTicketService {
 			dash.put("partialApprovalTickets", partialApprovalTickets);
 			dash.put("pipelinePendingAmount", pipelinePendingAmt);
 			dash.put("employeeLeaderboard", employeeLeaderboard);
+			dash.put("employeeAnalyticsRows", employeeAnalyticsRows);
 			dash.put("pendingHodTickets", pendingHod);
 			dash.put("pendingApprovalTickets", pendingApproval);
 			dash.put("pendingHrTickets", pendingHr);
 			dash.put("pendingFinanceTickets", pendingFin);
 			dash.put("departmentSpending", byDept);
 			dash.put("claimsByExpenditureType", byCategory);
+			dash.put("claimsByClaimMode", byClaimMode);
 			dash.put("topClaimersByAmount", topClaimers);
 			dash.put("agingPendingTicketsOver7Days", aging);
 			dash.put("ticketStatusBreakdown", ticketStatusBreakdown);
@@ -2932,49 +3627,17 @@ public class ReimbursementTicketService {
 	}
 
 	private List<Map<String, Object>> buildApprovalLevelsForTicket(ReimbursementTicket t) {
-		if (matrixWorkflowService.usesMatrixWorkflow(t)) {
-			List<Map<String, Object>> matrixLevels = matrixWorkflowService.buildApprovalLevels(t);
-			if (!matrixLevels.isEmpty()) {
-				return matrixLevels;
-			}
+		List<Map<String, Object>> matrixLevels = matrixWorkflowService.buildApprovalLevels(t);
+		if (!matrixLevels.isEmpty()) {
+			return matrixLevels;
 		}
-		Long empId = t.getEmpId() != null ? t.getEmpId().longValue() : null;
-		ReimbursementApprovalMatrixDTO matrix = reimbursementApprovalMatrixService
-				.findMatchingMatrixForEmployee(empId, t.getDepartment());
 		List<Map<String, Object>> out = new ArrayList<>();
 		String hodName = t.getHodName();
 		String hrName = lookupEmployeeNameByEmail(workflowHrMail);
 		String finName = lookupEmployeeNameByEmail(workflowFinanceMail);
-		String s1 = aggregateLevel1ApproverStatus(t);
-		String s2 = aggregateLevel2ApproverStatus(t);
-		String s3 = aggregateLevel3ApproverStatus(t);
-
-		if (matrix == null || matrix.getLevels() == null || matrix.getLevels().isEmpty()) {
-			out.add(approvalLevelRow(1, "HOD", hodName, s1, false));
-			out.add(approvalLevelRow(2, "HR", hrName, s2, false));
-			out.add(approvalLevelRow(3, "Finance", finName, s3, true));
-			return out;
-		}
-
-		List<ReimbursementApprovalMatrixLevelDTO> cfg = matrix.getLevels();
-		for (int i = 0; i < cfg.size(); i++) {
-			ReimbursementApprovalMatrixLevelDTO lvl = cfg.get(i);
-			String label = reimbursementApprovalMatrixService.formatLevelLabel(lvl);
-			String name = matrixWorkflowService.plannedApproverDisplay(lvl, t);
-			String status = statusForConfiguredLevelBeyondThree(t);
-			if (i == 0 && !matrixWorkflowService.usesMatrixWorkflow(t)) {
-				name = hodName;
-				status = s1;
-			} else if (i == 1 && !matrixWorkflowService.usesMatrixWorkflow(t)) {
-				name = hrName;
-				status = s2;
-			} else if (i == 2 && !matrixWorkflowService.usesMatrixWorkflow(t)) {
-				name = finName;
-				status = s3;
-			}
-			out.add(approvalLevelRow(lvl.getOrder() != null ? lvl.getOrder() : i + 1, label, name, status, false));
-		}
-		out.add(approvalLevelRow(cfg.size() + 1, "Finance", finName, s3, true));
+		out.add(approvalLevelRow(1, "HOD", hodName, aggregateLevel1ApproverStatus(t), false));
+		out.add(approvalLevelRow(2, "HR", hrName, aggregateLevel2ApproverStatus(t), false));
+		out.add(approvalLevelRow(3, "Finance", finName, aggregateLevel3ApproverStatus(t), true));
 		return out;
 	}
 
@@ -2987,47 +3650,6 @@ public class ReimbursementTicketService {
 		row.put("approverStatus", StringUtils.hasText(approverStatus) ? approverStatus : "—");
 		row.put("financeStep", financeStep);
 		return row;
-	}
-
-	private String plannedApproverDisplay(ReimbursementApprovalMatrixLevelDTO lvl, ReimbursementTicket t) {
-		if (lvl == null) {
-			return "—";
-		}
-		if ("REPORTING_MANAGER".equals(lvl.getRouting()) && t.getEmpId() != null) {
-			Employee emp = employeeRepository.findByEmpId(t.getEmpId().longValue());
-			if (emp != null && emp.getManagerId() != null) {
-				Employee mgr = employeeRepository.findByEmpId(emp.getManagerId());
-				if (mgr != null && StringUtils.hasText(mgr.getName())) {
-					return mgr.getName();
-				}
-			}
-		}
-		if ("HOD_SUBMITTER_DEPT".equals(lvl.getRouting())) {
-			return t.getHodName();
-		}
-		if (lvl.getAssigneeEmployeeId() != null) {
-			Employee assignee = employeeRepository.findByEmpId(lvl.getAssigneeEmployeeId());
-			if (assignee != null && StringUtils.hasText(assignee.getName())) {
-				return assignee.getName();
-			}
-		}
-		if ("POOL_ANY_IN_SCOPE".equals(lvl.getRouting())) {
-			return "Approver pool";
-		}
-		if ("SPECIFIC_IN_SCOPE".equals(lvl.getRouting())) {
-			return "—";
-		}
-		return "—";
-	}
-
-	private String statusForConfiguredLevelBeyondThree(ReimbursementTicket t) {
-		if (ReimbursementTicket.STAGE_PAID.equals(t.getWorkflowStage())) {
-			return "Approved";
-		}
-		if (ReimbursementTicket.STAGE_REJECTED.equals(t.getWorkflowStage())) {
-			return "—";
-		}
-		return "Pending";
 	}
 
 	private void syncLegacyLevelFields(Map<String, Object> m, List<Map<String, Object>> approvalLevels) {
@@ -3101,6 +3723,9 @@ public class ReimbursementTicketService {
 		m.put("hodEmail", t.getHodEmail());
 		m.put("hodEmpId", t.getHodEmpId());
 		m.put("submittedOn", t.getSubmittedOn());
+		m.put("processingCycleYearMonth", t.getProcessingCycleYearMonth());
+		m.put("processingCycleLabel", reimbursementSubmissionSettingsService
+				.formatProcessingCycleLabel(t.getProcessingCycleYearMonth()));
 		m.put("financeRejectReason", t.getFinanceRejectReason());
 		m.put("paidOn", t.getPaidOn());
 		BigDecimal total = rowClaims.stream().map(ReimbursementTicketClaim::getAmount).filter(Objects::nonNull)
@@ -3132,13 +3757,21 @@ public class ReimbursementTicketService {
 					cm.put("toDate", c.getToDate());
 					cm.put("dateOfFood", c.getDateOfFood());
 					cm.put("purpose", c.getPurpose());
+					cm.put("businessJustification", c.getBusinessJustification());
+					cm.put("hodApproval", c.getHodApproval() != null && c.getHodApproval() == 1);
+					cm.put("preApprovalDate", c.getPreApprovalDate());
+					cm.put("preApprovalDocIds", parseDocIds(c.getPreApprovalDocIds()));
 					cm.put("travelMode", c.getTravelMode());
 					cm.put("distance", c.getDistance());
 					cm.put("vehicleType", c.getVehicleType());
 					cm.put("foodAllowanceType", c.getFoodAllowanceType());
 					cm.put("projectId", c.getProjectId());
 					cm.put("projectName", c.getProjectName());
+					cm.put("recurringExpense", c.getRecurringExpense() != null && c.getRecurringExpense() == 1);
+					cm.put("pocProject", c.getPocProject() != null && c.getPocProject() == 1);
 					cm.put("clientId", c.getClientId());
+					cm.put("reimbursementClientId", c.getReimbursementClientId());
+					cm.put("clientCategory", c.getClientCategory());
 					String resolvedClientName = c.getClientName();
 					if (!StringUtils.hasText(resolvedClientName) && c.getClientId() != null) {
 						try {
@@ -3148,6 +3781,10 @@ public class ReimbursementTicketService {
 						} catch (Exception ignore) {
 							// best-effort lookup
 						}
+					}
+					if (!StringUtils.hasText(resolvedClientName) && c.getReimbursementClientId() != null) {
+						resolvedClientName = reimbursementClientRepository.findById(c.getReimbursementClientId())
+								.map(ReimbursementClient::getClientName).orElse(resolvedClientName);
 					}
 					cm.put("clientName", resolvedClientName);
 					cm.put("docIds", parseDocIds(c.getDocIds()));

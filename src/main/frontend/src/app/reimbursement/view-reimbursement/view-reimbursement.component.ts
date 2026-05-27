@@ -67,6 +67,7 @@ export class ViewReimbursementComponent implements OnInit {
     'totalClaimAmount',
     'paidClaimAmount',
     'submittedOn',
+    'processingCycleLabel',
     'rejectionSummaryText',
     'blank',
     'blank'

@@ -26,6 +26,7 @@
                 <th mat-sort-header="totalClaimAmount|number">Total (₹)</th>
                 <th mat-sort-header="paidClaimAmount|number">Paid (₹)</th>
                 <th mat-sort-header="submittedOn|date">Submitted</th>
+                <th mat-sort-header="processingCycleLabel|string">Processing cycle</th>
                 <ng-container *ngFor="let col of tableLevelColumns; let li = index">
                   <th [mat-sort-header]="'level' + (li + 1) + 'ApproverName|string'">{{ approvalLevelApproverColumnTitle(col) }}</th>
                   <th [mat-sort-header]="'level' + (li + 1) + 'ApproverStatus|string'">{{ approvalLevelStatusColumnTitle(col) }}</th>
@@ -54,6 +55,7 @@
                   <ng-template #noPaidAmt><span class="text-muted">—</span></ng-template>
                 </td>
                 <td>{{ t.submittedOn | date:'medium' }}</td>
+                <td>{{ t.processingCycleLabel || '—' }}</td>
                 <ng-container *ngFor="let col of tableLevelColumns; let li = index">
                   <td>{{ approvalLevelCell(t, li, 'approverName') | rmbCamelDisplay }}</td>
                   <td>{{ approvalLevelCell(t, li, 'approverStatus') | rmbCamelDisplay }}</td>
@@ -268,6 +270,6 @@
 <ng-template #alert_message>
   <div class="modal-body text-center">
     <p>{{ alertMessage | rmbCamelDisplay }}</p>
-    <button type="button" class="btn btn-primary" (click)="cancelRequest()">ok</button>&nbsp;
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>&nbsp;
   </div>
 </ng-template>
