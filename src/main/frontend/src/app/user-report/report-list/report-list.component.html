@@ -506,8 +506,8 @@ firt share list of feature and then go one by one details, nothing to be missed
 
           <!-- Billable Type -->
          <div class="count-boxes">
-            <div class="count-box" *ngFor="let type of ['Bench', 'Fixed Cost', 'Shadow', 'TNM', 'InternalRNDProducts']"
-              [ngClass]="{'active-btn': selectedBillable[box] === type,'full-width': type === 'InternalRNDProducts'}"
+            <div class="count-box" *ngFor="let type of billableTypeBoxes"
+              [ngClass]="{'active-btn': selectedBillable[box] === type}"
               (click)="selectBillable(box, type, alert_message)">
               <span>
                 {{ type }}
@@ -540,6 +540,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   type === 'TNM' ? countData[box]?.tnm :
                   type === 'Shadow' ? countData[box]?.shadow :
                   type === 'Bench' ? countData[box]?.bench :
+                  type === 'Monitoring' ? countData[box]?.monitoring :
                   type === 'InternalRNDProducts' ? countData[box]?.internalRNDProducts :
                   0
                 }}

@@ -3,6 +3,7 @@ import { first } from 'rxjs/operators';
 import * as Highcharts from 'highcharts';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { ReimbursementService } from 'src/app/services/reimbursement.service';
+import { TravelDeskService } from 'src/app/services/travel-desk.service';
 import { displayApprovalLevelLabel } from '../rmb-approval-levels.helper';
 
 type DashTab =
@@ -14,7 +15,8 @@ type DashTab =
   | 'alerts'
   | 'clientTrend'
   | 'projectTrend'
-  | 'deptTrend';
+  | 'deptTrend'
+  | 'travelDesk';
 
 /** Overview grid cell: optional semantic classes for main value and subtitle */
 interface OverviewKpiCell {
@@ -34,8 +36,10 @@ interface OverviewKpiCell {
 export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
   currentUser: any;
   reimbursementDashboard: any = null;
+  travelDeskDashboard: any = null;
   filterOptions: any = null;
   loadError: string | null = null;
+  travelDeskLoadError: string | null = null;
   loading = false;
   lastLoadedAt: Date | null = null;
 
@@ -94,7 +98,8 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   constructor(
     private authenticationService: AuthenticationService,
-    private reimbursementService: ReimbursementService
+    private reimbursementService: ReimbursementService,
+    private travelDeskService: TravelDeskService
   ) {
     this.authenticationService.currentUser.subscribe((x) => {
       this.currentUser = x;
@@ -156,9 +161,9 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   get projectFilterPlaceholder(): string {
     if (this.filter.clientId !== '' && this.filter.clientId != null) {
-      return 'Search and select project for client';
+      return 'Select project for client';
     }
-    return 'Search and select project';
+    return 'Select project';
   }
 
   onMasterFilterChange(): void {
@@ -313,6 +318,61 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
       return '0';
     }
     return ((100 * p) / w).toFixed(1);
+  }
+
+  travelDeskKpiRow1(): OverviewKpiCell[] {
+    const d = this.travelDeskDashboard;
+    if (!d) {
+      return [];
+    }
+    return [
+      { l: 'Travel tickets', v: this.formatNumber(d.ticketCount), s: 'Scoped to current filters', vc: 'rmb-tone-neutral' },
+      { l: 'Requests', v: this.formatNumber(d.requestCount), s: 'Travel + hotel request lines', vc: 'rmb-tone-neutral' },
+      { l: 'Booked requests', v: this.formatNumber(d.bookedRequestCount), s: 'Lines with booked amount', vc: 'rmb-tone-success' },
+      { l: 'Total spend', v: '₹' + this.formatRupee(d.totalSpend), s: 'Sum of booked travel amounts', vc: 'rmb-tone-primary' }
+    ];
+  }
+
+  travelDeskKpiRow2(): OverviewKpiCell[] {
+    const d = this.travelDeskDashboard;
+    if (!d) {
+      return [];
+    }
+    return [
+      {
+        l: 'Avg spend / booked request',
+        v: '₹' + this.formatRupee(d.averageSpendPerBookedRequest),
+        s: 'Average booking amount',
+        vc: 'rmb-tone-info'
+      },
+      { l: 'Projects with spend', v: this.formatNumber(d.projectsWithSpend), s: 'Projects having booked travel cost', vc: 'rmb-tone-neutral' },
+      { l: 'Clients with spend', v: this.formatNumber(d.clientsWithSpend), s: 'Clients mapped to booked travel', vc: 'rmb-tone-neutral' },
+      {
+        l: 'Pending travel admin',
+        v: this.formatNumber(d.pendingAdminTickets),
+        s: 'Tickets waiting for booking',
+        vc: Number(d.pendingAdminTickets || 0) > 0 ? 'rmb-tone-warning' : 'rmb-tone-zero'
+      }
+    ];
+  }
+
+  travelWorkflowStageRows(): { stage: string; count: number }[] {
+    const rows = this.travelDeskDashboard?.workflowStageBreakdown || {};
+    return Object.keys(rows).map((stage) => ({ stage, count: Number(rows[stage] || 0) }));
+  }
+
+  travelProjectSpendRows(limit?: number): any[] {
+    const rows = Array.isArray(this.travelDeskDashboard?.projectSpendRows)
+      ? this.travelDeskDashboard.projectSpendRows
+      : [];
+    return limit != null ? rows.slice(0, limit) : rows;
+  }
+
+  travelClientSpendRows(limit?: number): any[] {
+    const rows = Array.isArray(this.travelDeskDashboard?.clientSpendRows)
+      ? this.travelDeskDashboard.clientSpendRows
+      : [];
+    return limit != null ? rows.slice(0, limit) : rows;
   }
 
   overviewKpiRow1(): OverviewKpiCell[] {
@@ -685,26 +745,45 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   async loadDashboard(): Promise<void> {
     this.loadError = null;
+    this.travelDeskLoadError = null;
     this.loading = true;
     this.reimbursementDashboard = null;
+    this.travelDeskDashboard = null;
     this.destroyCharts();
     if (this.currentUser) {
       this.dashboardFullScope = this.resolveDashboardFullScope(this.currentUser);
     }
     try {
       const body = this.buildFilterPayload();
-      const dash: any = await this.reimbursementService
-        .fetchReimbursementDashboard(body)
-        .pipe(first())
-        .toPromise();
+      const [dashRes, travelRes] = await Promise.allSettled([
+        this.reimbursementService.fetchReimbursementDashboard(body).pipe(first()).toPromise(),
+        this.travelDeskService.fetchTravelDeskDashboard(body).pipe(first()).toPromise()
+      ]);
+      const dash: any = dashRes.status === 'fulfilled' ? dashRes.value : null;
+      const travelDash: any = travelRes.status === 'fulfilled' ? travelRes.value : null;
       if (dash?.serviceStatus === 'Success') {
         this.reimbursementDashboard = dash.serviceResponse;
         this.filterOptions = dash.serviceResponse?.filterOptions || null;
         this.lastLoadedAt = new Date();
         this.lifecyclePage = 0;
-        setTimeout(() => this.renderCharts(), 0);
       } else {
-        this.loadError = dash?.serviceError || dash?.serviceResponse || 'Unable to load dashboard.';
+        this.loadError =
+          dash?.serviceError ||
+          dash?.serviceResponse ||
+          (dashRes.status === 'rejected' ? dashRes.reason?.message : null) ||
+          'Unable to load dashboard.';
+      }
+      if (travelDash?.serviceStatus === 'Success') {
+        this.travelDeskDashboard = travelDash.serviceResponse;
+      } else {
+        this.travelDeskLoadError =
+          travelDash?.serviceError ||
+          travelDash?.serviceResponse ||
+          (travelRes.status === 'rejected' ? travelRes.reason?.message : null) ||
+          'Unable to load travel desk analytics.';
+      }
+      if (!this.loadError) {
+        setTimeout(() => this.renderCharts(), 0);
       }
     } catch (e: any) {
       this.loadError = e?.message || 'Unable to load dashboard.';
@@ -794,11 +873,17 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   private renderCharts(): void {
     this.destroyCharts();
+    const tab = this.activeTab;
+    if (tab === 'travelDesk') {
+      if (this.travelDeskDashboard) {
+        this.renderTravelAnalyticsCharts(this.travelDeskDashboard);
+      }
+      return;
+    }
     const d = this.reimbursementDashboard;
     if (!d) {
       return;
     }
-    const tab = this.activeTab;
     if (tab === 'overview') {
       this.renderOverviewCharts(d);
     } else if (tab === 'rejection') {
@@ -813,6 +898,42 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     } else if (tab === 'approval') {
       this.renderApprovalCharts(d);
     }
+  }
+
+  private renderTravelAnalyticsCharts(d: any): void {
+    if (!d) {
+      return;
+    }
+    this.renderInsightSingleMetricLineChart(
+      'rmbDashTravelSpendTrend',
+      'Travel spend',
+      '#1B3461',
+      (d.monthlySpendPack?.categories || []) as string[],
+      ((d.monthlySpendPack?.spend || []) as any[]).map((n: any) => Number(n || 0)),
+      `${this.formatNumber(d.bookedRequestCount || 0)} booked request(s)`
+    );
+    this.renderTicketStatusDonut('rmbDashTravelTicketDonut', d.ticketStatusBreakdown || {});
+    this.renderTopDimensionColumnChart(
+      'rmbDashTravelProjectTop',
+      { rows: d.projectSpendRows || [] },
+      this.topInsightBarLimit,
+      'Spend (₹)',
+      'rgba(27,52,97,0.88)'
+    );
+    this.renderTopDimensionColumnChart(
+      'rmbDashTravelClientTop',
+      { rows: d.clientSpendRows || [] },
+      this.topInsightBarLimit,
+      'Spend (₹)',
+      'rgba(2,132,199,0.88)'
+    );
+    this.renderTopEmployeesColumnChart(
+      'rmbDashTravelTopEmp',
+      d.employeeSpendRows || [],
+      this.topInsightBarLimit,
+      'Spend (₹)',
+      'rgba(22,101,52,0.88)'
+    );
   }
 
   private renderApprovalCharts(d: any): void {
@@ -1545,7 +1666,13 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     return '—';
   }
 
-  private renderTopDimensionColumnChart(chartId: string, pack: any, maxItems: number): void {
+  private renderTopDimensionColumnChart(
+    chartId: string,
+    pack: any,
+    maxItems: number,
+    seriesName = 'Raised (₹)',
+    color = 'rgba(27,52,97,0.88)'
+  ): void {
     const rows = [...((pack?.rows as Record<string, unknown>[]) || [])];
     rows.sort((a, b) => Number(b['requested'] ?? 0) - Number(a['requested'] ?? 0));
     const top = rows.slice(0, maxItems);
@@ -1586,14 +1713,20 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
             dataLabels: { enabled: false }
           }
         },
-        series: [{ type: 'column', name: 'Raised (₹)', color: 'rgba(27,52,97,0.88)', data }],
+        series: [{ type: 'column', name: seriesName, color, data }],
         credits: { enabled: false },
         legend: { enabled: false }
       })
     );
   }
 
-  private renderTopEmployeesColumnChart(chartId: string, board: any[], maxItems: number): void {
+  private renderTopEmployeesColumnChart(
+    chartId: string,
+    board: any[],
+    maxItems: number,
+    seriesName = 'Raised (₹)',
+    color = 'rgba(22,101,52,0.88)'
+  ): void {
     const sorted = [...(board || [])].sort((a, b) => Number(b.requested ?? 0) - Number(a.requested ?? 0));
     const top = sorted.slice(0, maxItems);
     if (!top.length) {
@@ -1635,7 +1768,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
             dataLabels: { enabled: false }
           }
         },
-        series: [{ type: 'column', name: 'Raised (₹)', color: 'rgba(22,101,52,0.88)', data }],
+        series: [{ type: 'column', name: seriesName, color, data }],
         credits: { enabled: false },
         legend: { enabled: false }
       })
