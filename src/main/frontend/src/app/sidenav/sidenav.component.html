@@ -17,6 +17,7 @@
 
                     <ng-container *ngIf="group.items.length === 1">
                         <a class="sidenav-nav-link single-collapsed-link"
+                           (mouseenter)="onSingleItemHover()"
                            [routerLink]="firstTimeLogin === 'false' ? [group.items[0].tabRouteName] : null"
                            routerLinkActive="active"
                            [routerLinkActiveOptions]="{exact: false}"

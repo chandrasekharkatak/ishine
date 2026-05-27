@@ -1,9 +1,12 @@
 package com.apmosys.employeeportal.model;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +27,10 @@ public class TabMaster {
 	private String tabIcon;
 	
 	private Integer tabSequence;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "group_id")
+	private TabGroupMaster tabGroup;
 
 	public Long getTabId() {
 		return tabId;
@@ -59,8 +66,18 @@ public class TabMaster {
 
 	
 
+	public TabGroupMaster getTabGroup() {
+		return tabGroup; 
+		}
 	
+    public void setTabGroup(TabGroupMaster tabGroup) { 
+    	this.tabGroup = tabGroup; 
+    	}
 	
+
 	
+    public String getGroupIcon() {
+        return this.tabGroup != null ? this.tabGroup.getGroupIcon() : null;
+    }
 
 }

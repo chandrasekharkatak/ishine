@@ -85,30 +85,37 @@ private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing 
 
   // CHANGED: Consolidated onPanelMouseLeave, onGroupMouseLeave, and onGlobalMouseMove into a single clean engine
 @HostListener('document:mousemove', ['$event'])
-  onGlobalMouseMove(event: MouseEvent): void {
-    // Check if any panel is visible via hover or an explicit accordion expansion flag
-    const hasActivePanel = this.hoveredGroup || this.groupedMenuItems.some(g => g.isExpanded);
-    if (!hasActivePanel || this.collapsed) {
-      return;
+onGlobalMouseMove(event: MouseEvent): void {
+
+  const hasActivePanel =
+    this.hoveredGroup || this.groupedMenuItems.some(g => g.isExpanded);
+
+  if (!hasActivePanel || this.collapsed) {
+    return;
+  }
+
+  const target = event.target as HTMLElement;
+
+  const isInsidePanel = !!target.closest('.floating-group-panel');
+  const isInsideGroupTrigger = !!target.closest('.nav-group');
+
+  // CLOSE if mouse is in blank sidenav space
+  if (!isInsidePanel && !isInsideGroupTrigger) {
+
+    if (!this.closeTimer) {
+      this.closeTimer = setTimeout(() => {
+        this.closeAllFloatingPanels();
+      }, 120);
     }
 
-    const target = event.target as HTMLElement;
-    const nativeEl = this.elementRef.nativeElement;
-    const isInsideComponent = nativeEl.contains(target) || target.closest('.floating-group-panel');
+  } else {
 
-    if (!isInsideComponent) {
-      if (!this.closeTimer) {
-        this.closeTimer = setTimeout(() => {
-          this.closeAllFloatingPanels();
-        }, 120);
-      }
-    } else {
-      if (this.closeTimer) {
-        clearTimeout(this.closeTimer);
-        this.closeTimer = null;
-      }
+    if (this.closeTimer) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
     }
   }
+}
 
   // CHANGED: Closes panels immediately if clicking anywhere outside the navbar area
   @HostListener('document:click', ['$event'])
@@ -190,6 +197,10 @@ private closeTimer: any = null;//Tiny stopwatch to prevent menus from vanishing 
       }
       return true;
     });
+  }
+
+  onSingleItemHover(): void {
+  this.closeAllFloatingPanels();
   }
 
   private buildGroupedMenu(): void {
