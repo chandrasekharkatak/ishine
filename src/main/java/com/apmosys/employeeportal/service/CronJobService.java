@@ -1286,7 +1286,6 @@ public class CronJobService {
 	                List<CompOffLeave> compOffLeaveObj =
 	                        compOffLeaveRepository.findAllPendingApplicationByEmpId(
 	                                employee.getEmpId(),
-	                                cutoffDate,
 	                                compOffStatus
 	                        );
 
@@ -1305,7 +1304,8 @@ public class CronJobService {
 	                    LocalDate expirationDate =
 	                            compOffObj.getApproverDate().plusDays(policyExpirationDays);
 
-	                    if (expirationDate.equals(LocalDate.now())) {
+	                    if (expirationDate.isBefore(LocalDate.now()) ||
+    						expirationDate.isEqual(LocalDate.now())) {
 
 	                        Float deduction = compOffObj.getNoOfDays() != null
 	                                ? compOffObj.getNoOfDays()

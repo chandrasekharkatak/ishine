@@ -48,6 +48,15 @@ export class ConfigurationComponent implements OnInit, AfterViewInit, OnDestroy{
       });
       this.userMapping[feat.featureName.replaceAll(' ', '_').toLowerCase()] = (inActiveSubfeatures.length === feat.subFeatures.length) ? false : true;
     });
+    let reportsFeature: Feature = this.currentUser.userMapping.find(
+    userMap => userMap.featureName == 'Reports'
+  );
+  reportsFeature?.subFeatures?.forEach(sub => {
+    if(sub.subFeatureName.toLowerCase() === 'acl') {
+      this.userMapping['acl_config'] = sub.isActive;
+    }
+  });
+    console.log("Configuration userMapping keys:", this.userMapping);
     // console.log("userMapping ", this.userMapping);
     // console.log("timesheet_config ",this.userMapping.timesheet_config);
     // console.log(this.tabName, this.userMapping);

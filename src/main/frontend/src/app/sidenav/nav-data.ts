@@ -50,3 +50,6 @@ export const navbarData = [
         label: 'Helpdesk'
     },
 ]
+
+export const navbarItemData = [];
+
