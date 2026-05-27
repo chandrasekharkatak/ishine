@@ -516,18 +516,44 @@
 
 <!-- Reusable Alert Modal -->
 <ng-template #alert_message let-modal>
-  <div class="alert-modal-container">
-    
-    <div class="alert-modal-content">
-      <h3 class="alert-modal-title">{{ alertTitle }}</h3>
-      <p class="alert-modal-message" *ngIf="alertMessage">{{ alertMessage }}</p>
-      
-      <div class="alert-modal-actions">
-        <button type="button" class="btn btn-primary" (click)="modal.close()">
-          OK
-        </button>
-      </div>
+  <div style="
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    animation: modalFadeIn 0.2s ease-out;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+
+    <!-- Message -->
+    <div style="padding: 28px 32px 20px 32px; text-align: center;">
+      <p style="
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: #374151;
+        line-height: 1.6;">
+        {{ alertMessage }}
+      </p>
     </div>
+
+    <!-- Footer -->
+    <div style="padding: 0 32px 24px 32px; display: flex; justify-content: center;">
+      <button
+        type="button"
+        (click)="modal.close()"
+        style="
+          padding: 8px 32px;
+          background: #193d8a;
+          color: white; border: none;
+          border-radius: 40px;
+          font-size: 0.82rem; font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;"
+        onmouseover="this.style.background='#2563eb'"
+        onmouseout="this.style.background='#193d8a'">
+        OK
+      </button>
+    </div>
+
   </div>
 </ng-template>
 

@@ -1859,8 +1859,8 @@
 
 /* Add to your global styles.css or component CSS */
 .alert-modal .modal-dialog {
-  max-width: 420px;
-  margin: 20px auto 0 auto;
+  max-width: 320px;
+  margin: 120px auto 0 auto;
 }
 
 .alert-modal .modal-content {
