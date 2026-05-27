@@ -37,6 +37,8 @@ public class ReimbursementTicketClaim {
 	public static final String STATUS_PENDING_FINANCE = "PENDING_FINANCE";
 	public static final String STATUS_FINANCE_REJECTED = "FINANCE_REJECTED";
 	public static final String STATUS_PAID = "PAID";
+	/** Claim is queued until the ticket's processing cycle month opens for approval. */
+	public static final String STATUS_HELD_FOR_CYCLE = "HELD_FOR_CYCLE";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -84,6 +86,18 @@ public class ReimbursementTicketClaim {
 	@Column(name = "purpose", length = 4000)
 	private String purpose;
 
+	@Column(name = "business_justification", columnDefinition = "TEXT")
+	private String businessJustification;
+
+	@Column(name = "hod_approval", nullable = false)
+	private Integer hodApproval;
+
+	@Column(name = "pre_approval_date")
+	private java.sql.Date preApprovalDate;
+
+	@Column(name = "pre_approval_doc_ids", length = 2000)
+	private String preApprovalDocIds;
+
 	@Column(name = "project_id")
 	private Long projectId;
 
@@ -95,6 +109,18 @@ public class ReimbursementTicketClaim {
 
 	@Column(name = "client_name", length = 512)
 	private String clientName;
+
+	@Column(name = "reimbursement_client_id")
+	private Long reimbursementClientId;
+
+	@Column(name = "client_category", length = 64)
+	private String clientCategory;
+
+	@Column(name = "recurring_expense", nullable = false)
+	private Integer recurringExpense;
+
+	@Column(name = "poc_project", nullable = false)
+	private Integer pocProject;
 
 	@Column(name = "doc_ids", length = 2000)
 	private String docIds;

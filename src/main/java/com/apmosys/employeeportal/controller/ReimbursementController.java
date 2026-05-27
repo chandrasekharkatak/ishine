@@ -193,6 +193,12 @@ public class ReimbursementController {
 		return reimbursementSubmissionSettingsService.fetchSubmissionWindowStatus();
 	}
 
+	/** UAT / ops: run the same job as {@code ReimbursementHeldTicketReleaseScheduler} (daily 00:10). */
+	@PostMapping("/releaseHeldReimbursementTickets")
+	public ServiceResponse releaseHeldReimbursementTickets() {
+		return reimbursementTicketService.releaseHeldReimbursementTicketsManual();
+	}
+
 	@PostMapping("/saveReimbursementTicket")
 	public ServiceResponse saveReimbursementTicket(@RequestBody ReimbursementTicketSubmitRequestDTO body) {
 		return reimbursementTicketService.submitTicket(body);
