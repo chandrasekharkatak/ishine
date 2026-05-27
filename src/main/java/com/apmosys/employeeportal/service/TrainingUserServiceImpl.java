@@ -640,7 +640,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 	            }
 
 	            List<TrainingConsent> allConsents = trainingConsentRepository
-	                .findByEmpIdAndTrainingIdAndQuizId(empId, training.getTrainingId(), activeQuizId);
+	            		.findByEmpIdAndTrainingId(empId, training.getTrainingId());
 	            if (!allConsents.isEmpty()) {
 	                TrainingConsent mostRecentConsent = allConsents.get(0);
 	                if (mostRecentConsent != null && mostRecentConsent.getConsentTimestamp() != null) {
@@ -760,7 +760,7 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			dto.setNeedsAssignment(completionCount < calculateTotalFrequency(training));
 
 			// Get last completed date
-			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId, activeQuizId);
+			List<TrainingConsent> consents = trainingConsentRepository.findByEmpIdAndTrainingIdAndQuizId(empId, trainingId);
 			if (!consents.isEmpty()) {
 				dto.setLastCompletedOn(consents.get(0).getConsentTimestamp().toLocalDateTime().toString());
 			}
@@ -1004,7 +1004,6 @@ public class TrainingUserServiceImpl implements TrainingUserService {
 			Long activeQuizId = trainingQuizMappingRepository.findActiveSurveyIdByTraining(training.getTrainingId());
 
 			Optional<LockStatusDTO> evaluated = evaluateTrainingForLock(empId, training, activeQuizId);
-              System.out.println(" evaluated : "+evaluated.isPresent());
 			// Best case → immediately freeze
 			if (evaluated.isPresent() && evaluated.get().getIsLocked()) {
 				return evaluated.get();

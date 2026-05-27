@@ -248,6 +248,10 @@ import { MyTableComponent } from './helpers/my-table/my-table.component';
 import { RmgStatusCardsComponent } from './user-team/resource-management/rmg-status-cards/rmg-status-cards/rmg-status-cards.component';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { QuizSubmit } from './training/quiz-submit/quiz-submit.component';
+import { TrainingContentViewComponent } from './training-content-view/training-content-view.component';
+import { TrainingQuizConfigComponent } from './configuration/training-config/training-quiz-config/training-quiz-config.component';
+import { QuizBuilderComponent } from './configuration/training-config/training-quiz-config/quiz-builder/quiz-builder.component';
+import { QuizViewModalComponent } from './training-content-view/quiz-view-modal/quiz-view-modal.component';
 import { InterviewTrackerComponent } from './interview-tracker/interview-tracker.component';
 import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
 import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
@@ -442,6 +446,10 @@ registerLocaleData(localeGb);
     TeamAllTimesheetsTableComponent,
     TimesheetFormComponent,
     InfoTooltipComponent,
+    TrainingContentViewComponent,
+    TrainingQuizConfigComponent,
+    QuizBuilderComponent,
+    QuizViewModalComponent,
     QuizSubmit,
     InterviewTrackerComponent,
     InterviewListComponent,
