@@ -6,12 +6,13 @@ import { ReimbursementapprovalComponent } from 'src/app/reimbursement/reimbursem
 import { TotalReimbursementrequestComponent } from 'src/app/reimbursement/total-reimbursementrequest/total-reimbursementrequest.component';
 import { ViewReimbursementComponent } from 'src/app/reimbursement/view-reimbursement/view-reimbursement.component';
 import { ReimbursementDashboardComponent } from 'src/app/reimbursement/reimbursement-dashboard/reimbursement-dashboard.component';
+import { PendingReimbursementTicketGuard } from 'src/app/reimbursement/pending-reimbursement-ticket.guard';
 
 const routes: Routes = [{
   path: '', component: ReimbursementComponent,
   children: [
     { path: '', redirectTo: 'my-reimbursement', pathMatch: 'full' },
-    { path: 'my-reimbursement', component: MyReimbursementComponent },
+    { path: 'my-reimbursement', component: MyReimbursementComponent, canDeactivate: [PendingReimbursementTicketGuard] },
     { path: 'view-reimbursement', component: ViewReimbursementComponent },
     { path: 'approve-reimbursement', component: ReimbursementapprovalComponent },
     { path: 'reimbursement-dashboard', component: ReimbursementDashboardComponent },

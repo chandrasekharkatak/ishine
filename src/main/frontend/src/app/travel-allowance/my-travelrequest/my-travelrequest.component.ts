@@ -940,18 +940,18 @@ export class MyTravelrequestComponent implements OnInit {
         }
 
         if (this.selectedFile) {
-          try {
-            const fileFormData = new FormData();
+            try {
+              const fileFormData = new FormData();
             fileFormData.append('file', this.selectedFile);
             fileFormData.append('displayName', this.selectedFileName);
             fileFormData.append('uploadedBy', this.currentEmployeeInfo.empId);
             const uploadResponse11: any = await this.travelDesk
               .uploadKycDocument(fileFormData)
-              .pipe(first())
-              .toPromise();
+                .pipe(first())
+                .toPromise();
             if (uploadResponse11?.serviceStatus !== 'Success') {
               this.openAlertMod(template, `KYC upload failed: ${uploadResponse11?.serviceResponse || 'Unknown error'}`);
-              return;
+                return;
             }
             this.applyKycUploadResult(uploadResponse11);
             this.showPlannerDetails = true;
@@ -993,8 +993,8 @@ export class MyTravelrequestComponent implements OnInit {
           const legs = this.getCompleteMultiCityLegs();
           if (legs.length < 2) {
             this.openAlertMod(template, 'Enter at least two complete city segments for multi-city travel.');
-            return;
-          }
+              return;
+            }
           const payloads = legs.map((leg) => this.buildLinePayloadFromLeg(leg, newDocs));
           this.ticketLines.push(...payloads);
           this.propagateTicketKycToLines();
@@ -1057,8 +1057,8 @@ export class MyTravelrequestComponent implements OnInit {
   async beginEditDraftLine(index: number): Promise<void> {
     const ln = this.ticketLines[index];
     if (!ln) {
-      return;
-    }
+            return;
+          }
     this.restoringDraftLineEdit = true;
     try {
     this.pausedEditLineIndex = null;
@@ -1364,7 +1364,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   isDraftPdfPreview(): boolean {
     if (!this.draftDocPreview) {
-      return false;
+    return false;
     }
     return this.draftDocPreview.toString().includes('application/pdf');
   }
@@ -1924,7 +1924,7 @@ export class MyTravelrequestComponent implements OnInit {
   private syncPlannerFromFirstMultiCityLeg(): void {
     const first = this.multiCityLegs[0];
     if (!first) {
-      return;
+        return;
     }
     this.travelDeskObj.fromLocation = first.fromLocation;
     this.travelDeskObj.toLocation = first.toLocation;
@@ -2244,14 +2244,14 @@ export class MyTravelrequestComponent implements OnInit {
     options?: { preserveMode?: boolean; preserveClass?: boolean }
   ) {
     if (!options?.preserveMode) {
-      this.travelDeskObj.travelMode = '';
+    this.travelDeskObj.travelMode = '';
     }
     if (!options?.preserveClass) {
-      this.travelDeskObj.travelClass = '';
+    this.travelDeskObj.travelClass = '';
     }
     this.travelModelistByReason = [];
     if (!options?.preserveClass) {
-      this.travelClasslistByReason = [];
+    this.travelClasslistByReason = [];
     }
     if (this.isHotelTravelReasonName(selectedTravelReasons)) {
       void this.onGetHotelCategory();
@@ -2273,7 +2273,7 @@ export class MyTravelrequestComponent implements OnInit {
 
   async onModeChange(selectedTravelMode: string, options?: { preserveClass?: boolean }) {
     if (!options?.preserveClass) {
-      this.travelDeskObj.travelClass = '';
+    this.travelDeskObj.travelClass = '';
     }
     this.travelClasslistByReason = [];
     const mode = this.travelModelistByReason?.find((m: any) => m.modeType === selectedTravelMode);
@@ -2324,7 +2324,7 @@ export class MyTravelrequestComponent implements OnInit {
         .toPromise();
       if (response.serviceStatus === 'Success') {
         this.hotelSubCategorylist = (response.serviceResponse || []).filter(isActiveMasterRow);
-      } else {
+    } else {
         console.error('Failed to fetch hotel sub-categories:', response.serviceError || response.serviceResponse);
       }
     } catch (error) {

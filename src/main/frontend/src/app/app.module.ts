@@ -256,6 +256,7 @@ import { InterviewTrackerComponent } from './interview-tracker/interview-tracker
 import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
 import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
+import { ConfirmLeaveTicketModalComponent } from './reimbursement/confirm-leave-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
@@ -397,6 +398,7 @@ registerLocaleData(localeGb);
     TotalReimbursementrequestComponent,
     ReimbursementDashboardComponent,
     ReimbursementTicketModalComponent,
+    ConfirmLeaveTicketModalComponent,
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,

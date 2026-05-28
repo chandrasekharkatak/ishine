@@ -235,12 +235,6 @@
                                 <option *ngFor="let type of foodTypeList" [value]="type.foodTypeName">{{ type.foodTypeName }}</option>
                             </select>
                         </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
-                            <label class="rmb-label" for="dateFood"><span class="rmb-req">*</span>Fooding Date</label>
-                            <input class="form-control rmb-control" id="dateFood" [(ngModel)]="reimbursementObj.dateOfFood" type="date"
-                                [min]="claimDateMin" [max]="claimDateMax" autocomplete="off">
-                        </div>
                         </div>
                     </div>
 
@@ -380,7 +374,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
+                        <div class="col-md-6 col-lg-3 mb-3">
                             <label class="rmb-label" for="fromDate"><span class="rmb-req">*</span>From Date</label>
                             <input class="form-control rmb-control" id="fromDate" [(ngModel)]="reimbursementObj.fromDate"
                                 (ngModelChange)="onFromDateChange($event)" type="date" [min]="claimDateMin" [max]="claimDateMax"
@@ -389,7 +383,7 @@
                             <div *ngIf="invalidFromDate" class="rmb-field-error">Pick a date in the previous calendar month only (not the current month or earlier months).</div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
+                        <div class="col-md-6 col-lg-3 mb-3">
                             <label class="rmb-label" for="toDate2"><span class="rmb-req">*</span>To Date</label>
                             <input class="form-control rmb-control" id="toDate2" [(ngModel)]="reimbursementObj.toDate" type="date"
                                 (ngModelChange)="onToDateChange($event)"
