@@ -498,7 +498,7 @@
                     <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">6</span>
-                            <h3 class="rmb-claim-block__title"><i class="fa fa-paperclip mr-2" aria-hidden="true"></i>Supporting Documents</h3>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-paperclip mr-2" aria-hidden="true"></i>Mandatory Expense Bills</h3>
                         </div>
                         <div class="row rmb-claim-grid">
                         <div class="col-12 mb-3" *ngIf="editingClaimIndex !== null && documentsForEditingClaim().length > 0">
@@ -535,7 +535,7 @@
                         <div class="col-12 col-md-6 mb-3" *ngFor="let file of fileUploads; let i = index">
                             <label class="rmb-label" [for]="'fileUpload' + i">
                                 <span class="rmb-req" *ngIf="editingClaimIndex === null || !hasDocumentsOnEditingClaim()">*</span>
-                                Supporting Document {{ i + 1 }}
+                                Expense Bills {{ i + 1 }}
                                 <span class="text-muted font-weight-normal small" *ngIf="editingClaimIndex !== null && hasDocumentsOnEditingClaim() && i === 0"> — optional (add more proof)</span>
                             </label>
                             <div class="rmb-file-row">
