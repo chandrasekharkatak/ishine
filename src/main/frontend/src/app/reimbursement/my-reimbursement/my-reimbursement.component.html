@@ -333,9 +333,18 @@
                                 </div>
                                 <div class="col-md-6 mb-3" *ngIf="isProspectiveClientEntry()">
                                     <label class="rmb-label" for="rmbProspectiveClientName"><span class="rmb-req">*</span>Prospective New Client Name</label>
-                                    <input id="rmbProspectiveClientName" class="form-control rmb-control" type="text"
-                                        [(ngModel)]="reimbursementObj.prospectiveClientName" maxlength="500"
+                                    <input
+                                        id="rmbProspectiveClientName"
+                                        class="form-control rmb-control"
+                                        type="text"
+                                        [class.is-invalid]="prospectiveClientNameDuplicate"
+                                        [(ngModel)]="reimbursementObj.prospectiveClientName"
+                                        (ngModelChange)="onProspectiveClientNameChange($event)"
+                                        maxlength="500"
                                         name="prospectiveClientName" placeholder="Enter new client name" autocomplete="off" />
+                                    <div class="rmb-field-error mt-1" *ngIf="prospectiveClientNameDuplicate">
+                                        Client already exists. Please select it from the Client Name dropdown.
+                                    </div>
                                 </div>
                             </div>
                         </div>

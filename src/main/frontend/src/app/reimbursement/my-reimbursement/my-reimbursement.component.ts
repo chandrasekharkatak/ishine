@@ -380,6 +380,44 @@ vehicleTypeList:any[] = [];
     return this.reimbursementObj.clientPickerKey === this.PROSPECTIVE_CLIENT_PICKER_KEY;
   }
 
+  prospectiveClientNameDuplicate = false;
+
+  private normalizeClientName(name: string): string {
+    return String(name || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
+
+  /** Returns true if the entered prospective client name already exists in master or reimbursement client lists. */
+  private prospectiveClientAlreadyExists(name: string): boolean {
+    const n = this.normalizeClientName(name);
+    if (!n) {
+      return false;
+    }
+    // clientsForManualProject includes both master clients (M:*) and reimbursement clients (R:*).
+    return (this.clientsForManualProject || []).some((c) => {
+      if (!c || c.prospectiveEntry === true) {
+        return false;
+      }
+      const existing = this.normalizeClientName(String(c.clientName || ''));
+      return existing !== '' && existing === n;
+    });
+  }
+
+  async onProspectiveClientNameChange(value: string): Promise<void> {
+    this.reimbursementObj.prospectiveClientName = value;
+    if (!this.isProspectiveClientEntry()) {
+      this.prospectiveClientNameDuplicate = false;
+      return;
+    }
+    // Ensure client list is loaded (best-effort) so the check is accurate.
+    if (!this.clientsForManualProject || this.clientsForManualProject.length === 0) {
+      await this.loadClientsForManualProject(true);
+    }
+    this.prospectiveClientNameDuplicate = this.prospectiveClientAlreadyExists(value || '');
+  }
+
   manualProjectNameLabel(): string {
     return this.isPocProjectSelected() ? 'Project name (POC)' : 'Project name (Others)';
   }
@@ -414,6 +452,7 @@ vehicleTypeList:any[] = [];
   onManualClientPickerChange(): void {
     if (!this.isProspectiveClientEntry()) {
       this.reimbursementObj.prospectiveClientName = '';
+      this.prospectiveClientNameDuplicate = false;
     }
     const key = this.reimbursementObj.clientPickerKey;
     if (!key || key === this.PROSPECTIVE_CLIENT_PICKER_KEY) {
@@ -1137,6 +1176,13 @@ vehicleTypeList:any[] = [];
       if (this.isProspectiveClientEntry()) {
         if (!clientFields.prospectiveClientName) {
           this.openAlertMod(template, 'Enter the prospective new client name.');
+          return;
+        }
+        if (this.prospectiveClientAlreadyExists(clientFields.prospectiveClientName)) {
+          this.openAlertMod(
+            template,
+            'This client already exists. Please select the client from the dropdown instead of using Prospective New Client.'
+          );
           return;
         }
       } else if (clientFields.clientId == null && clientFields.reimbursementClientId == null) {
