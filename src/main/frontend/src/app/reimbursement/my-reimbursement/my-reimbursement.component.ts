@@ -1079,10 +1079,6 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, 'Please select an Expenditure Type.');
       return;
     }
-    if (!this.isClaimModeSelected()) {
-      this.openAlertMod(template, 'Please select Recurring Expense or POC - Project before filling the claim.');
-      return;
-    }
     if (!this.mappedProjectsForClaim.length) {
       this.openAlertMod(template, this.emptyProjectPickerHint());
       return;

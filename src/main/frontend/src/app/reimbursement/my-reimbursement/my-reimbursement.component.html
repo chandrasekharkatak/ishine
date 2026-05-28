@@ -204,9 +204,6 @@
                                     <span class="rmb-pill-toggle__text">POC - Project</span>
                                 </label>
                             </div>
-                            <div class="rmb-field-error mt-2" *ngIf="reimbursementObj.expenditureType && !isClaimModeSelected()">
-                                Please select <strong>Recurring Expense</strong> or <strong>POC - Project</strong> to continue.
-                            </div>
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Travel'">
@@ -248,7 +245,7 @@
                     </div>
 
                     <!-- 2. Project & client -->
-                    <div class="rmb-claim-block" [class.rmb-claim-block--gated]="reimbursementObj.expenditureType && !isClaimModeSelected()">
+                    <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">2</span>
                             <h3 class="rmb-claim-block__title"><i class="fa fa-briefcase mr-2" aria-hidden="true"></i>Project &amp; Client</h3>
@@ -358,7 +355,7 @@
                     </div>
 
                     <!-- 3. Amount & dates -->
-                    <div class="rmb-claim-block" [class.rmb-claim-block--gated]="reimbursementObj.expenditureType && !isClaimModeSelected()">
+                    <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">3</span>
                             <h3 class="rmb-claim-block__title"><i class="fa fa-calendar mr-2" aria-hidden="true"></i>Amount &amp; Dates</h3>
@@ -406,7 +403,7 @@
                     </div>
 
                     <!-- 4. Purpose & justification -->
-                    <div class="rmb-claim-block" [class.rmb-claim-block--gated]="reimbursementObj.expenditureType && !isClaimModeSelected()">
+                    <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">4</span>
                             <h3 class="rmb-claim-block__title"><i class="fa fa-align-left mr-2" aria-hidden="true"></i>Purpose &amp; Justification</h3>
@@ -432,7 +429,7 @@
                     </div>
 
                     <!-- 5. HOD pre-approval -->
-                    <div class="rmb-claim-block" [class.rmb-claim-block--gated]="reimbursementObj.expenditureType && !isClaimModeSelected()">
+                    <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">5</span>
                             <h3 class="rmb-claim-block__title"><i class="fa fa-check-square-o mr-2" aria-hidden="true"></i>HOD Pre-Approval</h3>
@@ -498,7 +495,7 @@
                     </div>
 
                     <!-- 6. Supporting documents -->
-                    <div class="rmb-claim-block" [class.rmb-claim-block--gated]="reimbursementObj.expenditureType && !isClaimModeSelected()">
+                    <div class="rmb-claim-block">
                         <div class="rmb-claim-block__head">
                             <span class="rmb-claim-block__step">6</span>
                             <h3 class="rmb-claim-block__title"><i class="fa fa-paperclip mr-2" aria-hidden="true"></i>Supporting Documents</h3>
