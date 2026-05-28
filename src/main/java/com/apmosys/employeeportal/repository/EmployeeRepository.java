@@ -5008,11 +5008,43 @@ public List<Object[]> fetchInActivePOListOfProject(
 			+ "		         FROM employee e \n"
 			+ "		         INNER JOIN job_role jr ON e.job_role_id = jr.job_role_id \n"
 			+ "		         INNER JOIN department d ON jr.dept_id = d.dept_id \n"
-			+ "		         WHERE e.employmentstatus != 'Inactive'  and e.emp_id not in (1,2,3,4,5,6)\n"
+			+ "		         WHERE e.employmentstatus != 'Inactive'\n"
 			+ "		         ORDER BY e.name",
 	        nativeQuery = true)
 	List<Object[]> getAllActiveEmployeesForAssignment();
 
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND (:searchName IS NULL OR :searchName = '' OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesForIndividuals(
+			@Param("searchName") String searchName,
+			Pageable pageable);
 
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "INNER JOIN JobRole jr ON jr.jobRoleId = e.jobRoleId " +
+	       "INNER JOIN Department d ON d.deptId = jr.deptId " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND d.deptId IN :deptIds " +
+	       "  AND (:searchName IS NULL OR :searchName = '' " +
+	       "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')) " +
+	       "       OR LOWER(d.name) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesByDepartmentIdsAndFilter(
+			@Param("deptIds") List<Long> deptIds,
+			@Param("searchName") String searchName, Pageable pageable);
+
+	@Query("SELECT new com.apmosys.employeeportal.dto.EmpIdAndNameDTO(e.empId,e.name) from Employee e " +
+	       "INNER JOIN Designation des ON des.designationId = e.designationId " +
+	       "WHERE e.employmentstatus <> 'InActive' " +
+	       "  AND e.empId NOT IN (1, 2, 3, 4, 5, 6) " +
+	       "  AND des.designationId IN :designationIds " +
+	       "  AND (:searchName IS NULL OR :searchName = '' " +
+	       "       OR LOWER(e.name) LIKE LOWER(CONCAT('%', :searchName, '%')) " +
+	       "       OR LOWER(des.designationName) LIKE LOWER(CONCAT('%', :searchName, '%')))")
+	Page<EmpIdAndNameDTO> findActiveEmployeesByDesignationIdsAndFilter(
+			@Param("designationIds") List<Long> designationIds,
+			@Param("searchName") String searchName,
+			Pageable pageable);
 }

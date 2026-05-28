@@ -16,6 +16,7 @@
   border-radius: 8px;
   overflow: hidden;
   font-size: 12px;
+  position: relative;
 }
 
 .rmb-dash__header {
@@ -177,6 +178,27 @@
   overflow-y: auto;
 }
 
+.rmb-dash__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 250, 252, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.rmb-dash__overlay-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
 .rmb-dash__kpi {
   background: #fff;
   border: 1px solid #e2e8f0;
@@ -191,6 +213,56 @@
 
 .rmb-dash__kpi--compact .rmb-dash__kpi-value {
   font-size: 15px;
+}
+
+.rmb-dash__kpi-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.rmb-dash__kpi-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+.rmb-dash__kpi-sub {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.rmb-dash__chart-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.rmb-dash__chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1b3461;
+}
+
+.rmb-dash__chart-sub {
+  font-size: 11px;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.rmb-dash__section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.rmb-dash__progress {
+  height: 8px;
+  background: #f1f5f9;
 }
 
 .rmb-dash__overview-approval .rmb-dash__chart-card {

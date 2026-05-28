@@ -36,6 +36,10 @@ public interface EmployeeTrainingMappingRepository
 			List<Integer> findAssignedTrainingIdsByEmpId(@Param("empId") Long empId);
 	
 		
+		@Modifying(clearAutomatically = true, flushAutomatically = true)
+		@Query("DELETE FROM EmployeeTrainingMapping m " +
+		       "WHERE m.trainingMaster.trainingId = :trainingId")
+		void deleteAllByTrainingId(@Param("trainingId") Integer trainingId);
 		
 		@Query("SELECT m.empId FROM EmployeeTrainingMapping m " +
 			       "WHERE m.trainingMaster.trainingId = :trainingId")

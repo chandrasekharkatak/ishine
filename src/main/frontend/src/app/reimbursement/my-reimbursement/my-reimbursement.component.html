@@ -7,7 +7,7 @@
                         <i class="fa fa-file-invoice-dollar"></i>
                     </div>
                     <div>
-                        <h1 class="rmb-title mb-1">Create reimbursement request</h1>
+                        <h1 class="rmb-title mb-1">Create Reimbursement Request</h1>
                         <p class="rmb-subtitle mb-0">
                           Build a ticket with one or more claims, then submit for
                           <strong>{{ approvalFlowSummary || 'configured approval' }}</strong>.
@@ -16,23 +16,22 @@
                 </div>
             </div>
             <div class="card-body rmb-card-body">
-                <div *ngIf="!submissionWindowAllowed" class="alert alert-warning mb-4" role="alert">
-                    <strong>Submissions closed for this month.</strong>
+                <div *ngIf="carriedToNextCycle && submissionWindowMessage" class="alert alert-warning mb-4 py-2 small" role="status">
+                    <strong>Queued for next cycle.</strong> {{ submissionWindowMessage }}
+                </div>
+                <div *ngIf="!carriedToNextCycle && submissionWindowMessage" class="alert alert-info mb-4 py-2 small" role="status">
                     {{ submissionWindowMessage }}
                 </div>
-                <div *ngIf="submissionWindowAllowed && submissionWindowMessage" class="alert alert-info mb-4 py-2 small" role="status">
-                    {{ submissionWindowMessage }}
-                </div>
-                <ng-container *ngIf="submissionWindowAllowed">
+                <ng-container>
                 <section class="rmb-section rmb-section--profile mb-4">
                     <div class="rmb-section-head">
-                        <h2 class="rmb-section-title"><i class="fa fa-id-card-o mr-2" aria-hidden="true"></i>Your details</h2>
+                        <h2 class="rmb-section-title"><i class="fa fa-id-card-o mr-2" aria-hidden="true"></i>Your Details</h2>
                         <span class="rmb-badge rmb-badge--muted">Read-only</span>
                     </div>
                     <p class="rmb-section-hint">Synced from your employee profile. Reach out to HR if anything needs updating.</p>
                     <div class="row">
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="rmb-label"><span class="rmb-req">*</span>Full name</label>
+                            <label class="rmb-label"><span class="rmb-req">*</span>Full Name</label>
                             <input type="text" class="form-control rmb-control rmb-control--readonly" name="fullName"
                                 [(ngModel)]="currentEmployeeInfo.name" disabled />
                         </div>
@@ -52,12 +51,12 @@
                                 [(ngModel)]="currentEmployeeInfo.departmentName" disabled />
                         </div>
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="rmb-label"><span class="rmb-req">*</span>HOD name</label>
+                            <label class="rmb-label"><span class="rmb-req">*</span>HOD Name</label>
                             <input type="text" class="form-control rmb-control rmb-control--readonly" name="hodRo"
                                 [(ngModel)]="currentUser.hodName" disabled />
                         </div>
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="rmb-label"><span class="rmb-req">*</span>Mobile no.</label>
+                            <label class="rmb-label"><span class="rmb-req">*</span>Mobile No.</label>
                             <input type="text" class="form-control rmb-control rmb-control--readonly" name="mobRo"
                                 [(ngModel)]="currentEmployeeInfo.mobileNo" disabled />
                         </div>
@@ -73,7 +72,7 @@
                                 <span class="rmb-draft-total">₹ {{ ticketTotalAmount() | number:'1.2-2' }}</span>
                             </div>
                             <p class="rmb-draft-copy mb-2">
-                                <strong>Ticket draft.</strong> Use <em>Add claim to ticket</em> for each expense claim, then <em>Submit ticket</em> once when ready.
+                                <strong>Ticket Draft.</strong> Use <em>Add Claim to Ticket</em> for each expense claim, then <em>Submit Ticket</em> once when ready.
                             </p>
                             <div class="table-responsive rmb-draft-table-wrap">
                                 <table class="table table-sm rmb-draft-table mb-0">
@@ -84,6 +83,8 @@
                                             <th class="rmb-draft-col-project">Project</th>
                                             <th class="text-right rmb-draft-col-amt">Amount</th>
                                             <th class="rmb-draft-col-purpose">Purpose</th>
+                                            <th class="rmb-draft-col-purpose">Justification</th>
+                                            <th class="text-center">HOD</th>
                                             <th class="text-center rmb-draft-col-docs">Docs</th>
                                             <th></th>
                                         </tr>
@@ -98,6 +99,11 @@
                                             </td>
                                             <td class="text-right rmb-draft-amt rmb-draft-col-amt">{{ c.amount | number:'1.2-2' }}</td>
                                             <td class="rmb-purpose-cell rmb-draft-col-purpose">{{ c.purpose | slice:0:60 }}{{ c.purpose?.length > 60 ? '…' : '' }}</td>
+                                            <td class="rmb-purpose-cell rmb-draft-col-purpose">{{ c.businessJustification | slice:0:60 }}{{ c.businessJustification?.length > 60 ? '…' : '' }}</td>
+                                            <td class="text-center text-nowrap">
+                                                <span class="rmb-chip rmb-chip--muted" *ngIf="!c.hodApproval">—</span>
+                                                <span class="rmb-chip" *ngIf="c.hodApproval || c.preApprovalDate" title="HOD pre-approval {{ c.preApprovalDate || '' }}">HOD</span>
+                                            </td>
                                             <td class="text-center rmb-draft-col-docs">
                                                 <span class="rmb-draft-doc-count">{{ docCountForClaim(c) }}</span>
                                                 <button *ngIf="docCountForClaim(c) > 0" type="button" class="btn btn-sm rmb-btn-doc-view"
@@ -124,19 +130,30 @@
 
                 <section class="rmb-section rmb-section--claim mb-2">
                     <div class="rmb-section-head">
-                        <h2 class="rmb-section-title"><i class="fa fa-plus-circle mr-2" aria-hidden="true"></i>Current claim</h2>
-                        <span class="rmb-badge rmb-badge--accent" *ngIf="editingClaimIndex === null">Fill &amp; add to ticket</span>
-                        <span class="rmb-badge rmb-badge--editing" *ngIf="editingClaimIndex !== null">Editing claim #{{ editingClaimIndex + 1 }}</span>
+                        <h2 class="rmb-section-title"><i class="fa fa-plus-circle mr-2" aria-hidden="true"></i>Current Claim</h2>
+                        <span class="rmb-badge rmb-badge--accent" *ngIf="editingClaimIndex === null">Fill &amp; Add to Ticket</span>
+                        <span class="rmb-badge rmb-badge--editing" *ngIf="editingClaimIndex !== null">Editing Claim #{{ editingClaimIndex + 1 }}</span>
                     </div>
-                    <p class="rmb-section-hint" *ngIf="editingClaimIndex === null">Complete this block for one expense, attach proof, then add it to your ticket. Repeat for multiple claims.</p>
-                    <p class="rmb-section-hint rmb-section-hint--editing" *ngIf="editingClaimIndex !== null">This draft claim is loaded below. Change any fields, add more files if needed, then <strong>Update claim in ticket</strong>. Existing documents stay attached unless you remove them from the Docs list.</p>
-                    <div class="row rmb-claim-grid">
-                        <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="rmb-label" for="rmbExpenditureType"><span class="rmb-req">*</span>Expenditure type</label>
+                    <p class="rmb-section-hint" *ngIf="editingClaimIndex === null">Work through each section below for one expense, then add it to your ticket. Repeat for multiple claims.</p>
+                    <p class="rmb-section-hint rmb-section-hint--editing" *ngIf="editingClaimIndex !== null">This draft claim is loaded below. Update any section, then <strong>Update Claim in Ticket</strong>.</p>
+
+                    <div class="rmb-claim-blocks">
+
+                    <!-- 1. Expense details -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">1</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-tag mr-2" aria-hidden="true"></i>Expense Details</h3>
+                        </div>
+                        <div class="row rmb-claim-grid">
+                        <div
+                            class="mb-3"
+                            [ngClass]="reimbursementObj.pocProject ? 'col-md-6 col-lg-6' : 'col-md-6 col-lg-6'">
+                            <label class="rmb-label" for="rmbExpenditureType"><span class="rmb-req">*</span>Expenditure Type</label>
                             <div class="rmb-project-field-row">
-                                <div
-                                    id="rmbExpenditureType"
-                                    class="rmb-select-wrap"
+                                    <div
+                                        id="rmbExpenditureType"
+                                        class="rmb-select-wrap rmb-control--filled"
                                     [class.rmb-select-wrap--disabled]="!expenditureTypeList?.length">
                                     <app-my-select
                                         name="rmbExpenditureTypeSelect"
@@ -162,18 +179,84 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-5 mb-3" *ngIf="reimbursementObj.expenditureTypeDescription">
-                            <label class="rmb-label" for="rmbExpTypeDesc">Expenditure description</label>
+                        <div
+                            class="mb-3"
+                            *ngIf="reimbursementObj.expenditureTypeDescription"
+                            [ngClass]="reimbursementObj.pocProject ? 'col-md-6 col-lg-6' : 'col-md-6 col-lg-6'">
+                            <label class="rmb-label" for="rmbExpTypeDesc">Expenditure Description</label>
                             <input id="rmbExpTypeDesc" type="text" class="form-control rmb-control rmb-control--readonly"
                                 [value]="reimbursementObj.expenditureTypeDescription" disabled readonly />
                         </div>
 
-                        <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="col-12 mb-3">
+                            <div class="rmb-toggle-row">
+                                <label class="rmb-pill-toggle" *ngIf="!reimbursementObj.pocProject" for="rmbRecurringExpense">
+                                    <input type="checkbox" id="rmbRecurringExpense" name="recurringExpense"
+                                        [(ngModel)]="reimbursementObj.recurringExpense" />
+                                    <span class="rmb-pill-toggle__text">Recurring Expense</span>
+                                </label>
+
+                                <label class="rmb-pill-toggle" *ngIf="!reimbursementObj.recurringExpense" for="rmbPocProject"
+                                    [class.rmb-pill-toggle--disabled]="isOthersProjectSelected()">
+                                    <input type="checkbox" id="rmbPocProject" name="pocProject"
+                                        [(ngModel)]="reimbursementObj.pocProject" (change)="onPocProjectChange()"
+                                        [disabled]="isOthersProjectSelected()" />
+                                    <span class="rmb-pill-toggle__text">POC - Project</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Travel'">
+                            <label class="rmb-label" for="travelModeSel"><span class="rmb-req">*</span>Travel Mode</label>
+                            <select class="form-control rmb-control" id="travelModeSel" [(ngModel)]="reimbursementObj.travelMode" required>
+                                <option value="" disabled selected>Select</option>
+                                <option *ngFor="let mode of travelModeList" [value]="mode.modeType">{{ mode.modeType }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
+                            <label class="rmb-label" for="vehType"><span class="rmb-req">*</span>Vehicle Type</label>
+                            <select class="form-control rmb-control" id="vehType" [(ngModel)]="reimbursementObj.vehicleType" required>
+                                <option value="" disabled selected>Select vehicle</option>
+                                <option *ngFor="let vehicle of vehicleTypeList" [value]="vehicle.vehicleTypeName">{{ vehicle.vehicleTypeName }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
+                            <label class="rmb-label" for="distKm"><span class="rmb-req">*</span>Distance (km)</label>
+                            <input type="number" class="form-control rmb-control" id="distKm" [(ngModel)]="reimbursementObj.distance"
+                                (ngModelChange)="onKilometersChange()" name="distance" min="1" [disabled]="!reimbursementObj.vehicleType" />
+                        </div>
+
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
+                            <label class="rmb-label" for="foodType"><span class="rmb-req">*</span>Food Allowance Type</label>
+                            <select class="form-control rmb-control" id="foodType" [(ngModel)]="reimbursementObj.foodAllowanceType" name="foodAllowanceType" required>
+                                <option value="" disabled selected>Select type</option>
+                                <option *ngFor="let type of foodTypeList" [value]="type.foodTypeName">{{ type.foodTypeName }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
+                            <label class="rmb-label" for="dateFood"><span class="rmb-req">*</span>Fooding Date</label>
+                            <input class="form-control rmb-control" id="dateFood" [(ngModel)]="reimbursementObj.dateOfFood" type="date"
+                                [min]="claimDateMin" [max]="claimDateMax" autocomplete="off">
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Project & client -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">2</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-briefcase mr-2" aria-hidden="true"></i>Project &amp; Client</h3>
+                        </div>
+                        <div class="row rmb-claim-grid">
+                        <div class="col-md-6 col-lg-6 mb-3" *ngIf="!reimbursementObj.pocProject">
                             <label class="rmb-label" for="rmbClaimProject"><span class="rmb-req">*</span>Project</label>
                             <div class="rmb-project-field-row">
                                 <div
                                     id="rmbClaimProject"
-                                    class="rmb-select-wrap"
+                                    class="rmb-select-wrap rmb-control--filled"
                                     [class.rmb-select-wrap--disabled]="!mappedProjectsForClaim.length">
                                     <app-my-select
                                         name="rmbClaimProject"
@@ -201,94 +284,89 @@
                             <p class="small text-muted mb-0 mt-1" *ngIf="!mappedProjectsForClaim.length">{{ emptyProjectPickerHint() }}</p>
                         </div>
 
-                        <div class="col-12 mb-2" *ngIf="isOthersProjectSelected()">
+                        <div class="col-12 mb-2" *ngIf="isManualProjectSelected()">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="rmb-label" for="rmbOthersProjectName"><span class="rmb-req">*</span>Project name (Others)</label>
-                                    <input id="rmbOthersProjectName" class="form-control rmb-control" type="text"
-                                        [(ngModel)]="reimbursementObj.othersProjectName" maxlength="500" name="othersProjectName"
+                                    <label class="rmb-label" for="rmbManualProjectName"><span class="rmb-req">*</span>{{ manualProjectNameLabel() }}</label>
+                                    <input id="rmbManualProjectName" class="form-control rmb-control" type="text"
+                                        [(ngModel)]="manualProjectNameModel" maxlength="500" name="manualProjectName"
                                         placeholder="Enter project name" autocomplete="off" />
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="rmb-label" for="rmbOthersClient"><span class="rmb-req">*</span>Client</label>
+                                    <label class="rmb-label" for="rmbManualClient">
+                                        <span class="rmb-req">*</span>Client Name
+                                        <span
+                                            class="rmb-info-tip"
+                                            tabindex="0"
+                                            role="img"
+                                            aria-label="Help"
+                                            aria-describedby="rmbProspectiveHelp">
+                                            <i class="fa fa-info-circle" aria-hidden="true"></i>
+                                            <span class="rmb-info-tip__bubble" id="rmbProspectiveHelp">
+                                                To add a client not in the list, open the dropdown and choose <strong>Prospective New Client</strong>, then type the name in the field that appears.
+                                                <br /><br />
+                                                The new client name is saved for reimbursement only (not in the master client list).
+                                            </span>
+                                        </span>
+                                    </label>
                                     <div class="rmb-project-field-row">
                                         <div
-                                            id="rmbOthersClient"
-                                            class="rmb-select-wrap"
-                                            [class.rmb-select-wrap--disabled]="!clientsForOthers.length">
+                                            id="rmbManualClient"
+                                            class="rmb-select-wrap rmb-control--filled"
+                                            [class.rmb-select-wrap--disabled]="!clientsForManualProject.length">
                                             <app-my-select
-                                                name="rmbOthersClientSelect"
-                                                [placeholder]="'Search and select client'"
-                                                [options]="clientsForOthers"
+                                                name="rmbManualClientSelect"
+                                                [placeholder]="'Search client or Prospective New Client'"
+                                                [options]="clientsForManualProject"
                                                 displayKey="clientName"
-                                                valueKey="clientId"
+                                                valueKey="pickerKey"
                                                 [wrapOptionLines]="true"
-                                                [(ngModel)]="reimbursementObj.othersClientId"
-                                                [disabled]="!clientsForOthers.length">
+                                                [(ngModel)]="reimbursementObj.clientPickerKey"
+                                                (selectionChange)="onManualClientPickerChange()"
+                                                [disabled]="!clientsForManualProject.length">
                                             </app-my-select>
                                         </div>
                                         <button
-                                            *ngIf="clientsForOthers.length && reimbursementObj.othersClientId != null && reimbursementObj.othersClientId !== ''"
+                                            *ngIf="clientsForManualProject.length && reimbursementObj.clientPickerKey"
                                             type="button"
                                             class="rmb-project-clear-btn"
-                                            (click)="clearOthersClient()"
+                                            (click)="clearManualProjectClient()"
                                             title="Clear client"
                                             aria-label="Clear selected client">
                                             <i class="fa fa-times-circle" aria-hidden="true"></i>
                                         </button>
                                     </div>
                                 </div>
+                                <div class="col-md-6 mb-3" *ngIf="isProspectiveClientEntry()">
+                                    <label class="rmb-label" for="rmbProspectiveClientName"><span class="rmb-req">*</span>Prospective New Client Name</label>
+                                    <input id="rmbProspectiveClientName" class="form-control rmb-control" type="text"
+                                        [(ngModel)]="reimbursementObj.prospectiveClientName" maxlength="500"
+                                        name="prospectiveClientName" placeholder="Enter new client name" autocomplete="off" />
+                                </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyClientForProject()">
+                        <div class="col-md-6 col-lg-6 mb-3" *ngIf="showReadonlyClientForProject()">
                             <label class="rmb-label" for="rmbReadonlyClient">Client</label>
                             <input id="rmbReadonlyClient" type="text" class="form-control rmb-control rmb-control--readonly"
                                 [value]="reimbursementObj.displayClientName || '—'" disabled readonly />
                         </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Travel'">
-                            <label class="rmb-label" for="travelModeSel"><span class="rmb-req">*</span>Travel mode</label>
-                            <select class="form-control rmb-control" id="travelModeSel" [(ngModel)]="reimbursementObj.travelMode" required>
-                                <option value="" disabled selected>Select</option>
-                                <option *ngFor="let mode of travelModeList" [value]="mode.modeType">{{ mode.modeType }}</option>
-                            </select>
                         </div>
+                    </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
-                            <label class="rmb-label" for="vehType"><span class="rmb-req">*</span>Vehicle type</label>
-                            <select class="form-control rmb-control" id="vehType" [(ngModel)]="reimbursementObj.vehicleType" required>
-                                <option value="" disabled selected>Select vehicle</option>
-                                <option *ngFor="let vehicle of vehicleTypeList" [value]="vehicle.vehicleTypeName">{{ vehicle.vehicleTypeName }}</option>
-                            </select>
+                    <!-- 3. Amount & dates -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">3</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-calendar mr-2" aria-hidden="true"></i>Amount &amp; Dates</h3>
                         </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
-                            <label class="rmb-label" for="distKm"><span class="rmb-req">*</span>Distance (km)</label>
-                            <input type="number" class="form-control rmb-control" id="distKm" [(ngModel)]="reimbursementObj.distance"
-                                (ngModelChange)="onKilometersChange()" name="distance" min="1" [disabled]="!reimbursementObj.vehicleType" />
-                        </div>
-
+                        <div class="row rmb-claim-grid">
                         <div class="col-12 mb-2" *ngIf="claimDateWindowHint">
                             <p class="small text-muted mb-0"><strong class="text-body">Allowed dates</strong> — {{ claimDateWindowHint }}</p>
                         </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
-                            <label class="rmb-label" for="foodType"><span class="rmb-req">*</span>Food allowance type</label>
-                            <select class="form-control rmb-control" id="foodType" [(ngModel)]="reimbursementObj.foodAllowanceType" name="foodAllowanceType" required>
-                                <option value="" disabled selected>Select type</option>
-                                <option *ngFor="let type of foodTypeList" [value]="type.foodTypeName">{{ type.foodTypeName }}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
-                            <label class="rmb-label" for="dateFood"><span class="rmb-req">*</span>Fooding date</label>
-                            <input class="form-control rmb-control" id="dateFood" [(ngModel)]="reimbursementObj.dateOfFood" type="date"
-                                [min]="claimDateMin" [max]="claimDateMax" autocomplete="off">
-                        </div>
-
                         <div class="col-md-6 col-lg-3 mb-3">
-                            <label class="rmb-label" for="amt"><span class="rmb-req">*</span>Total amount</label>
+                            <label class="rmb-label" for="amt"><span class="rmb-req">*</span>Total Amount</label>
                             <div class="rmb-input-affix">
                                 <span class="rmb-input-affix__prefix">₹</span>
                                 <input type="text" inputmode="decimal" autocomplete="off"
@@ -303,7 +381,7 @@
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
-                            <label class="rmb-label" for="fromDate"><span class="rmb-req">*</span>From date</label>
+                            <label class="rmb-label" for="fromDate"><span class="rmb-req">*</span>From Date</label>
                             <input class="form-control rmb-control" id="fromDate" [(ngModel)]="reimbursementObj.fromDate"
                                 (ngModelChange)="onFromDateChange($event)" type="date" [min]="claimDateMin" [max]="claimDateMax"
                                 (keydown)="onClaimDateKeydown($event)" (paste)="onClaimDatePaste($event)"
@@ -312,7 +390,7 @@
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType != 'Food'">
-                            <label class="rmb-label" for="toDate2"><span class="rmb-req">*</span>To date</label>
+                            <label class="rmb-label" for="toDate2"><span class="rmb-req">*</span>To Date</label>
                             <input class="form-control rmb-control" id="toDate2" [(ngModel)]="reimbursementObj.toDate" type="date"
                                 (ngModelChange)="onToDateChange($event)"
                                 [min]="reimbursementObj.fromDate || claimDateMin" [max]="claimDateMax"
@@ -321,7 +399,16 @@
                                 (click)="openClaimDatePicker($event)" (focus)="openClaimDatePicker($event)" autocomplete="off">
                             <div *ngIf="invalidToDate" class="rmb-field-error">Pick a To date on or after From date, within the previous calendar month only.</div>
                         </div>
+                        </div>
+                    </div>
 
+                    <!-- 4. Purpose & justification -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">4</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-align-left mr-2" aria-hidden="true"></i>Purpose &amp; Justification</h3>
+                        </div>
+                        <div class="row rmb-claim-grid">
                         <div class="col-12 col-lg-6 mb-3">
                             <label class="rmb-label" for="dayTypeDesc"><span class="rmb-req">*</span>Purpose</label>
                             <textarea class="form-control rmb-control rmb-textarea" id="dayTypeDesc" rows="3"
@@ -332,8 +419,91 @@
                                 placeholder="Describe the expense clearly for approvers…"></textarea>
                         </div>
 
+                        <div class="col-12 col-lg-6 mb-3">
+                            <label class="rmb-label" for="rmbBusinessJustification"><span class="rmb-req">*</span>Business Justification</label>
+                            <textarea class="form-control rmb-control rmb-textarea" id="rmbBusinessJustification" rows="3"
+                                [(ngModel)]="reimbursementObj.businessJustification"
+                                placeholder="Purpose along with business justification for this expense…"></textarea>
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. HOD pre-approval -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">5</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-check-square-o mr-2" aria-hidden="true"></i>HOD Pre-Approval</h3>
+                        </div>
+                        <p class="rmb-section-hint mb-2">
+                            Required for every claim. Upload email proof of approval from your assigned HOD only — not from other managers, HR, or colleagues.
+                        </p>
+                        <div class="rmb-hod-preapproval-banner mb-3" *ngIf="assignedHodName(); else hodMissingForPreApproval">
+                            <span class="rmb-hod-preapproval-banner__label">Your HOD (only this approver’s email is valid)</span>
+                            <strong class="rmb-hod-preapproval-banner__name">{{ assignedHodName() }}</strong>
+                            <span class="rmb-hod-preapproval-banner__email" *ngIf="assignedHodEmail()">{{ assignedHodEmail() }}</span>
+                        </div>
+                        <ng-template #hodMissingForPreApproval>
+                            <div class="alert alert-warning py-2 small mb-3" role="alert">
+                                HOD is not set on your profile. Contact HR before submitting — pre-approval must be from your assigned HOD.
+                            </div>
+                        </ng-template>
+                        <div class="row rmb-claim-grid">
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <label class="rmb-label" for="rmbPreApprovalDate"><span class="rmb-req">*</span>HOD Pre-Approval Date</label>
+                                <input class="form-control rmb-control" id="rmbPreApprovalDate" type="date"
+                                    [(ngModel)]="reimbursementObj.preApprovalDate"
+                                    [max]="preApprovalDateMax() || null"
+                                    (keydown)="onClaimDateKeydown($event)" (paste)="onClaimDatePaste($event)"
+                                    (click)="openClaimDatePicker($event)" (focus)="openClaimDatePicker($event)" autocomplete="off">
+                            </div>
+
+                            <div class="col-12 mb-3" *ngIf="editingClaimIndex !== null && documentsForEditingClaimPreApproval().length > 0">
+                                <label class="rmb-label">HOD Pre-Approval Emails on This Claim</label>
+                                <div class="rmb-edit-docs-panel">
+                                    <div *ngFor="let d of documentsForEditingClaimPreApproval(); let pi = index" class="rmb-edit-doc-row">
+                                        <span class="rmb-edit-doc-name" [title]="d.fileName">{{ d.fileName }}</span>
+                                        <span class="text-nowrap">
+                                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="previewDraftDocument(d.docId)">
+                                                <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6 mb-3" *ngFor="let preFile of preApprovalFileUploads; let pi = index">
+                                <label class="rmb-label" [for]="'preApprovalFile' + pi">
+                                    <span class="rmb-req" *ngIf="!hasPreApprovalDocumentsOnEditingClaim()">*</span>
+                                    HOD Pre-Approval Email {{ pi + 1 }}
+                                    <span class="text-muted font-weight-normal small" *ngIf="editingClaimIndex !== null && hasPreApprovalDocumentsOnEditingClaim() && pi === 0"> — optional (add more)</span>
+                                </label>
+                                <div class="rmb-file-row">
+                                    <input type="file" class="form-control rmb-control rmb-file-input" [id]="'preApprovalFile' + pi"
+                                        (change)="onPreApprovalFileChange($event, pi, alert_message)" />
+                                    <button type="button" class="btn rmb-btn-circle" (click)="addPreApprovalFileSlot()"
+                                        [hidden]="preApprovalFileUploads.length >= 6"
+                                        [disabled]="!preApprovalFileUploads[pi]?.file || preApprovalFileUploads.length >= 6"
+                                        title="Add another pre-approval file">
+                                        <i class="fa fa-plus" aria-hidden="true"></i>
+                                    </button>
+                                    <button *ngIf="pi > 0" type="button" class="btn rmb-btn-circle rmb-btn-circle--danger"
+                                        (click)="removePreApprovalFileSlot(pi)" title="Remove slot">
+                                        <i class="fa fa-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Supporting documents -->
+                    <div class="rmb-claim-block">
+                        <div class="rmb-claim-block__head">
+                            <span class="rmb-claim-block__step">6</span>
+                            <h3 class="rmb-claim-block__title"><i class="fa fa-paperclip mr-2" aria-hidden="true"></i>Mandatory Expense Bills</h3>
+                        </div>
+                        <div class="row rmb-claim-grid">
                         <div class="col-12 mb-3" *ngIf="editingClaimIndex !== null && documentsForEditingClaim().length > 0">
-                            <label class="rmb-label">Documents on this claim</label>
+                            <label class="rmb-label">Documents on This Claim</label>
                             <p class="small text-muted mb-2 mb-md-3">Preview or remove files already attached. You can add more proof in the slots below.</p>
                             <div class="rmb-edit-docs-panel">
                                 <div *ngFor="let d of documentsForEditingClaim(); let di = index" class="rmb-edit-doc-row">
@@ -366,7 +536,7 @@
                         <div class="col-12 col-md-6 mb-3" *ngFor="let file of fileUploads; let i = index">
                             <label class="rmb-label" [for]="'fileUpload' + i">
                                 <span class="rmb-req" *ngIf="editingClaimIndex === null || !hasDocumentsOnEditingClaim()">*</span>
-                                Supporting document / GST bill {{ i + 1 }}
+                                Expense Bills {{ i + 1 }}
                                 <span class="text-muted font-weight-normal small" *ngIf="editingClaimIndex !== null && hasDocumentsOnEditingClaim() && i === 0"> — optional (add more proof)</span>
                             </label>
                             <div class="rmb-file-row">
@@ -383,7 +553,10 @@
                                 </button>
                             </div>
                         </div>
+                        </div>
                     </div>
+
+                    </div><!-- /.rmb-claim-blocks -->
                 </section>
 
                 <div class="rmb-actions">
@@ -392,15 +565,15 @@
                             <i class="fa fa-undo" aria-hidden="true"></i><span>Reset</span>
                         </button>
                         <button *ngIf="editingClaimIndex !== null" type="button" class="btn rmb-btn rmb-btn--ghost" (click)="cancelEditDraftClaim()">
-                            <i class="fa fa-times" aria-hidden="true"></i><span>Cancel edit</span>
+                            <i class="fa fa-times" aria-hidden="true"></i><span>Cancel Edit</span>
                         </button>
                         <button type="button" class="btn rmb-btn rmb-btn--secondary" (click)="addClaimToTicket(alert_messagevalidation)">
                             <i class="fa" [ngClass]="editingClaimIndex === null ? 'fa-list-ul' : 'fa-check'" aria-hidden="true"></i>
-                            <span *ngIf="editingClaimIndex === null">Add claim to ticket</span>
-                            <span *ngIf="editingClaimIndex !== null">Update claim in ticket</span>
+                            <span *ngIf="editingClaimIndex === null">Add Claim to Ticket</span>
+                            <span *ngIf="editingClaimIndex !== null">Update Claim in Ticket</span>
                         </button>
                         <button *ngIf="ticketClaims.length > 0" type="button" class="btn rmb-btn rmb-btn--primary" (click)="submitEntireTicket(alert_messagevalidation)">
-                            <i class="fa fa-paper-plane" aria-hidden="true"></i><span>Submit ticket</span>
+                            <i class="fa fa-paper-plane" aria-hidden="true"></i><span>Submit Ticket</span>
                         </button>
                     </div>
                 </div>
@@ -447,7 +620,7 @@
             <table class="table table-sm rmb-docs-list-table mb-0">
                 <thead>
                     <tr>
-                        <th>File name</th>
+                        <th>File Name</th>
                         <th class="text-right">Actions</th>
                     </tr>
                 </thead>

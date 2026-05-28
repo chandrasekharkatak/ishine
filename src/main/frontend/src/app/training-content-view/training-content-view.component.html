@@ -1,0 +1,390 @@
+<ng-template #content_preview_modal let-modal>
+  <div class="modal-content" [class.fullscreen]="isFullscreen">
+    <!-- Header -->
+    <div class="modal-header" style="background-color: #193d8a; color: white;">
+      <h5 class="modal-title">
+        <i class="fas mr-2" [ngClass]="{
+          'fa-graduation-cap': !isAdminMode,
+          'fa-eye': isAdminMode
+        }"></i>
+        {{ contentName }}
+        <span *ngIf="!isAdminMode && status" 
+              class="badge ml-2 px-2 py-1 shadow-sm" 
+              [ngClass]="{
+                'badge-success': status === 'COMPLETED',
+                'badge-warning': status === 'PENDING',
+                'badge-info': status === 'SKIPPED',
+                'badge-secondary': !['COMPLETED', 'PENDING', 'SKIPPED'].includes(status)
+              }">
+          {{ status }}
+        </span>
+      </h5>
+      <div class="d-flex align-items-center">
+        <!-- Fullscreen Toggle Button -->
+        <button type="button" 
+                class="btn btn-sm btn-header-custom btn-header-info mr-2"
+                (click)="toggleFullscreen()" 
+                [title]="isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'">
+          <i class="fas" [ngClass]="isFullscreen ? 'fa-compress' : 'fa-expand'"></i>
+        </button>
+        <!-- Close Button -->
+        <button type="button" class="btn btn-sm btn-header-custom btn-header-danger" (click)="close()">
+          <i class="fas fa-times mr-1"></i> Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body-wrapper" [class.fullscreen-mode]="isFullscreen">
+
+      <!-- Main Content Layout -->
+      <div class="two-panel-layout">
+
+        <!-- Left Sidebar (Tabs & Actions) - Employee Mode Only -->
+        <div class="left-sidebar" *ngIf="!isAdminMode">
+          <!-- Content View Tab -->
+          <div class="sidebar-tab"
+               [class.active]="activeTab === 'content'"
+               [class.disabled]="activeTab === 'quiz' && !quizAttempted && !isAlreadySubmitted && !formSubmitted"
+               (click)="onContentTabClick()">
+            <i class="fas fa-file-alt"></i>
+            <span>Content View</span>
+          </div>
+
+          <!-- Go to Quiz Tab -->
+          <div class="sidebar-tab"
+               *ngIf="hasQuiz"
+               [class.active]="activeTab === 'quiz'"
+               [class.disabled]="!canSwitchToQuiz()"
+               (click)="onQuizTabClick()">
+            <i class="fas fa-question-circle"></i>
+            <span *ngIf="!quizAttempted && !isAlreadySubmitted">Go to Quiz</span>
+            <span *ngIf="quizAttempted || isAlreadySubmitted">View Response</span>
+            <span class="quiz-badge" *ngIf="quizAttempted || isAlreadySubmitted">
+              <i class="fas fa-check-circle"></i>
+            </span>
+          </div>
+
+          <!-- Sidebar Footer (Elements grouped at the bottom) -->
+          <div class="sidebar-footer mt-auto">
+            
+            <!-- 1. Update Tip Message -->
+            <div class="sidebar-tip-msg mb-3" *ngIf="updateTipMessage">
+              <div class="tip-card p-2">
+                <i class="fas fa-lightbulb"></i>
+                <span>{{ updateTipMessage }}</span>
+              </div>
+            </div>
+
+            <!-- 2. Timer Display -->
+            <div class="sidebar-timer mb-3" *ngIf="activeTab === 'content' && showTimer && minViewTimeMinutes > 0 && (status === 'PENDING' || status === 'SKIPPED') && !hasSeenContent">
+              <div class="timer-compact">
+                <div class="timer-compact-label">Time Elapsed</div>
+                <div class="timer-compact-value" [ngClass]="{'timer-complete': minTimeReached}">
+                  {{ elapsedTimeDisplay }}
+                </div>
+                <div class="progress" *ngIf="!minTimeReached">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated bg-warning" 
+                       role="progressbar" 
+                       [style.width.%]="(elapsedTime / (minViewTimeMinutes * 60)) * 100">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Actions -->
+            <div class="sidebar-actions" *ngIf="activeTab === 'content' && canSubmitConsent()">
+              <button class="btn btn-success sidebar-action-btn"
+                      [disabled]="(minViewTimeMinutes > 0 && !minTimeReached) || (isExternalLink && !hasVisitedLink)"
+                      (click)="onSubmitConsent()">
+                <i class="fas fa-check-circle"></i> Submit Consent
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Panel (Main Content) -->
+        <div class="right-panel">
+
+          <!-- ==================== CONTENT VIEW ==================== -->
+          <div class="content-view-panel" *ngIf="activeTab === 'content'">
+
+          <!-- Alert Messages (for employee view) -->
+          <div *ngIf="!isAdminMode">
+            <!-- Pending/Deadline Alert -->
+            <div class="alert alert-warning mb-3" 
+                 *ngIf="status === 'PENDING' && !hasSeenContent">
+              <i class="fas fa-exclamation-triangle mr-2"></i>
+              <strong>Required Training:</strong> Please complete this training.
+            </div>
+
+            <!-- Completed Alert -->
+            <div class="alert alert-success d-flex align-items-center justify-content-between mb-3 shadow-sm" 
+                 *ngIf="status === 'COMPLETED' && !isCompletedAlertClosed">
+              <div>
+                <i class="fas fa-check-circle mr-2"></i>
+                <strong>Completed:</strong> You have already completed this training.
+                You can review it again.
+              </div>
+              <!-- Minimal SaaS Native Close Button -->
+              <button type="button" class="btn btn-sm btn-light p-1 ml-3" 
+                      style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px;"
+                      (click)="isCompletedAlertClosed = true" aria-label="Close">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <!-- Skipped Alert -->
+            <div class="alert alert-warning mb-3" 
+                 *ngIf="status === 'SKIPPED'">
+              <i class="fas fa-info-circle mr-2"></i>
+              <strong>Skipped Training:</strong> You can still complete it.
+            </div>
+          </div>
+
+          <!-- Admin Info -->
+          <div *ngIf="isAdminMode && !isAdminAlertClosed" class="alert alert-info d-flex align-items-start justify-content-between mb-3 shadow-sm">
+            <div>
+              <i class="fas fa-info-circle mr-2"></i>
+              <strong>Preview Mode:</strong> This is how employees will see the content.
+              <span *ngIf="contentType === 'PDF'" class="d-block mt-1 small">
+                <i class="fas fa-lightbulb"></i> Tip: Click on the left/right side of the image to navigate slides
+              </span>
+            </div>
+            <!-- Minimal SaaS Native Close Button -->
+            <button type="button" class="btn btn-sm btn-light p-1 ml-3" 
+                    style="width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0;"
+                    (click)="isAdminAlertClosed = true" aria-label="Close">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Content Display Card -->
+          <div class="card mb-3 content-card">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ contentName || 'Content Preview' }}</strong>
+                <span class="badge badge-info ml-2">{{ contentType }}</span>
+              </div>
+              <div *ngIf="!['LINK', 'VIDEO', 'AUDIO'].includes(contentType)">
+                <!-- <button class="btn btn-sm btn-outline-primary mr-1" (click)="downloadFile()" title="Download">
+                  <i class="fas fa-download"></i>
+                </button> -->
+                <!-- <button class="btn btn-sm btn-outline-secondary" (click)="openInNewTab()" title="Open in New Tab">
+                  <i class="fas fa-external-link-alt"></i>
+                </button> -->
+              </div>
+            </div>
+            <div class="card-body">
+
+              <!-- External Link -->
+              <div *ngIf="contentType === 'LINK'" class="text-center">
+                <a [href]="previewUrl" 
+                   target="_blank" 
+                   class="btn btn-primary btn-lg" 
+                   (click)="onExternalLinkClick()"
+                   style="text-decoration: none;">
+                  <i class="fas fa-external-link-alt mr-2"></i>
+                  Visit Training Link
+                </a>
+                <div *ngIf="!isAdminMode && !hasVisitedLink" class="mt-2">
+                  <small class="text-warning">
+                    <i class="fas fa-info-circle"></i> Please click the link above to visit the training
+                  </small>
+                </div>
+                <div *ngIf="!isAdminMode && hasVisitedLink" class="mt-2">
+                  <small class="text-success">
+                    <i class="fas fa-check-circle"></i> Link visited
+                  </small>
+                </div>
+              </div>
+
+              <!-- Video -->
+              <div *ngIf="contentType === 'VIDEO' && previewUrl" class="text-center">
+                <video [src]="previewUrl" 
+                       controls 
+                       [controlsList]="'nodownload noplaybackrate'"
+                       disablePictureInPicture
+                       style="max-width: 100%; max-height: 500px;"
+                       class="mb-3">
+                  Your browser does not support video playback.
+                </video>
+              </div>
+
+              <!-- Audio -->
+              <div *ngIf="contentType === 'AUDIO' && previewUrl" class="text-center">
+                <audio [src]="previewUrl" 
+                       controls 
+                       style="width: 100%;"
+                       class="mb-3">
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
+
+              <!-- Image -->
+              <div *ngIf="contentType === 'IMAGE' && previewUrl" class="text-center">
+                <img [src]="previewUrl" 
+                     (error)="onPreviewError($event)" 
+                     alt="Image Preview" 
+                     class="img-fluid"
+                     style="max-height: 500px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+              </div>
+
+              <!-- PDF -->
+              <div *ngIf="contentType === 'PDF'" class="text-center">
+                <!-- Loading Spinner -->
+                <div *ngIf="isLoadingPreview" class="spinner-border text-primary mb-3" role="status">
+                  <span class="sr-only">Loading slide...</span>
+                </div>
+
+                <!-- Slide Image -->
+                <div *ngIf="!isLoadingPreview && previewImageBlob">
+                  <!-- Top Navigation Bar -->
+                  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <div class="nav-buttons-left">
+                      <button class="btn btn-sm btn-outline-primary mr-2" 
+                              (click)="goToSlide(0)" 
+                              [disabled]="currentSlideIndex === 0"
+                              title="First Slide">
+                        <i class="fas fa-angle-double-left"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-primary" 
+                              (click)="previousSlide()" 
+                              [disabled]="currentSlideIndex === 0"
+                              title="Previous Slide">
+                        <i class="fas fa-chevron-left"></i>
+                      </button>
+                    </div>
+
+                    <div class="d-flex align-items-center slide-info">
+                      <span class="badge badge-info badge-pill px-3 py-2 mr-2">
+                        Slide {{ currentSlideIndex + 1 }} of {{ totalSlides }}
+                      </span>
+                      <div class="slide-progress" style="width: 200px;">
+                        <div class="progress" style="height: 8px;">
+                          <div class="progress-bar bg-info" 
+                               [style.width.%]="((currentSlideIndex + 1) / totalSlides) * 100">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="nav-buttons-right">
+                      <button class="btn btn-sm btn-outline-primary" 
+                              (click)="nextSlide()" 
+                              [disabled]="currentSlideIndex === totalSlides - 1"
+                              title="Next Slide">
+                        <i class="fas fa-chevron-right"></i>
+                      </button>
+                      <button class="btn btn-sm btn-outline-primary ml-2" 
+                              (click)="goToSlide(totalSlides - 1)" 
+                              [disabled]="currentSlideIndex === totalSlides - 1"
+                              title="Last Slide">
+                        <i class="fas fa-angle-double-right"></i>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Slide Image with Click Navigation -->
+                  <div class="slide-main-container">
+                    <!-- Left/Right Navigation Overlays -->
+                    <div class="slide-nav left" (click)="previousSlide()" title="Previous Slide"></div>
+                    <div class="slide-nav right" (click)="nextSlide()" title="Next Slide"></div>
+                    
+                    <img [src]="previewImageBlob" 
+                         (error)="onPreviewError($event)" 
+                         (click)="onImageClick($event)"
+                         alt="Slide {{ currentSlideIndex + 1 }}" 
+                         class="slide-image-full img-fluid">
+                  </div>
+                </div>
+
+                <!-- No Slides Available -->
+                <div *ngIf="!isLoadingPreview && !previewImageBlob && totalSlides === 0" 
+                     class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle mr-2"></i>
+                  No slides available
+                </div>
+
+                <!-- PDF Parsing Error/Fallback -->
+                <div *ngIf="!isLoadingPreview && !previewImageBlob && totalSlides === 0 && file" 
+                     class="mt-3">
+                  <button class="btn btn-primary" (click)="downloadFile()">
+                    <i class="fas fa-download mr-2"></i> Download PDF
+                  </button>
+                </div>
+              </div>
+
+              <!-- PPT/PPTX - Simplified view or fallback -->
+              <div *ngIf="contentType === 'PPT' || contentType === 'PPTX'" class="text-center">
+                <div class="ppt-preview-icon mb-3">
+                  <i class="fas fa-file-powerpoint fa-5x text-primary"></i>
+                </div>
+                <h5>{{ contentName }}</h5>
+                <p class="text-muted mb-3">
+                  <span class="badge badge-info">{{ contentType }}</span>
+                </p>
+                <div class="mt-3">
+                  <button class="btn btn-primary mr-2" (click)="downloadFile()">
+                    <i class="fas fa-download mr-2"></i> Download
+                  </button>
+                  <button class="btn btn-outline-primary" (click)="openInNewTab()">
+                    <i class="fas fa-external-link-alt mr-2"></i> Open in New Tab
+                  </button>
+                </div>
+              </div>
+
+              <!-- Other/Unknown Content Types -->
+              <div *ngIf="!['LINK', 'VIDEO', 'AUDIO', 'IMAGE', 'PDF', 'PPT', 'PPTX'].includes(contentType) && previewUrl" 
+                   class="text-center">
+                <button class="btn btn-primary btn-lg" (click)="downloadFile()">
+                  <i class="fas fa-download mr-2"></i> Download Content
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Help Text (for employee view) -->
+          <div *ngIf="!isAdminMode && (status === 'PENDING' || status === 'SKIPPED') && !showTimer"
+               class="alert alert-info mt-4 small">
+            <i class="fas fa-info-circle mr-2"></i>
+            <strong>Note:</strong>
+            <span *ngIf="minViewTimeMinutes > 0" class="d-block">
+              You must view the content for at least {{ minViewTimeMinutes }} minute{{ minViewTimeMinutes > 1 ? 's' : '' }} before submitting consent.
+            </span>
+            <span *ngIf="consentRequired === 'true'" class="d-block">
+              Consent submission is required to complete this training.
+            </span>
+            <span *ngIf="hasQuiz && !quizAttempted" class="d-block">
+              A quiz is available for this training.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- ==================== QUIZ VIEW ==================== -->
+        <div class="quiz-view-panel" *ngIf="hasOpenedQuizOnce" [hidden]="activeTab !== 'quiz'">
+          <!-- Quiz layout: question number sidebar (only during active quiz) + quiz content -->
+          <div class="quiz-layout">
+
+            <!-- Quiz Content Area -->
+            <div class="quiz-content-area">
+              <app-quiz-view-modal
+                #quizSubmitRef
+                [config]="quizConfig"
+                [showHeader]="false"
+                [showSidebar]="true"
+                [showCloseButton]="false"
+                (quizSubmitted)="onQuizSubmitted($event)"
+                (questionStateChanged)="onQuizQuestionStateChanged($event)">
+              </app-quiz-view-modal>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</ng-template>
