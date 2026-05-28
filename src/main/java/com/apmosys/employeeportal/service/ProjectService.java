@@ -2523,6 +2523,7 @@ public class ProjectService {
                  .append("    GROUP BY etm.emp_id ")
                  .append(") emp_proj_client ON emp_proj_client.emp_id = e.emp_id ")
                  .append("WHERE e.employmentstatus != 'InActive' AND emp_proj_client.project_id IS NOT NULL and e.emp_id not between 1 and 6 ")
+				 .append(" AND UPPER(e.billable_type ) NOT LIKE 'NONE' AND e.billable_type IS NOT NULL ")
                  .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps));
 
         } else if ("E".equalsIgnoreCase(dto.getReport())) {

@@ -4587,7 +4587,7 @@ boolean existsByProjectName(String projectName);
     		value="SELECT\n"
     				+ "COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
     				+ "    CASE\n"
-    				+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    				+ "        WHEN :countTarget = 'Employee' AND UPPER(e.billable_type) NOT LIKE 'NONE' AND e.billable_type IS NOT NULL THEN COUNT(DISTINCT e.emp_id)\n"
     				+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
     				+ "        ELSE NULL \n"
     				+ "    END AS total_count,\n"
