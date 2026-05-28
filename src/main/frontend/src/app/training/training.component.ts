@@ -6,7 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import * as JSZip from 'jszip';
 import { User } from '../models/user';
@@ -15,6 +15,7 @@ import { SurveyService } from '../services/survey.service';
 import { TrainingService } from '../services/training.service';
 import * as pdfjsLib from 'pdfjs-dist';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
+import { TrainingContentViewComponent } from '../training-content-view/training-content-view.component';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -42,29 +43,31 @@ export class TrainingComponent implements OnInit, OnDestroy {
   allTrainingsFilter: string = '';
   allTrainingsFiltered: any[] = [];
 
-  // Currently viewing training (for modal)
+  // Training viewing (Legacy/Consolidated)
   viewingTraining: any = null;
   isViewingTraining: boolean = false;
-
-  // Training viewing
   elapsedTime: number = 0; // in seconds
   elapsedTimeDisplay: string = '00:00';
   timerInterval: any;
   minTimeReached: boolean = false;
   consentButtonEnabled: boolean = false;
   hasVisitedLink: boolean = false;
+  quizButtonEnabled: boolean = false;
+  showQuizSubmitComponent: boolean = false;
 
   // Content viewing
   contentUrl: string = '';
   previewUrl: string = '';
+
+  // Header display
+  todayDate: string = '';
+  isMustAttendBannerClosed: boolean = false;
   safePreviewUrl: SafeResourceUrl | null = null;
   contentType: string = '';
   isExternalLink: boolean = false;
   file: File | null = null;
   fileSize: number = 0;
-  pptxSlides: any[] = [];
-  currentSlideIndex: number = 0;
-  showThumbnails: boolean = false;
+
 
   // Auto-opening deadline-crossed trainings
   deadlineCrossedTrainings: any[] = [];
@@ -74,38 +77,34 @@ export class TrainingComponent implements OnInit, OnDestroy {
   // Accordion states
   mustAttendExpanded: boolean = true; // Expanded by default
   allTrainingsExpanded: boolean = true; // Expanded by default
-  quizButtonEnabled: boolean = false;
-  showQuizSubmitComponent: boolean = false;
-  isLoadingPPTX: boolean = false;
-  isFullscreen: boolean = false;
+
   selectedFilterStatus: string = 'ALL';
   filteredTrainingsByStatus: any[] = [];
 
   contentFormData: any = {
     contentType: '',
   };
-  slides: string[] = [];
-  totalSlides: number = 0;
-  preloadedSlides: Map<number, string> = new Map();
-  isLoadingPreview: boolean = false;
-  previewImageBlob: string | null = null;
-  currentPDFFile: File | null = null;
-
-preloadQueue: number[] = [];
-pdfFile: File | null = null;
+  consentSub: any;
+  quizSub: any;
+  quizCompletedSub: any;
+  linkSub: any;
+  closeSub: any;
 
   // Modals
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
   @ViewChild('training_view_modal') trainingViewModalTemplate: TemplateRef<any>;
+  @ViewChild(TrainingContentViewComponent) contentPreviewModal: TrainingContentViewComponent;
 
   alertMessage: string = '';
   alertType: string = 'info';
+  isSubmittingConsent: boolean = false;
 
   constructor(
     private authenticationService: AuthenticationService,
     private trainingService: TrainingService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private modalService: NgbModal,
     private sanitizer: DomSanitizer,
     private surveyService: SurveyService,
@@ -118,9 +117,46 @@ pdfFile: File | null = null;
     });
   }
 
+
+  // Tracks whether the URL ?status= param explicitly set the tab
+  private hasStatusParam: boolean = false;
+
   ngOnInit(): void {
+    // Generate formatted date (e.g. "Mar 17, 2026")
+    const options: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric', year: 'numeric' };
+    this.todayDate = new Date().toLocaleDateString('en-US', options);
+
+    // Read ?status= query param and pre-select the matching tab
+    const statusParam = this.activatedRoute.snapshot.queryParamMap.get('status');
+    if (statusParam) {
+      const upperStatus = statusParam.toUpperCase();
+      const validStatuses = ['ALL', 'PENDING', 'COMPLETED', 'MANDATORY', 'SKIPPED'];
+      if (validStatuses.includes(upperStatus)) {
+        this.selectedFilterStatus = upperStatus;
+        this.hasStatusParam = true;
+      }
+    }
     this.checkLockStatus();
   }
+
+  /** Called after trainings load. If no query param drove the tab selection,
+   *  auto-pick: MANDATORY if user is locked → PENDING if any pending → ALL */
+  private autoSelectDefaultTab(): void {
+    if (this.hasStatusParam) return; // respect the URL param
+
+    const isLocked = this.currentUser?.trainingLockStatus?.isLocked === true
+                  || this.currentUser?.trainingLockStatus?.isHardLock === true;
+
+    if (isLocked) {
+      this.selectedFilterStatus = 'MANDATORY';
+    } else {
+      const hasPending = this.allTrainings.some(t => t.status === 'PENDING');
+      this.selectedFilterStatus = hasPending ? 'PENDING' : 'ALL';
+    }
+    this.applyFilterByStatus();
+  }
+
+
 
   // ngAfterViewInit(): void {
   //   setTimeout(() => {
@@ -139,7 +175,7 @@ pdfFile: File | null = null;
     //   this.isLocked = this.lockStatus.isLocked === true;
 
       // If locked, load all trainings to show the list
-      this.loadUserTrainings();
+      // this.loadUserTrainings(); // Removed redundant call - already handled in subscribe
       // return;
     // }
 
@@ -193,8 +229,12 @@ pdfFile: File | null = null;
                 t.isDeadlineCrossed === true), // Case b: deadline crossed
           );
 
-          // Apply filter to all trainings
+          // Apply text search filter
           this.applyAllTrainingsFilter();
+          // Auto-select the right tab (respects URL ?status= or smart defaults)
+          this.autoSelectDefaultTab();
+
+
 
           // Separate deadline-crossed trainings for auto-opening (only mandatory with lock enabled OR deadline crossed)
           this.deadlineCrossedTrainings = this.mustAttendTrainings.filter(
@@ -215,7 +255,10 @@ pdfFile: File | null = null;
 
           if (singlePending && this.deadlineCrossedTrainings.length === 0) {
             this.pendingTraining = singlePending;
-            this.setupTrainingContent();
+            // Auto-open mandatory training for locked users
+            if (this.isLocked) {
+              this.viewTraining(singlePending);
+            }
           }
         } else {
           this.allTrainings = [];
@@ -271,21 +314,7 @@ pdfFile: File | null = null;
   }
 
   applyAllTrainingsFilter() {
-    if (!this.allTrainingsFilter || this.allTrainingsFilter.trim() === '') {
-      this.allTrainingsFiltered = [...this.allTrainings];
-    } else {
-      const filterLower = this.allTrainingsFilter.toLowerCase().trim();
-      this.allTrainingsFiltered = this.allTrainings.filter(
-        (t) =>
-          (t.trainingName &&
-            t.trainingName.toLowerCase().includes(filterLower)) ||
-          (t.trainingType &&
-            t.trainingType.toLowerCase().includes(filterLower)),
-        // (t.status && t.status.toLowerCase().includes(filterLower))
-      );
-    }
-    // Reset to first page when filter changes
-    this.allTrainingsPage = 1;
+    this.applyFilterByStatus();
   }
 
   getPaginatedAllTrainings(): any[] {
@@ -299,922 +328,269 @@ pdfFile: File | null = null;
       this.allTrainingsFiltered.length / this.allTrainingsPageSize,
     );
   }
-  setupTrainingContent() {
-    if (!this.pendingTraining || !this.pendingTraining.content) {
-      return;
-    }
 
-    const content = this.pendingTraining.content;
-    this.contentType = content.contentType;
-
-    if (content.contentType === 'LINK') {
-      this.isExternalLink = true;
-      this.contentUrl = content.externalLinkUrl;
-      this.hasVisitedLink = false;
+  getVisiblePageNumbers(): any[] {
+    const total = this.getTotalAllTrainingsPages();
+    const current = this.allTrainingsPage;
+    const items: (number | string)[] = [];
+    
+    if (total <= 7) {
+      for (let i = 1; i <= total; i++) items.push(i);
     } else {
-      this.isExternalLink = false;
-      // For file content, construct download URL
-      this.contentUrl = `${this.trainingService['baseUrl']}api/training/downloadContent/${content.contentId}`;
-    }
-
-    // Reset timer
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-
-    // Start timer if min time is configured
-    if (
-      this.pendingTraining.minViewTimeMinutes &&
-      this.pendingTraining.minViewTimeMinutes > 0
-    ) {
-      this.startTimer();
-    } else {
-      // No time requirement, enable consent immediately
-      this.minTimeReached = true;
-      if (this.pendingTraining.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
+      // Always show first page
+      items.push(1);
+      
+      if (current > 4) {
+        items.push('...');
       }
-    }
-  }
-
-  startTimer() {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-
-    const minTimeSeconds = this.pendingTraining.minViewTimeMinutes * 60;
-
-    this.timerInterval = setInterval(() => {
-      this.elapsedTime++;
-
-      const minutes = Math.floor(this.elapsedTime / 60);
-      const seconds = this.elapsedTime % 60;
-      this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-      if (this.elapsedTime >= minTimeSeconds) {
-        this.minTimeReached = true;
-        if (this.pendingTraining.consentRequired === 'true') {
-          // this.consentButtonEnabled = true;
-          if (this.viewingTraining.hasQuiz) {
-            this.quizButtonEnabled = true;
-            this.consentButtonEnabled = true;
-          } else {
-            this.consentButtonEnabled = true;
-          }
-        }
-        clearInterval(this.timerInterval);
+      
+      // Middle range
+      const start = Math.max(2, current - 2);
+      const end = Math.min(total - 1, current + 2);
+      
+      for (let i = start; i <= end; i++) {
+        items.push(i);
       }
-    }, 1000);
-  }
-
-  onExternalLinkClick() {
-    if (this.isExternalLink && this.contentUrl) {
-      window.open(this.contentUrl, '_blank');
-      this.hasVisitedLink = true;
-
-      // For external links, enable consent after clicking
-      // this.consentButtonEnabled = true;
-      if (this.viewingTraining.hasQuiz) {
-        this.quizButtonEnabled = true;
-        this.consentButtonEnabled = true;
-      } else if (this.pendingTraining.consentRequired === 'true') {
-        this.consentButtonEnabled = true;
+      
+      if (current < total - 3) {
+        items.push('...');
       }
+      
+      // Always show last page
+      items.push(total);
     }
+    
+    return items;
   }
-
-  onContentDownload() {
-    if (!this.isExternalLink && this.contentUrl) {
-      window.open(this.contentUrl, '_blank');
-    }
-  }
-
-  onSubmitConsent() {
-    if (!this.pendingTraining || !this.pendingTraining.content) {
-      this.openAlert(
-        'Training information is missing. Please refresh the page.',
-        'error',
-      );
-      return;
-    }
-
-    // Validate minimum time if required
-    if (
-      this.pendingTraining.minViewTimeMinutes &&
-      this.pendingTraining.minViewTimeMinutes > 0
-    ) {
-      if (!this.minTimeReached) {
-        this.openAlert(
-          `Please view the training for at least ${this.pendingTraining.minViewTimeMinutes} minutes before submitting consent.`,
-          'warning',
-        );
-        return;
-      }
-    }
-
-    // Validate external link visit
-    if (this.isExternalLink && !this.hasVisitedLink) {
-      this.openAlert(
-        'Please click on the external link to visit the training content before submitting consent.',
-        'warning',
-      );
-      return;
-    }
-
-    const consentData = {
-      trainingId: this.pendingTraining.trainingId,
-      contentId: this.pendingTraining.content.contentId,
-      empId: this.currentUser.empId,
-      completionCycleNumber: this.pendingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.submitConsent(consentData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Show success message
-          this.openAlert(
-            'Training completed successfully! Your consent has been submitted.',
-            'success',
-          );
-
-          // Clear pending training
-          this.pendingTraining = null;
-          this.resetQuizView();
-
-          // Reload trainings to remove from mandatory list and update lock status
-          setTimeout(() => {
-            this.checkLockStatus();
-            this.loadUserTrainings();
-          }, 1500);
-        }
-        // this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
-      },
-      error: (error: any) => {
-        // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to submit consent',
-          'error',
-        );
-      },
-    });
-  }
-
-  onSkipTraining() {
-    if (!this.pendingTraining) {
-      return;
-    }
+  /** Banner Skip Logic (Simplified) */
+  onSkipTraining(training: any) {
+    if (!training) return;
 
     // Check if skip is allowed
-    if (this.pendingTraining.skipAllowed !== 'true') {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Skip is not allowed for this training.',
-      );
+    if (training.skipAllowed !== 'true' || training.isDeadlineCrossed) {
+      this.openAlert('Skip is not allowed for this training', 'warning');
       return;
     }
 
-    // Check if deadline has passed
-    if (this.pendingTraining.isDeadlineCrossed) {
-      this.openAlertMod(
-        this.alertTemplate,
-        'Deadline has passed. Skip is not allowed.',
-      );
-      return;
-    }
-
-    const skipData = {
-      trainingId: this.pendingTraining.trainingId,
+    this.trainingService.skipTraining({
+      trainingId: training.trainingId,
       empId: this.currentUser.empId,
-      cycleNumber: this.pendingTraining.currentCycleNumber,
-      quizId: this.pendingTraining.quizId,
-    };
-
-    this.trainingService.skipTraining(skipData).subscribe({
+      cycleNumber: training.currentCycleNumber,
+      quizId: training.quizId,
+    }).subscribe({
       next: (response: any) => {
         if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Route to home page after successful skip
-          setTimeout(() => {
-            this.router.navigate(['/home']);
-          }, 500);
-        } else {
-          this.openAlertMod(
-            this.alertTemplate,
-            response.serviceResponse || 'Failed to skip training',
-          );
-        }
-      },
-      error: (error: any) => {
-        // this.openAlertMod(this.alertTemplate, 'Error skipping training: ' + error.message);
-        this.openAlertMod(
-          this.alertTemplate,
-          error.serviceStatus || 'Failed to skip training',
-        );
-      },
-    });
-  }
-
-  openAlertMod(template: TemplateRef<any>, message: string) {
-    this.alertMessage = message;
-    this.modalRef = this.modalService.open(template, {
-      centered: true,
-      size: 'sm',
-    });
-  }
-
-  getProgressPercentage(): number {
-    if (!this.pendingTraining || !this.pendingTraining.minViewTimeMinutes) {
-      return 0;
-    }
-    const minTimeSeconds = this.pendingTraining.minViewTimeMinutes * 60;
-    return Math.min((this.elapsedTime / minTimeSeconds) * 100, 100);
-  }
-
-  viewTraining(training: any, isDeadlineCrossed: boolean = false) {
-    if (!training || !training.content) {
-      this.openAlert('Training content not available', 'warning');    return;
-    }
-    this.showQuizSubmitComponent = false;
-    this.viewingTraining = training;
-    this.isViewingTraining = true;
-
-    // Reset timer and flags
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.hasVisitedLink = false;
-
-    // Clear previous content
-    this.previewUrl = '';
-    this.safePreviewUrl = null;
-    this.file = null;
-    this.pdfFile = null;
-    this.fileSize = 0;
-    this.pptxSlides = [];
-    this.slides = [];
-    this.totalSlides = 0;
-    this.previewImageBlob = null;
-    this.currentSlideIndex = 0;
-    this.preloadedSlides.clear();
-    this.preloadQueue = [];
-
-    const content = training.content;
-    this.contentType = content.contentType;
-    this.contentFormData.contentType = content.contentType;
-
-    // For completed trainings: no timer, no lock
-    if (training.status === 'COMPLETED') {
-      this.minTimeReached = true;
-      this.consentButtonEnabled = false;
-      this.quizButtonEnabled = false;
-    } else {
-      // For pending or skipped trainings
-      if (training.hasSeenContent) {
-        // User has already seen the content
-        this.minTimeReached = true;
-        
-        if (training.hasQuiz && !training.quizAttempted) {
-          // Has quiz not attempted - enable quiz button
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = false;
-        } else if (training.consentRequired === 'true' && !training.hasQuiz) {
-          // No quiz, just need consent
-          this.consentButtonEnabled = true;
-          this.quizButtonEnabled = false;
-        } else if (training.hasQuiz && training.quizAttempted) {
-          // Quiz already attempted
-          this.quizButtonEnabled = false;
-          this.consentButtonEnabled = false;
-        }
-      } else {
-        // User hasn't seen content yet - start timer
-        if (training.minViewTimeMinutes && training.minViewTimeMinutes > 0) {
-          this.startTimerForViewing(training.minViewTimeMinutes);
-        } else {
-          this.minTimeReached = true;
-          if (training.consentRequired === 'true') {
-            this.consentButtonEnabled = true;
-          } else if (training.hasQuiz) {
-            this.quizButtonEnabled = true;
-          }
-        }
-      }
-    }
-
-  // Setup content
-  if (content.contentType === 'LINK') {
-    this.isExternalLink = true;
-    this.previewUrl = content.externalLinkUrl;
-    this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      this.previewUrl,
-    );
-    this.openTrainingViewModal();
-  } else {
-    this.isExternalLink = false;
-    // Download content for preview
-    this.trainingService.downloadContent(content.contentId).subscribe({
-      next: (resp: any) => {
-        const blob: Blob = resp.body;
-        if (!blob || blob.size === 0) {
-          this.openAlert('File is empty or could not be loaded', 'error');
-          return;
-        }
-
-        const contentType =
-          resp.headers.get('Content-Type') || 'application/octet-stream';
-        let fileName = content.contentName || 'content';
-
-        // Extract filename from header
-        const disposition = resp.headers.get('Content-Disposition');
-        if (disposition) {
-          const patterns = [
-            /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/,
-            /filename="([^"]+)"/,
-            /filename=([^;]+)/,
-          ];
-          for (const pattern of patterns) {
-            const match = disposition.match(pattern);
-            if (match && match[1]) {
-              fileName = match[1].replace(/['"]/g, '').trim();
-              break;
-            }
-          }
-        }
-
-        // Add extension if missing
-        if (content.contentPath && !fileName.includes('.')) {
-          const pathParts = content.contentPath.split('.');
-          if (pathParts.length > 1) {
-            fileName += '.' + pathParts[pathParts.length - 1];
-          }
-        }
-
-        this.previewUrl = URL.createObjectURL(blob);
-        this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-          this.previewUrl,
-        );
-        this.file = new File([blob], fileName, { type: contentType });
-        this.fileSize = blob.size / 1024 / 1024;
-
-        // Handle PDF files with client-side rendering
-        if (content.contentType === 'PDF') {
-          this.pdfFile = this.file;
-          this.parsePDFFile(this.file);
-        }
-        // Parse PPTX if needed
-        else if (
-          content.contentType === 'PPT' &&
-          fileName.toLowerCase().endsWith('.pptx')
-        ) {
-          this.parsePPTXFile(this.file);
-        }
-
-        this.openTrainingViewModal();
-      },
-      error: (error) => {
-        if (error?.error instanceof Blob) {
-          error.error.text().then((text: string) => {
-            this.openAlert(text || 'Error loading content', 'error');
-          });
-        } else {
-          this.openAlert('Error loading content', 'error');
-        }
-      },
-    });
-  }
-}
-
-async parsePDFFile(file: File): Promise<void> {
-  try {
-    this.isLoadingPreview = true;
-    this.clearAllPreviewData();
-    
-    this.pdfFile = file;
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    this.totalSlides = pdf.numPages;
-    this.slides = new Array(this.totalSlides);
-    
-    // Load the first page
-    await this.renderLocalPDFPage(0);
-    
-    // Preload next 3 pages with delays
-    const preloadNextPages = async () => {
-      for (let i = 1; i <= 3; i++) {
-        if (i < this.totalSlides) {
-          await new Promise(resolve => setTimeout(resolve, 200));
-          this.renderLocalPDFPage(i).catch(err => 
-            console.error(`Failed to preload slide ${i}:`, err)
-          );
-        }
-      }
-    };
-    
-    preloadNextPages();
-    
-    this.isLoadingPreview = false;
-    console.log("PDF parsed successfully");
-    
-  } catch (error) {
-    console.error('Error parsing PDF file:', error);
-    this.isLoadingPreview = false;
-    this.openAlert('Failed to parse PDF file', 'error');
-  }
-}
-
-  startTimerForViewing(minViewTimeMinutes: number) {
-  if (this.timerInterval) {
-    clearInterval(this.timerInterval);
-  }
-
-  const minTimeSeconds = minViewTimeMinutes * 60;
-
-  this.timerInterval = setInterval(() => {
-    this.elapsedTime++;
-
-    const minutes = Math.floor(this.elapsedTime / 60);
-    const seconds = this.elapsedTime % 60;
-    this.elapsedTimeDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-    if (this.elapsedTime >= minTimeSeconds) {
-      console.log('min time reached');
-
-      this.minTimeReached = true;
-      
-      if (this.viewingTraining) {
-        // Training has a quiz and it's not attempted
-        if (this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted) {
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = false;
-        } 
-        // Training requires consent but no quiz
-        else if (this.viewingTraining.consentRequired === 'true') {
-          this.consentButtonEnabled = true;
-          this.quizButtonEnabled = false;
-        }
-        // Training has both quiz and consent? (rare case)
-        else if (this.viewingTraining.hasQuiz && this.viewingTraining.consentRequired === 'true') {
-          // You might want both enabled or prioritize one
-          this.quizButtonEnabled = true;
-          this.consentButtonEnabled = true;
-        }
-      }
-      
-      clearInterval(this.timerInterval);
-    }
-  }, 1000); 
-}
-
-  async parsePPTXFile(file: File) {
-    try {
-      this.isLoadingPPTX = true;
-      this.pptxSlides = [];
-      this.currentSlideIndex = 0;
-      this.isFullscreen = false;
-
-      // Read the file as array buffer
-      const arrayBuffer = await file.arrayBuffer();
-      const zip = await JSZip.loadAsync(arrayBuffer);
-
-      // Get slide files (ppt/slides/slide1.xml, slide2.xml, etc.)
-      const slideFiles: any[] = [];
-      zip.forEach((relativePath, file) => {
-        if (
-          relativePath.startsWith('ppt/slides/slide') &&
-          relativePath.endsWith('.xml') &&
-          !relativePath.includes('_rels')
-        ) {
-          slideFiles.push({ path: relativePath, file: file });
-        }
-      });
-
-      // Sort slides by number
-      slideFiles.sort((a, b) => {
-        const numA = parseInt(a.path.match(/slide(\d+)/)?.[1] || '0');
-        const numB = parseInt(b.path.match(/slide(\d+)/)?.[1] || '0');
-        return numA - numB;
-      });
-
-      // Extract images and text from slides
-      for (let i = 0; i < slideFiles.length; i++) {
-        const slideFile = slideFiles[i];
-        const slideXml = await slideFile.file.async('string');
-
-        // Parse slide XML
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(slideXml, 'text/xml');
-
-        // Get slide number for relationship file lookup
-        const slideNum =
-          slideFile.path.match(/slide(\d+)/)?.[1] || (i + 1).toString();
-        const relsPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-
-        // Parse relationship file to map IDs to actual file paths
-        const relationshipMap: Map<string, string> = new Map();
-        try {
-          const relsFile = zip.file(relsPath);
-          if (relsFile) {
-            const relsXml = await relsFile.async('string');
-            const relsDoc = parser.parseFromString(relsXml, 'text/xml');
-            const relationships = relsDoc.getElementsByTagName('Relationship');
-
-            for (let r = 0; r < relationships.length; r++) {
-              const rel = relationships[r];
-              const id = rel.getAttribute('Id');
-              const target = rel.getAttribute('Target');
-              const type = rel.getAttribute('Type');
-
-              // Map image relationships
-              if (id && target && type && type.includes('image')) {
-                // Resolve relative path
-                let imagePath = target;
-                if (target.startsWith('../')) {
-                  imagePath = target.replace('../', 'ppt/');
-                } else if (!target.startsWith('ppt/')) {
-                  imagePath = `ppt/${target}`;
-                }
-                relationshipMap.set(id, imagePath);
-              }
-            }
-          }
-        } catch (relsError) {
-          console.warn(
-            'Could not parse relationship file:',
-            relsPath,
-            relsError,
-          );
-        }
-
-        // Extract images using relationship mapping
-        const slideImages: string[] = [];
-        const imageElements = xmlDoc.getElementsByTagName('a:blip');
-
-        for (let j = 0; j < imageElements.length; j++) {
-          const embedId = imageElements[j].getAttribute('r:embed');
-          if (embedId) {
-            // Look up the actual image path from relationship map
-            let imagePath = relationshipMap.get(embedId);
-
-            // Fallback: try direct path if relationship map doesn't have it
-            if (!imagePath) {
-              // Try different possible paths
-              const possiblePaths = [
-                `ppt/media/${embedId}`,
-                `ppt/media/image${embedId}.png`,
-                `ppt/media/image${embedId}.jpg`,
-                `ppt/media/image${embedId}.jpeg`,
-              ];
-
-              for (const path of possiblePaths) {
-                if (zip.file(path)) {
-                  imagePath = path;
-                  break;
-                }
-              }
-            }
-
-            if (imagePath) {
-              const imageFile = zip.file(imagePath);
-              if (imageFile) {
-                try {
-                  const imageBlob = await imageFile.async('blob');
-                  const imageUrl = URL.createObjectURL(imageBlob);
-                  slideImages.push(imageUrl);
-                } catch (imgError) {
-                  console.warn('Error loading image:', imagePath, imgError);
-                }
-              }
-            }
-          }
-        }
-
-        // Extract text content - check multiple possible text element tags
-        const slideTexts: string[] = [];
-
-        // Method 1: Direct text elements (a:t)
-        const textElements = xmlDoc.getElementsByTagName('a:t');
-        for (let k = 0; k < textElements.length; k++) {
-          const text = textElements[k].textContent;
-          if (text && text.trim()) {
-            slideTexts.push(text.trim());
-          }
-        }
-
-        // Method 2: Text paragraphs (a:p)
-        const paraElements = xmlDoc.getElementsByTagName('a:p');
-        for (let p = 0; p < paraElements.length; p++) {
-          const para = paraElements[p];
-          const paraTexts = para.getElementsByTagName('a:t');
-          let paraText = '';
-          for (let pt = 0; pt < paraTexts.length; pt++) {
-            const text = paraTexts[pt].textContent;
-            if (text) {
-              paraText += text;
-            }
-          }
-          if (paraText.trim()) {
-            // Avoid duplicates
-            if (!slideTexts.includes(paraText.trim())) {
-              slideTexts.push(paraText.trim());
-            }
-          }
-        }
-
-        // Method 3: Text runs (a:r)
-        const runElements = xmlDoc.getElementsByTagName('a:r');
-        for (let r = 0; r < runElements.length; r++) {
-          const run = runElements[r];
-          const runTexts = run.getElementsByTagName('a:t');
-          let runText = '';
-          for (let rt = 0; rt < runTexts.length; rt++) {
-            const text = runTexts[rt].textContent;
-            if (text) {
-              runText += text;
-            }
-          }
-          if (runText.trim()) {
-            // Avoid duplicates
-            if (!slideTexts.includes(runText.trim())) {
-              slideTexts.push(runText.trim());
-            }
-          }
-        }
-
-        // If we have content (images or text), add the slide
-        // Even if empty, we'll add it to show the slide structure
-        this.pptxSlides.push({
-          slideNumber: i + 1,
-          images: slideImages,
-          texts: slideTexts,
-          hasContent: slideImages.length > 0 || slideTexts.length > 0,
-        });
-      }
-
-      this.isLoadingPPTX = false;
-    } catch (error) {
-      console.error('Error parsing PPTX file:', error);
-      this.isLoadingPPTX = false;
-      // Fallback: show download option
-      this.pptxSlides = [];
-    }
-  }
-
-  toggleThumbnails() {
-    this.showThumbnails = !this.showThumbnails;
-  }
-
-  onExternalLinkClickForModal() {
-    if (this.isExternalLink && this.previewUrl) {
-      window.open(this.previewUrl, '_blank');
-      this.hasVisitedLink = true;
-
-      if (
-        this.viewingTraining &&
-        this.viewingTraining.consentRequired === 'true'
-      ) {
-        this.consentButtonEnabled = true;
-      }
-    }
-  }
-
-  onSubmitConsentForModal() {
-    if (!this.viewingTraining || !this.viewingTraining.content) {
-      return;
-    }
-
-    // Validate minimum time if required (for pending or skipped trainings)
-    if (
-      this.viewingTraining.status === 'PENDING' ||
-      this.viewingTraining.status === 'SKIPPED'
-    ) {
-      if (
-        this.viewingTraining.minViewTimeMinutes &&
-        this.viewingTraining.minViewTimeMinutes > 0
-      ) {
-        if (!this.minTimeReached) {
-          this.openAlert(
-            `Please view the training for at least ${this.viewingTraining.minViewTimeMinutes} minutes before submitting consent.`,
-            'warning',
-          );
-          return;
-        }
-      }
-
-      // Validate external link visit
-      if (this.isExternalLink && !this.hasVisitedLink) {
-        this.openAlert(
-          'Please click on the external link to visit the training content before submitting consent.',
-          'warning',
-        );
-        return;
-      }
-    }
-
-    const consentData = {
-      trainingId: this.viewingTraining.trainingId,
-      contentId: this.viewingTraining.content.contentId,
-      empId: this.currentUser.empId,
-      completionCycleNumber: this.viewingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.submitConsent(consentData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-          // Close current training view
-          this.closeTrainingView();
-          // Show success message
-          this.openAlert(
-            'Training completed successfully! Your consent has been submitted.',
-            'success',
-          );
-
-          this.currentUser.trainingLockStatus = null;
-          this.authenticationService.setcurrentUserSubject(this.currentUser);
-
-          // Reload trainings to remove from mandatory list and update lock status
+          this.openAlert('Training skipped temporarily. You can complete it later.', 'success');
+          this.pendingTraining = null;
+          this.resetQuizView();
           setTimeout(() => {
             this.checkLockStatus();
             this.loadUserTrainings();
-
-            // Move to next deadline-crossed training if auto-opening
-            if (
-              this.isAutoOpening &&
-              this.deadlineCrossedTrainings.length > 0 &&
-              this.currentDeadlineCrossedIndex <
-                this.deadlineCrossedTrainings.length - 1
-            ) {
-              this.currentDeadlineCrossedIndex++;
-              setTimeout(() => {
-                this.viewTraining(
-                  this.deadlineCrossedTrainings[
-                    this.currentDeadlineCrossedIndex
-                  ],
-                  true,
-                );
-              }, 500);
-            } else {
-              this.isAutoOpening = false;
-            }
-          }, 1500);
+          }, 1000);
+        } else {
+          this.openAlert(response.serviceResponse || 'Failed to skip training', 'error');
         }
       },
       error: (error: any) => {
-        // this.openAlert('Error submitting consent: ' + (error.error?.message || error.message), 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to submit consent',
-          'error',
-        );
+        this.openAlert(error.serviceStatus || 'Failed to skip training', 'error');
       },
+    });
+  }
+
+  // Delegated events from TrainingContentViewComponent (Modal)
+  onSubmitConsentForModal() {
+    if (!this.viewingTraining || this.isSubmittingConsent) return;
+
+    this.isSubmittingConsent = true;
+    this.trainingService.submitConsent({
+      trainingId: this.viewingTraining.trainingId,
+      empId: this.currentUser.empId,
+      cycleNumber: this.viewingTraining.currentCycleNumber,
+      quizId: this.viewingTraining.quizId,
+      contentId: this.viewingTraining.content.contentId,
+      consentGiven: 'true'
+    }).subscribe({
+      next: (response: any) => {
+        if (response.serviceStatus === 'Success') {
+          this.openAlert('Consent submitted successfully.', 'success');
+          
+          if (this.contentPreviewModal) {
+            this.contentPreviewModal.close(); // Close the modal specifically
+          }
+          this.closeTrainingView();
+          
+          setTimeout(() => {
+            this.isSubmittingConsent = false; // Reset flag after delay
+            this.checkLockStatus();
+          }, 1500); // CheckLockStatus already calls loadUserTrainings
+        } else {
+          this.openAlert(response.serviceResponse || 'Failed to submit consent', 'error');
+        }
+      },
+      error: (error: any) => {
+        this.isSubmittingConsent = false; // Reset flag on error
+        this.openAlert(error.serviceStatus || 'Failed to submit consent', 'error');
+      }
     });
   }
 
   onSkipTrainingForModal() {
-    if (!this.viewingTraining) {
-      return;
-    }
-
-    // Skip not allowed for deadline-crossed trainings
-    if (this.viewingTraining.isDeadlineCrossed) {
-      this.openAlert('Deadline has passed. Skip is not allowed.', 'error');
-      return;
-    }
-
-    // Check if skip is allowed
-    if (this.viewingTraining.skipAllowed !== 'true') {
-      this.openAlert('Skip is not allowed for this training.', 'error');
-      return;
-    }
-
-    const skipData = {
-      trainingId: this.viewingTraining.trainingId,
-      empId: this.currentUser.empId,
-      cycleNumber: this.viewingTraining.currentCycleNumber,
-    };
-
-    this.trainingService.skipTraining(skipData).subscribe({
-      next: (response: any) => {
-        if (response.serviceStatus === 'Success') {
-          // Stop timer
-          if (this.timerInterval) {
-            clearInterval(this.timerInterval);
-          }
-
-          // Close current training view
-          this.closeTrainingView();
-
-          // Route to home page after successful skip
-          setTimeout(() => {
-            this.router.navigate(['/home']);
-          }, 500);
-        }
-      },
-      error: (error: any) => {
-        // this.openAlert('Error skipping training: ' + error.message, 'error');
-        this.openAlert(
-          error.serviceStatus || 'Failed to skip training',
-          'error',
-        );
-      },
-    });
+    this.closeTrainingView();
+    setTimeout(() => {
+      this.router.navigate(['/home']);
+    }, 500);
   }
 
-  openTrainingViewModal() {
-    if (this.trainingViewModalTemplate) {
-      this.modalRef = this.modalService.open(this.trainingViewModalTemplate, {
-        size: 'xl',
-        scrollable: true,
-        windowClass: 'training-modal'
-      });
+  onQuizCompleted(passed: boolean) {
+    this.resetQuizView();
+    this.showQuizSubmitComponent = false;
+    this.closeTrainingView();
+    
+    setTimeout(() => {
+      this.checkLockStatus();
+      // this.loadUserTrainings(); // Removed redundant call - checkLockStatus already calls loadUserTrainings
 
-      this.modalRef.result.finally(() => {
-        this.closeTrainingView();
+      // Move to next deadline-crossed training if auto-opening
+      if (
+        this.isAutoOpening &&
+        this.deadlineCrossedTrainings.length > 0 &&
+        this.currentDeadlineCrossedIndex <
+          this.deadlineCrossedTrainings.length - 1
+      ) {
+        this.currentDeadlineCrossedIndex++;
+        setTimeout(() => {
+          this.viewTraining(
+            this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex],
+            true,
+          );
+        }, 500);
+      } else {
+        this.isAutoOpening = false;
+      }
+    }, 1500);
+  }
+
+  goToQuiz() {
+    this.showQuizSubmitComponent = true;
+  }
+
+
+  openTrainingViewModal() {
+    // Set all the input properties
+    this.contentPreviewModal.content = this.viewingTraining.content;
+    this.contentPreviewModal.contentType = this.contentType;
+    this.contentPreviewModal.contentName = this.viewingTraining.content.contentName;
+    this.contentPreviewModal.previewUrl = this.previewUrl;
+    this.contentPreviewModal.file = this.file;
+    this.contentPreviewModal.isAdminMode = false;
+    this.contentPreviewModal.showTimer = true;
+    this.contentPreviewModal.minViewTimeMinutes = this.viewingTraining.minViewTimeMinutes || 0;
+    this.contentPreviewModal.status = this.viewingTraining.status;
+    this.contentPreviewModal.hasSeenContent = this.viewingTraining.hasSeenContent || false;
+    this.contentPreviewModal.hasQuiz = this.viewingTraining.hasQuiz || false;
+    this.contentPreviewModal.quizAttempted = this.viewingTraining.quizAttempted || false;
+    this.contentPreviewModal.consentRequired = this.viewingTraining.consentRequired || 'false';
+    this.contentPreviewModal.mandatoryFlag = this.viewingTraining.mandatoryFlag || 'false';
+    this.contentPreviewModal.trainingId = this.viewingTraining.trainingId;
+    this.contentPreviewModal.lastCompletedOn = this.viewingTraining.lastCompletedOn || null;
+    this.contentPreviewModal.cycleNumber = this.viewingTraining.currentCycleNumber;
+    this.contentPreviewModal.contentId = this.viewingTraining.content.contentId;
+    this.contentPreviewModal.quizId = this.viewingTraining.quizId;
+    this.contentPreviewModal.isAlreadySubmitted = this.viewingTraining.isAlreadySubmitted || false;
+
+    // Unsubscribe from previous events if they exist to prevent multiple triggers
+    if (this.consentSub) this.consentSub.unsubscribe();
+    if (this.quizSub) this.quizSub.unsubscribe();
+    if (this.quizCompletedSub) this.quizCompletedSub.unsubscribe();
+    if (this.linkSub) this.linkSub.unsubscribe();
+    if (this.closeSub) this.closeSub.unsubscribe();
+
+    // Subscribe to events (unsubscribe in ngOnDestroy to prevent memory leaks)
+    this.consentSub = this.contentPreviewModal.consentSubmitted.subscribe(() => this.onSubmitConsentForModal());
+    this.quizSub = this.contentPreviewModal.quizClicked.subscribe(() => this.goToQuiz());
+    this.quizCompletedSub = this.contentPreviewModal.quizCompleted.subscribe((passed: boolean) => this.onQuizCompleted(passed));
+    this.linkSub = this.contentPreviewModal.linkVisited.subscribe(() => this.hasVisitedLink = true);
+    this.closeSub = this.contentPreviewModal.closed.subscribe(() => this.closeTrainingView());
+
+    // Open the modal
+    this.contentPreviewModal.open();
+
+    // No need to call parsePDFFile here - the shared component handles it
+  }
+
+  // Update your viewTraining method to prepare the data
+  viewTraining(training: any, isDeadlineCrossed: boolean = false) {
+
+    if (!training || !training.content) {
+      this.openAlert('Training content not available', 'warning');
+      return;
+    }
+    
+    this.viewingTraining = training;
+    
+    // Clear previous content
+    this.previewUrl = '';
+    this.safePreviewUrl = null;
+    this.file = null;
+    this.fileSize = 0;
+
+    const content = training.content;
+    this.contentType = content.contentType;
+
+    // Handle content loading based on type
+    if (content.contentType === 'LINK') {
+      this.previewUrl = content.externalLinkUrl;
+      this.openTrainingViewModal();
+    } else {
+      // Download content for file types
+      this.trainingService.downloadContent(content.contentId).subscribe({
+        next: (resp: any) => {
+          const blob: Blob = resp.body;
+          const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
+          
+          let fileName = content.contentName || 'content';
+          const disposition = resp.headers.get('Content-Disposition');
+          if (disposition) {
+            const match = disposition.match(/filename="(.+)"/);
+            if (match && match[1]) {
+              fileName = match[1];
+            }
+          }
+
+          this.previewUrl = URL.createObjectURL(blob);
+          this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+          this.file = new File([blob], fileName, { type: contentType });
+          this.fileSize = blob.size / 1024 / 1024;
+
+          this.openTrainingViewModal();
+        },
+        error: (error) => {
+          this.openAlert('Error loading content', 'error');
+        }
       });
     }
   }
 
   closeTrainingView() {
-    if (this.modalRef) {
-      this.modalRef.close();
-      this.modalRef = null;
-    }
-
-    // Stop timer
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-
     // Revoke blob URLs
     if (this.previewUrl && this.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(this.previewUrl);
     }
 
-    // Clean up preloaded slides
-    this.preloadedSlides.forEach((blobUrl) => {
-      if (blobUrl && blobUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    });
-    this.preloadedSlides.clear();
-
-    // Clean up PPTX slide image URLs
-    if (this.pptxSlides && this.pptxSlides.length > 0) {
-      this.pptxSlides.forEach((slide) => {
-        if (slide.images) {
-          slide.images.forEach((imgUrl: string) => {
-            if (imgUrl && imgUrl.startsWith('blob:')) {
-              URL.revokeObjectURL(imgUrl);
-            }
-          });
-        }
-      });
-    }
-
-    // Reset PDF variables
-    this.slides = [];
-    this.totalSlides = 0;
-    this.previewImageBlob = null;
-    this.isLoadingPreview = false;
-    this.currentPDFFile = null;
-
+    // Reset variables
     this.viewingTraining = null;
     this.isViewingTraining = false;
     this.previewUrl = '';
     this.safePreviewUrl = null;
     this.file = null;
     this.fileSize = 0;
-    this.pptxSlides = [];
-    this.currentSlideIndex = 0;
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.quizButtonEnabled = false;
-    this.hasVisitedLink = false;
   }
 
   openAlert(message: string, type: string = 'info') {
     this.alertMessage = message;
     this.alertType = type;
     this.modalRef = this.modalService.open(this.alertTemplate, {
-      backdrop: false,
+      backdrop: true,
       windowClass: 'alert-toast-modal',
       modalDialogClass: 'alert-toast-dialog',
       size: 'sm',
@@ -1263,55 +639,15 @@ async parsePDFFile(file: File): Promise<void> {
   goToHome() {
     this.router.navigate(['/home']);
   }
-
-  // ngOnDestroy() {
-  //   if (this.timerInterval) {
-  //     clearInterval(this.timerInterval);
-  //   }
-  //   this.closeTrainingView();
-  //   if (this.modalRef) {
-  //     this.modalRef.close();
-  //     this.modalRef = null;
-  //   }
-  // }
   closeContentModal() {
     this.modalRef.close();
     this.modalRef = null;
     this.resetQuizView();
   }
 
-  goToQuiz() {
-    this.showQuizSubmitComponent = true;
-  }
+  // ... existing goToQuiz removed as redundant with the one at line 390
 
-  onQuizCompleted(event: boolean) {
-    this.resetQuizView();
-    this.showQuizSubmitComponent = false;
-    this.modalRef.close();
-    this.modalRef = null;
-    setTimeout(() => {
-      this.checkLockStatus();
-      this.loadUserTrainings();
-
-      // Move to next deadline-crossed training if auto-opening
-      if (
-        this.isAutoOpening &&
-        this.deadlineCrossedTrainings.length > 0 &&
-        this.currentDeadlineCrossedIndex <
-          this.deadlineCrossedTrainings.length - 1
-      ) {
-        this.currentDeadlineCrossedIndex++;
-        setTimeout(() => {
-          this.viewTraining(
-            this.deadlineCrossedTrainings[this.currentDeadlineCrossedIndex],
-            true,
-          );
-        }, 500);
-      } else {
-        this.isAutoOpening = false;
-      }
-    }, 1500);
-  }
+  // ... existing onQuizCompleted removed as redundant with the one at line 382
 
   resetQuizView() {
     this.viewingTraining = null;
@@ -1320,102 +656,9 @@ async parsePDFFile(file: File): Promise<void> {
     this.safePreviewUrl = null;
     this.file = null;
     this.fileSize = 0;
-    this.pptxSlides = [];
-    this.currentSlideIndex = 0;
-    this.elapsedTime = 0;
-    this.elapsedTimeDisplay = '00:00';
-    this.minTimeReached = false;
-    this.consentButtonEnabled = false;
-    this.quizButtonEnabled = false;
-    this.hasVisitedLink = false;
   }
 
-  // Add these methods to your component class
 
-  downloadPreviewFile() {
-    if (this.file) {
-      const url = URL.createObjectURL(this.file);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = this.file.name;
-      a.click();
-      URL.revokeObjectURL(url);
-    } else if (this.previewUrl) {
-      window.open(this.previewUrl, '_blank');
-    }
-  }
-
-  openPreviewInNewTab() {
-    if (this.previewUrl) {
-      window.open(this.previewUrl, '_blank');
-    }
-  }
-
-  toggleFullscreen() {
-  this.isFullscreen = !this.isFullscreen;
-  
-  // Get the modal element - use the same selector as training-config.component
-  const modalElement = document.querySelector('.modal-content');
-  
-  if (this.isFullscreen) {
-    // Enter fullscreen on the modal content
-    if (modalElement) {
-      if ((modalElement as any).requestFullscreen) {
-        (modalElement as any).requestFullscreen();
-      } else if ((modalElement as any).webkitRequestFullscreen) {
-        (modalElement as any).webkitRequestFullscreen();
-      } else if ((modalElement as any).mozRequestFullScreen) {
-        (modalElement as any).mozRequestFullScreen();
-      } else if ((modalElement as any).msRequestFullscreen) {
-        (modalElement as any).msRequestFullscreen();
-      }
-    }
-  } else {
-    // Exit fullscreen
-    if ((document as any).exitFullscreen) {
-      (document as any).exitFullscreen();
-    } else if ((document as any).webkitExitFullscreen) {
-      (document as any).webkitExitFullscreen();
-    } else if ((document as any).mozCancelFullScreen) {
-      (document as any).mozCancelFullScreen();
-    } else if ((document as any).msExitFullscreen) {
-      (document as any).msExitFullscreen();
-    }
-  }
-}
-  // Add this to ensure images are properly cleaned up
-  ngOnDestroy() {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
-    this.closeTrainingView();
-
-    // Clean up preloaded slides
-    this.preloadedSlides.forEach((blobUrl) => {
-      if (blobUrl && blobUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(blobUrl);
-      }
-    });
-    this.preloadedSlides.clear();
-
-    // Clean up PPTX slide image URLs
-    if (this.pptxSlides && this.pptxSlides.length > 0) {
-      this.pptxSlides.forEach((slide) => {
-        if (slide.images) {
-          slide.images.forEach((imgUrl: string) => {
-            if (imgUrl && imgUrl.startsWith('blob:')) {
-              URL.revokeObjectURL(imgUrl);
-            }
-          });
-        }
-      });
-    }
-
-    if (this.modalRef) {
-      this.modalRef.close();
-      this.modalRef = null;
-    }
-  }
 
   // Add these methods
   setFilter(status: string) {
@@ -1426,6 +669,8 @@ async parsePDFFile(file: File): Promise<void> {
   applyFilterByStatus() {
     if (this.selectedFilterStatus === 'ALL') {
       this.allTrainingsFiltered = [...this.allTrainings];
+    } else if (this.selectedFilterStatus === 'MANDATORY') {
+      this.allTrainingsFiltered = [...this.mustAttendTrainings];
     } else {
       this.allTrainingsFiltered = this.allTrainings.filter(
         (t) => t.status === this.selectedFilterStatus,
@@ -1438,9 +683,9 @@ async parsePDFFile(file: File): Promise<void> {
       this.allTrainingsFiltered = this.allTrainingsFiltered.filter(
         (t) =>
           (t.trainingName &&
-            t.trainingName.toLowerCase().includes(filterLower)) ||
-          (t.trainingType &&
-            t.trainingType.toLowerCase().includes(filterLower)),
+            t.trainingName.toLowerCase().includes(filterLower)) 
+            // || (t.trainingType &&
+            // t.trainingType.toLowerCase().includes(filterLower)),
       );
     }
 
@@ -1513,208 +758,6 @@ async parsePDFFile(file: File): Promise<void> {
     event.target.alt = 'Preview not available';
   }
 
-  async renderLocalPDFPage(index: number): Promise<void> {
-  // Check cache first
-  if (this.preloadedSlides.has(index)) {
-    console.log(`Page ${index} already cached`);
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-    }
-    return Promise.resolve();
-  }
-  
-  // Check if already in queue
-  if (this.preloadQueue.includes(index)) {
-    console.log(`Page ${index} already in queue`);
-    return Promise.resolve();
-  }
-  
-  // Add to queue
-  this.preloadQueue.push(index);
-  
-  try {
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = true;
-    }
-
-    const fileToUse = this.pdfFile;
-    
-    if (!fileToUse) {
-      throw new Error('No PDF file available');
-    }
-
-    const arrayBuffer = await fileToUse.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    const page = await pdf.getPage(index + 1);
-
-    const viewport = page.getViewport({ scale: 0.8 });
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    if (!context) {
-      throw new Error('Could not get canvas context');
-    }
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport
-    };
-
-    await page.render(renderContext).promise;
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (b) {
-          resolve(b);
-        } else {
-          reject(new Error('Failed to create blob from canvas'));
-        }
-      }, 'image/jpeg', 0.8);
-    });
-
-    const url = URL.createObjectURL(blob);
-    
-    if (this.preloadedSlides.has(index)) {
-      URL.revokeObjectURL(this.preloadedSlides.get(index)!);
-    }
-
-    this.preloadedSlides.set(index, url);
-    
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = url;
-    }
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Error rendering PDF page:', error);
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.reject(error);
-  }
-}
-
-// Add loadSlide method
-loadSlide(index: number) {
-  if (index < 0 || index >= this.totalSlides) return;
-
-  this.currentSlideIndex = index;
-
-  // Check cache
-  if (this.preloadedSlides.has(index)) {
-    this.previewImageBlob = this.preloadedSlides.get(index)!;
-    this.isLoadingPreview = false;
-    this.triggerPreload(index);
-    return;
-  }
-
-  // Load on demand
-  if (this.pdfFile) {
-    if (!this.preloadQueue.includes(index)) {
-      this.isLoadingPreview = true;
-    }
-    
-    this.renderLocalPDFPage(index).then(() => {
-      this.triggerPreload(index);
-    });
-  }
-}
-
-// Add triggerPreload method
-triggerPreload(currentIndex: number) {
-  console.log('Triggering preload from index:', currentIndex);
-  
-  if (this.pdfFile) {
-    // Preload next 3 slides only
-    for (let i = 1; i <= 4; i++) {
-      const nextIndex = currentIndex + i;
-      if (nextIndex < this.totalSlides && 
-          !this.preloadedSlides.has(nextIndex) && 
-          !this.preloadQueue.includes(nextIndex)) {
-        console.log('Preloading slide:', nextIndex);
-        this.renderLocalPDFPage(nextIndex).catch(err => 
-          console.error(`Failed to preload slide ${nextIndex}:`, err)
-        );
-      }
-    }
-
-    for (let i = 1; i <= 3; i++) {
-      const prevIndex = currentIndex - i;
-      if (prevIndex >= 0 && 
-          !this.preloadedSlides.has(prevIndex) && 
-          !this.preloadQueue.includes(prevIndex)) {
-        console.log('Preloading previous slide:', prevIndex);
-        this.renderLocalPDFPage(prevIndex).catch(err => 
-          console.error(`Failed to preload slide ${prevIndex}:`, err)
-        );
-      }
-    }
-  }
-}
-
-// Add navigation methods
-nextSlide() {
-  if (this.currentSlideIndex < this.totalSlides - 1) {
-    this.currentSlideIndex++;
-    this.loadSlide(this.currentSlideIndex);
-  }
-}
-
-previousSlide() {
-  if (this.currentSlideIndex > 0) {
-    this.currentSlideIndex--;
-    this.loadSlide(this.currentSlideIndex);
-  }
-}
-
-goToSlide(index: number) {
-  if (index >= 0 && index < this.totalSlides) {
-    this.currentSlideIndex = index;
-    this.loadSlide(index);
-  }
-}
-
-// Add clearAllPreviewData method
-clearAllPreviewData() {
-  this.preloadedSlides.forEach((blobUrl) => {
-    if (blobUrl && blobUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(blobUrl);
-    }
-  });
-  this.preloadedSlides.clear();
-  this.preloadQueue = [];
-  
-  if (this.previewImageBlob && this.previewImageBlob.startsWith('blob:')) {
-    URL.revokeObjectURL(this.previewImageBlob);
-    this.previewImageBlob = null;
-  }
-  
-  this.totalSlides = 0;
-  this.currentSlideIndex = 0;
-}
-
   getTextForNote(){
     if(!this.viewingTraining.hasSeenContent){
       if(this.viewingTraining.hasQuiz && !this.viewingTraining.quizAttempted){
@@ -1732,17 +775,26 @@ clearAllPreviewData() {
     
   }
 
-  onSlideImageClick(event: MouseEvent) {
-    const element = event.target as HTMLElement;
-    const rect = element.getBoundingClientRect();
+  ngOnDestroy() {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+    
+    // Unsubscribe from events
+    if (this.consentSub) this.consentSub.unsubscribe();
+    if (this.quizSub) this.quizSub.unsubscribe();
+    if (this.quizCompletedSub) this.quizCompletedSub.unsubscribe();
+    if (this.linkSub) this.linkSub.unsubscribe();
+    if (this.closeSub) this.closeSub.unsubscribe();
+    
+    if (this.contentPreviewModal) {
+      this.contentPreviewModal.close();
+    }
+    this.closeTrainingView();
 
-    const clickX = event.clientX - rect.left;
-    const width = rect.width;
-
-    if (clickX < width / 2) {
-      this.previousSlide();
-    } else {
-      this.nextSlide();
+    if (this.modalRef) {
+      this.modalRef.close();
+      this.modalRef = null;
     }
   }
 

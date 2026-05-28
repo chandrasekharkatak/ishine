@@ -135,5 +135,10 @@ public interface PoRequirementMappingRepository extends JpaRepository<PoRequirem
 	@Query(value = "SELECT distinct p.poId FROM PoRequirementMapping p WHERE p.roleId =:roleId ")
 	Set<Long> getPoIdByRoleId(Long roleId);
 	
+	@Transactional
+	@Modifying
+	@Query("DELETE FROM PoRequirementMapping p WHERE p.poId IN :poIds")
+	void deleteByPoIds(@Param("poIds") List<Long> poIds);
+	
 	
 }

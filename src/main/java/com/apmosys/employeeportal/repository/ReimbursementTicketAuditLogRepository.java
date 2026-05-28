@@ -9,4 +9,6 @@ import com.apmosys.employeeportal.model.ReimbursementTicketAuditLog;
 public interface ReimbursementTicketAuditLogRepository extends JpaRepository<ReimbursementTicketAuditLog, Long> {
 
 	List<ReimbursementTicketAuditLog> findByTicketIdOrderByCreatedOnAsc(Long ticketId);
+
+	ReimbursementTicketAuditLog findTopByClaimIdAndActionOrderByCreatedOnDesc(Long claimId, String action);
 }

@@ -16035,10 +16035,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			 		+ "      AND (:projectStatus IS NULL OR LOWER(bpe.active) LIKE CONCAT('%', :projectStatus, '%'))\n"
 			 		+ "    GROUP BY\n"
 			 		+ "        bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n"
-			 		+ "        name, bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name,\n"
+			 		+ "        bpe.name, bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name,\n"
 			 		+ "        bpe.project_name, pm.project_manager_name, bpe.po_no, bpe.client_name,\n"
 			 		+ "        bpe.reporting_manager_id, bpe.client_side_id, bpe.start_date, bpe.end_date,\n"
-			 		+ "        bpe.team_name, bpe.team_id, bpe.employmentstatus, month_name,\n"
+			 		+ "        bpe.team_name, bpe.team_id, bpe.employmentstatus, dp.from_date,\n"
 			 		+ "        ecs.expectedTimesheetFillCount, ecs.client_side_not_filled_count,\n"
 			 		+ "        ecs.clientSidePendingCount, ecs.clientSideApprovedCount\n"
 			 		+ "    ORDER BY\n"
@@ -17303,7 +17303,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "    bpe.emp_id,\n"
 		    			+ "    bpe.project_id,\n"
 		    			+ "    bpe.employee_team_map_id,\n"
-		    			+ "    name,\n"
+		    			+ "    bpe.name,\n"
 		    			+ "    bpe.spoc,\n"
 		    			+ "    bpe.billable_type,\n"
 		    			+ "    bpe.employee_role,\n"
@@ -17319,7 +17319,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "    bpe.team_name,\n"
 		    			+ "    bpe.team_id,\n"
 		    			+ "    bpe.employmentstatus,\n"
-		    			+ "    month_name,\n"
+		    			+ "    dp.from_date,\n"
 		    			+ "    ecs.expectedTimesheetFillCount,\n"
 		    			+ "    ecs.client_side_not_filled_count,\n"
 		    			+ "    ecs.clientSidePendingCount,\n"
@@ -19234,17 +19234,21 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "INNER JOIN EmployeeTimesheetsNew et on et.empId =:empId \n"
 				+ "INNER JOIN ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = et.timesheetId AND ptsn.id.projectId = :projectId \n"
 				+ "WHERE e.empId =:empId AND DATE(et.date) >= DATE(etm.startDate) AND (etm.endDate IS NULL OR etm.endDate != null AND DATE(et.date) <= DATE(etm.endDate)) \n"
-				+ "AND p.projectId =:projectId AND et.status IN(1,2) \n")
+				+ "AND p.projectId =:projectId AND et.status IN(1,2) AND et.isSystemGenerated = false AND et.dayTypeId != 5 \n")
 		public Integer findTimesheetFilledCountByEmpIdAndProjectIdInEtmDateRange(Long empId, Integer projectId, Long etmId);
 
+		@Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
+				+ "FROM EmployeeTeamMap etm\n"
+				+ "inner join Team t on t.teamId = etm.teamId \n"
+				+ "inner join Project p on p.projectId = t.projectId\n"
+				+ "WHERE FUNCTION('DATE', etm.startDate) <= :selectedDate\n"
+				+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
+		List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
 
-
-					 @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
-								+ "FROM EmployeeTeamMap etm\n"
-								+ "inner join Team t on t.teamId = etm.teamId \n"
-								+ "inner join Project p on p.projectId = t.projectId\n"
-								+ "WHERE FUNCTION('DATE', etm.startDate) <= :selectedDate\n"
-								+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
-							List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
-
+		@Query(value = "Select DISTINCT et.timesheetId \n"
+				+ "FROM EmployeeTimesheetsNew et \n"
+				+ "WHERE et.empId =:empId AND DATE(et.date) >= DATE(:startDate) AND DATE(et.date) <= DATE(:endDate) \n"
+				+ "AND et.isSystemGenerated = true \n")
+		public List<Long> findWeekOffTimesheetIdByEmpIdAndDateRange(Long empId, LocalDate startDate, LocalDate endDate);
+			
 }

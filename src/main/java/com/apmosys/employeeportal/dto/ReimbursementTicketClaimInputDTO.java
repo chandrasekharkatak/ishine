@@ -20,11 +20,25 @@ public class ReimbursementTicketClaimInputDTO {
 	private Date fromDate;
 	private Date toDate;
 	private String purpose;
-	/** Project from employee RMG / timesheet mapping; persisted on claim. Use -1 for BD "Others" (see othersProjectName + clientId). */
+	private String businessJustification;
+	private Boolean hodApproval;
+	private Date preApprovalDate;
+	private List<Long> preApprovalDocIds;
+	/** Project from employee RMG / timesheet mapping; -1 = Others, -2 = POC (see manual project name + client). */
 	private Long projectId;
-	/** Manual project title when projectId is -1 (Business Development only; validated server-side). */
+	/** Manual project title when projectId is -1 (Others). */
 	private String othersProjectName;
-	/** Required when projectId is -1; also persisted for normal projects when resolved from project master. */
+	/** Manual project title when projectId is -2 (POC). */
+	private String pocProjectName;
+	/** Master {@code clients.client_id} when client is from the clients table. */
 	private Integer clientId;
+	/** Reimbursement-only client when chosen from a prior prospective entry. */
+	private Long reimbursementClientId;
+	/** Create/find prospective client by name (reimbursement_client table only). */
+	private String prospectiveClientName;
+	/** MASTER or PROSPECTIVE_NEW_CLIENT */
+	private String clientCategory;
+	private Boolean recurringExpense;
+	private Boolean pocProject;
 	private List<Long> docIds;
 }

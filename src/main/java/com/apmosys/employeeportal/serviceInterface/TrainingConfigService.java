@@ -1,5 +1,6 @@
 package com.apmosys.employeeportal.serviceInterface;
 
+import java.util.List;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
@@ -110,7 +111,7 @@ public interface TrainingConfigService {
 	 * @param trainingId Training ID
 	 * @return ServiceResponse containing training responses
 	 */
-	ServiceResponse getTrainingResponses(Integer trainingId);
+	ServiceResponse getTrainingResponses(Integer trainingId, String type);
 	
 	
 	ServiceResponse getLockStatus(Long empId);
@@ -127,4 +128,8 @@ public interface TrainingConfigService {
 	 * 
 	 * */
 	ServiceResponse getAllTrainingTypes();
+
+    ServiceResponse getCountOfResponses(Integer trainingId);
+
+	ServiceResponse getEmployeesByFilter(String filter, String searchName, List<Long> ids, int page, int size);
 }

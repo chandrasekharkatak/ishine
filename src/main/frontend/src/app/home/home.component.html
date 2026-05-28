@@ -353,8 +353,12 @@
             <!-- Birthday Tab -->
             <div class="tab-pane active show fade" id="birthday-tabpanel" role="tabpanel"
                 aria-labelledby="birthday-tab">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">Today's Birthdays</p>
+
+                <div class="card-title px-1 pt-2 d-flex align-items-center justify-content-between w-100">
+                    <p class="section-heading mb-0 pl-2">Today's Birthdays</p>
+                    <button class="enterprise-view-btn" (click)="showBirthdayPopup = true">
+                        <i class="fa fa-users mr-1"></i> View All
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <div *ngIf="birthdayList.length == 0" class="container-fluid placeholder">
@@ -388,8 +392,13 @@
             <!-- Work Anniversary Tab -->
             <div class="tab-pane active show fade" id="workAnniversary-tabpanel" role="tabpanel"
                 aria-labelledby="workAnniversary-tab">
-                <div class="card-title px-1 pt-2">
-                    <p class="section-heading m-0 pl-2">Today's Work Anniversary</p>
+
+                <div class="card-title px-1 pt-2 d-flex align-items-center justify-content-between w-100">
+                    <p class="section-heading mb-0 pl-2">Today's Work Anniversary</p>
+                    <button class="enterprise-view-btn" (click)="showAnniversaryPopup = true">
+                        <i class="fa fa-users mr-1"></i>
+                        View All
+                    </button>
                 </div>
                 <div class="card-body p-0">
                     <div *ngIf="workAnniversaryList.length == 0" class="container-fluid placeholder">
@@ -448,6 +457,188 @@
         </div>
     </div>
 
+
+
+<div class="modern-modal-backdrop"
+    *ngIf="showBirthdayPopup">
+
+    <div class="modern-modal-container">
+
+
+        <div class="modern-modal-header">
+
+            <div>
+
+                <h4 class="modal-main-title">
+                    Today's Birthdays
+                </h4>
+
+                <p class="modal-sub-title">
+                    Employee Birthday List
+                </p>
+
+            </div>
+
+            <button class="modern-close-btn"
+                (click)="showBirthdayPopup = false">
+
+                ×
+
+            </button>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- MODAL BODY -->
+        <!-- ===================================================== -->
+
+        <div class="modern-modal-body">
+
+            <div *ngIf="birthdayList.length == 0"
+                class="empty-state">
+
+                <img src="assets/Images/birthday-cake-icon.svg"
+                    class="empty-icon">
+
+                <h5>
+                    No Birthdays Today
+                </h5>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- EMPLOYEE CARD -->
+            <!-- ===================================================== -->
+
+            <div class="employee-modern-card"
+                *ngFor="let employee of birthdayList">
+
+                <img class="modern-avatar"
+                    src="assets/Images/default-user-image.jpeg">
+
+                <div class="modern-employee-info">
+
+                    <h5 *ngIf="userMapping.employee360_view_home"
+                        [navigateToEmployee360]="employee.emp360"
+                        class="modern-employee-name clickable"
+                        style="cursor: pointer;"
+                        title="Click to view Employee 360">
+                        {{ employee.name }}
+                    </h5>
+                    <h5 *ngIf="!userMapping.employee360_view_home" class="modern-employee-name">
+                        {{ employee.name }}
+                    </h5>
+
+                    <p class="modern-employee-department">
+
+                        {{ employee.departmentName }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<div class="modern-modal-backdrop"
+    *ngIf="showAnniversaryPopup">
+
+    <div class="modern-modal-container">
+
+        <!-- ===================================================== -->
+        <!-- MODAL HEADER -->
+        <!-- ===================================================== -->
+
+        <div class="modern-modal-header">
+
+            <div>
+
+                <h4 class="modal-main-title">
+                    Work Anniversary
+                </h4>
+
+                <p class="modal-sub-title">
+                    Employee Work Anniversary List
+                </p>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- CHANGE HERE : CLOSE BUTTON -->
+            <!-- ===================================================== -->
+
+            <button class="modern-close-btn"
+                (click)="showAnniversaryPopup = false">
+
+                ×
+
+            </button>
+
+        </div>
+
+        <!-- ===================================================== -->
+        <!-- MODAL BODY -->
+        <!-- ===================================================== -->
+
+        <div class="modern-modal-body">
+
+            <div *ngIf="workAnniversaryList.length == 0"
+                class="empty-state">
+
+                <img src="assets/Images/birthday-cake-icon.svg"
+                    class="empty-icon">
+
+                <h5>
+                    No Work Anniversary Today
+                </h5>
+
+            </div>
+
+            <!-- ===================================================== -->
+            <!-- EMPLOYEE CARD -->
+            <!-- ===================================================== -->
+
+            <div class="employee-modern-card"
+                *ngFor="let employee of workAnniversaryList">
+
+                <img class="modern-avatar"
+                    src="assets/Images/default-user-image.jpeg">
+
+                <div class="modern-employee-info">
+
+                    <h5 *ngIf="userMapping.employee360_view_home"
+                        [navigateToEmployee360]="employee.emp360"
+                        class="modern-employee-name clickable"
+                        style="cursor: pointer;"
+                        title="Click to view Employee 360">
+                        {{ employee.name }}
+                    </h5>
+                    <h5 *ngIf="!userMapping.employee360_view_home" class="modern-employee-name">
+                        {{ employee.name }}
+                    </h5>
+
+                    <p class="modern-employee-department">
+
+                        {{ employee.departmentName }}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
     <!-- <div *ngIf="userMapping.view_birthday_list" class="birthday-list card mb-2">
         <div class="card-title px-1 pt-2">
@@ -531,7 +722,7 @@
                         <tbody>
                             <tr *ngFor="let timesheet of timesheetDetails; let i = index">
                                 <th scope="row">{{i+1}}</th>
-                                <td>{{timesheet.date}}</td>
+                                <td>{{ timesheet.date | date:'dd-MM-yyyy' }}</td>
                                 <td>{{timesheet.weekDayName}}</td>
                                 <td>{{timesheet.dayType}}</td>
                                 <td>{{timesheet.status}}</td>
@@ -563,7 +754,13 @@
 
     <div *ngIf="userMapping.view_employee_rewards" class="timesheet-graph reward card mb-2">
         <div class="card-title px-1 pt-2">
-            <p class="section-heading m-0 pl-2 p-3">ApMoSys Wall Of Fame</p>
+           <div class="d-flex align-items-center justify-content-between w-100 pr-2">
+            <p class="section-heading mb-0 pl-2 py-2">ApMoSys Wall Of Fame</p>
+
+            <button class="enterprise-view-btn" (click)="showRewardsPopup = true">
+                <i class="fa fa-users mr-1"></i> View All
+            </button>
+           </div>
 
             <div class="tabs">
                 <ul class="nav nav-pills">
@@ -629,7 +826,54 @@
         </div>
     </div>
 
+<div class="modern-modal-backdrop" *ngIf="showRewardsPopup">
+    <div class="modern-modal-container">
 
+        <div class="modern-modal-header">
+            <div>
+                <h4 class="modal-main-title">Wall Of Fame</h4>
+                <p class="modal-sub-title">
+                    {{ selectedCategoryName }} List
+                </p>
+            </div>
+            <button class="modern-close-btn" (click)="showRewardsPopup = false">×</button>
+        </div>
+
+        <div class="modern-modal-body">
+            <div *ngIf="rewardsList.length == 0" class="empty-state">
+                <img src="assets/Images/reward2.png" class="empty-icon" style="width: 80px;">
+                <h5>No Rewards to Show</h5>
+            </div>
+
+            <div class="employee-modern-card" *ngFor="let rewards of rewardsList">
+                <img class="modern-avatar" src="assets/Images/reward2.png">
+                <div class="modern-employee-info">
+
+                    <h5 *ngIf="userMapping.employee360_view_home"
+                        [navigateToEmployee360]="rewards.emp360"
+                        class="modern-employee-name clickable"
+                        style="cursor: pointer;"
+                        title="Click to view Employee 360">
+                        {{ rewards.rewardedToByName }}
+                    </h5>
+
+                    <h5 *ngIf="!userMapping.employee360_view_home" class="modern-employee-name">
+                        {{ rewards.rewardedToByName }}
+                    </h5>
+
+                    <p class="modern-reward-type text-primary font-weight-bold mb-1" style="font-size: 14px;">
+                        <i class="fa fa-trophy mr-1"></i> {{ rewards.rewardTypeName }}
+                    </p>
+
+                    <p class="modern-employee-department">
+                        {{ rewards.department }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
     <!-- <div *ngIf="userMapping.view_employee_rewards" class="reward card mb-2">
         <div class="card-title px-1 pt-2" >
             <p class="section-heading m-0 pl-2">Apmosys Wall Of Fame</p>
@@ -1142,12 +1386,12 @@
     <ng-template #TimesheetReq>
         <div class="modal-header">
             <h1 class="table-header-title">My Reportee Timesheet Applications</h1>
-            
+
             <button type="button" class="close" data-dismiss="modal" aria-label="Close" (click)="cancelRequest()">
                 <span aria-hidden="true">&times;</span>
             </button>
 
-             
+
 
 
         </div>

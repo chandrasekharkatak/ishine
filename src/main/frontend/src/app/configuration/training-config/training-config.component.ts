@@ -1,5 +1,5 @@
 import { DatePipe, LocationStrategy } from '@angular/common';
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { Sort } from '@angular/material/sort';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router } from '@angular/router';
@@ -13,6 +13,9 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { GlobalWorkerOptions } from 'pdfjs-dist';
 import * as ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import { TrainingContentViewComponent } from 'src/app/training-content-view/training-content-view.component';
+import { DepartmentService } from 'src/app/services/department.service';
+import { DestinationService } from 'src/app/services/destination.service';
 
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
@@ -46,6 +49,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   // Data
   trainings: any[] = [];
+  totalTrainings: number = 0;
+  activeCount: number = 0;
+  mandatoryCount: number = 0;
+  inactiveCount: number = 0;
   trainingContents: any[] = [];
   selectedTraining: any = null;
   trainingFormData: any = {
@@ -95,6 +102,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   // Modal
   alertMessage: any;
+  alertTitle: string = '';
   alertType: 'success' | 'error' | 'warning' | 'info' = 'info';
   modalRef: NgbModalRef;
   @ViewChild('alert_message') alertTemplate: TemplateRef<any>;
@@ -110,7 +118,8 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   // Filter
   filters: any = {};
   isSearchEnabled: boolean = false;
-  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'lockEnabled', 'activeStatus', 'createdByName', 'createdOn'];
+  selectedFilterCard: string = 'TOTAL';
+  trainingsColumns: any[] = ['blank', 'trainingName', 'trainingType', 'mandatoryFlag', 'lockEnabled', 'activeStatus', 'createdByName'];
   contentColumns: any[] = ['blank', 'contentName', 'contentType', 'effectiveFrom', 'effectiveTo', 'activeStatus', 'createdByName', 'createdOn'];
 
   // File upload
@@ -138,6 +147,20 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   { value: 'AUDIO', label: 'Audio' },
   { value: 'LINK', label: 'External Link' }
 ];
+
+selectedTrainingForAssign: any = null;
+assignableEmployees: any[]   = [];
+assignSelectedIds: Set<number> = new Set();
+assignDepartments: any[]     = [];
+assignDeptFilter: string     = '';
+assignSearchText: string     = '';
+assignLoading: boolean       = false;
+assignSaving: boolean        = false;
+
+@ViewChild('assign_training_modal') assignTrainingModal: any;
+pendingExcludedIds: number[] = [];
+assignStatusFilter: string = '';
+
   allTrainingResponse: any[] = [];
   sortResponseColumn: string = '';
   sortResponseColumnType: string = '';
@@ -148,9 +171,34 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   isLoadingPreview = false;
   totalSlides: number = 0;
   slideBlobs: string[] = []; // Store blob URLs
+  @ViewChild('success_template') successTemplate!: TemplateRef<any>;
+  @ViewChild('deactivate_success_template') deactivateSuccessTemplate!: TemplateRef<any>;
+  successTitle: string = '';
+  successMessage: string = '';
+
+  assignmentScope: string = 'ALL';
+  assignmentTarget: any = [];
+  assignmentScheduleDate: string = '';
+  assignmentPriority: string = 'MEDIUM';
+  assignmentNotes: string = '';
+  selectedEmployeeIds: number[] = [];
+  excludedEmployeeIds: number[] = [];
+  allEmployeesList: any[] = [];
+  employeeSearchQuery: string = '';
+  employeeStatusFilter: string = 'ALL';
+  employeePage: number = 0;
+  employeePageSize: number = 10;
+  employeeTotalElements: number = 0;
+  employeeTotalPages: number = 0;
+
+  totalUsers: number = 0;
+  totalUsersAttended: number = 0
+  totalUsersNotAttended: number = 0;
 
   showTypeModal: boolean = false;
   newTrainingType: string = '';
+  @ViewChild(TrainingContentViewComponent) contentPreviewModal: TrainingContentViewComponent;
+  currCard: string = 'usersAttended';
   
   constructor(
     private authenticationService: AuthenticationService,
@@ -199,6 +247,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.isContentForm = false;
     this.filters = {};
     this.isSearchEnabled = false;
+    this.selectedFilterCard = 'TOTAL';
     this.getAllTrainings();
   }
 
@@ -259,6 +308,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       customDeadlineMonths: '',
       activeStatus: 'true'
     };
+    this.pendingExcludedIds = [];
   }
 
   onLockEnabledChange(value: string) {
@@ -294,11 +344,36 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.trainingService.getAllTrainings().subscribe({
       next: (response: any) => {
         this.trainings = response.serviceResponse || [];
+        this.updateSummaryStats();
       },
       error: (error: any) => {
         this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load trainings', 'error');
       }
     });
+  }
+
+  filterByCard(type: string) {
+    this.selectedFilterCard = type;
+    this.page = 1; // Reset pagination
+  }
+
+  getFilteredTrainings() {
+    let list = this.trainings;
+    if (this.selectedFilterCard === 'ACTIVE') {
+      list = list.filter(t => t.activeStatus === 'true');
+    } else if (this.selectedFilterCard === 'INACTIVE') {
+      list = list.filter(t => t.activeStatus === 'false');
+    } else if (this.selectedFilterCard === 'MANDATORY') {
+      list = list.filter(t => t.mandatoryFlag === 'true');
+    }
+    return list;
+  }
+
+  updateSummaryStats() {
+    this.totalTrainings = this.trainings.length;
+    this.activeCount = this.trainings.filter(t => t.activeStatus === 'true').length;
+    this.mandatoryCount = this.trainings.filter(t => t.mandatoryFlag === 'true').length;
+    this.inactiveCount = this.totalTrainings - this.activeCount;
   }
 
   getTrainingContent(trainingId: number) {
@@ -319,7 +394,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
         }
       },
       error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to load training content', 'error');
+        console.log("FULL ERROR:", error);
+        console.log("INNER ERROR:", error.error);
+
+        const msg =
+          error?.error?.serviceStatus ||
+          error?.message ||
+          'Failed to load training content';
+
+        this.openAlertMod(this.alertTemplate, msg, 'error');
       }
     });
   }
@@ -401,7 +484,18 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
           if (contentType.startsWith('application/pdf')) {
             this.contentFormData.contentType = 'PDF';
-            this.parsePDFFile(file);
+          
+            // Use the shared component for PDF preview
+            this.contentPreviewModal.content = this.contentFormData;
+            this.contentPreviewModal.contentType = 'PDF';
+            this.contentPreviewModal.contentName = this.contentFormData.contentName;
+            this.contentPreviewModal.previewUrl = this.previewUrl;
+            this.contentPreviewModal.file = file;
+            this.contentPreviewModal.isAdminMode = true;
+            this.contentPreviewModal.showTimer = false;
+            
+            // Open the modal
+            this.contentPreviewModal.open();
           } else {
             this.contentFormData.contentType = 'OTHER';
             const url = window.URL.createObjectURL(blob);
@@ -420,30 +514,26 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       return;
     }
 
+
     this.contentFormData.effectiveFrom = this.trainingFormData.effectiveFrom;
     this.contentFormData.effectiveTo = this.trainingFormData.effectiveTo;
 
-    // Validate content is added during creation
     if (!this.validateContentForm()) {
-      //this.openAlertMod(this.alertTemplate, 'Content is required to create a training. Please add content first.', 'warning');
-      this.isContentAccordionOpen = true; // Open accordion to show content form
+      this.isContentAccordionOpen = true;
       return;
     }
 
-    // Build FormData with both training and content as JSON strings
     const formData = new FormData();
 
-    // Training DTO as JSON string
     const trainingDTO = {
       trainingName: this.trainingFormData.trainingName,
       trainingType: this.trainingFormData.trainingType,
       mandatoryFlag: this.trainingFormData.mandatoryFlag || 'false',
       effectiveFrom: this.trainingFormData.effectiveFrom ? moment(this.trainingFormData.effectiveFrom).format('YYYY-MM-DD') : null,
       effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
-      // frequencyPerYear: this.trainingFormData.frequencyPerYear || 2,
       lockEnabled: this.trainingFormData.lockEnabled || 'false',
       minViewTimeMinutes: this.trainingFormData.minViewTimeMinutes || null,
-      consentRequired:  'true',
+      consentRequired: 'true',
       skipAllowed: this.trainingFormData.skipAllowed || 'false',
       deadlineEnabled: this.trainingFormData.deadlineEnabled || 'false',
       deadlinePattern: this.trainingFormData.deadlinePattern || null,
@@ -451,7 +541,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       createdBy: this.currentUser.empId
     };
 
-    // Content DTO as JSON string
     const contentDTO = {
       contentType: this.contentFormData.contentType,
       contentName: this.contentFormData.contentName,
@@ -459,35 +548,34 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       effectiveTo: this.trainingFormData.effectiveTo ? moment(this.trainingFormData.effectiveTo).format('YYYY-MM-DD') : null,
       externalLinkUrl: this.contentFormData.contentType === 'LINK' ? this.contentFormData.externalLinkUrl : null
     };
-     formData.append(
-       'trainingDTO',
-       new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' })
-     );
-     
-     formData.append(
-       'contentDTO',
-       new Blob([JSON.stringify(contentDTO)], { type: 'application/json' })
-     );
-    // File (if applicable)
+    
+    formData.append('trainingDTO', new Blob([JSON.stringify(trainingDTO)], { type: 'application/json' }));
+    formData.append('contentDTO', new Blob([JSON.stringify(contentDTO)], { type: 'application/json' }));
+    
     if (this.contentFormData.contentType !== 'LINK' && this.file) {
       formData.append('file', this.file);
     }
 
-    // Send training and content together
-    this.trainingService.createTrainingWithContent(formData).
-    subscribe({
-    next: (response: any) => {
-      console.log("success===> ",response)
+    this.trainingService.createTrainingWithContent(formData).subscribe({
+      next: (response: any) => {
       const createdTraining = response.serviceResponse;
+      const payload = {
+        excludedEmployeeIds: this.pendingExcludedIds,
+        allEmployeeIds: this.assignableEmployees.map((e: any) => e.empId),
+        updatedBy: this.currentUser.empId
+      };
+
+      this.trainingService.assignEmployees(createdTraining.trainingId, payload).subscribe({
+        next: () => { this.pendingExcludedIds = []; },
+        error: () => { this.pendingExcludedIds = []; }
+      });
+
       this.openCreateQuizModal(createdTraining);
     },
-    error: (error: any) => {
-      console.log("HTTP error => ", error);
-      this.openAlertMod(this.alertTemplate,
-        error?.error?.serviceStatus || 'Something went wrong',
-        'error');
-    }
-  });
+      error: (error: any) => {
+        this.openAlertMod(this.alertTemplate, error?.error?.serviceStatus || 'Something went wrong', 'error');
+      }
+    });
   }
 
   onUpdateTraining() {
@@ -572,14 +660,25 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       // Send training and content together
       this.trainingService.updateTrainingWithContent(formData).subscribe({
         next: (response: any) => {
-          this.openAlertMod(this.alertTemplate, 'Training and content updated successfully', 'success');
-          // Reload content list after update
-          if (this.trainingFormData.trainingId) {
-            this.getTrainingContent(this.trainingFormData.trainingId);
-          }
-          this.resetContentForm();
-          this.showTable();
-        },
+      const payload = {
+        excludedEmployeeIds: this.pendingExcludedIds,
+        allEmployeeIds: this.assignableEmployees.map((e: any) => e.empId),
+        updatedBy: this.currentUser.empId
+      };
+
+      this.trainingService.assignEmployees(this.trainingFormData.trainingId, payload).subscribe({
+        next: () => { this.pendingExcludedIds = []; },
+        error: () => { this.pendingExcludedIds = []; }
+      });
+
+      this.showSuccessModal('Update Successful', 'Training and content have been updated successfully.');
+
+      if (this.trainingFormData.trainingId) {
+        this.getTrainingContent(this.trainingFormData.trainingId);
+      }
+      this.resetContentForm();
+      this.showTable();
+    },
         error: (error: any) => {
           console.log("error=> ", error);
           this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Failed to update training', 'error');
@@ -590,7 +689,7 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
 
   onAddQuiz(training: any) {
     // Navigate to survey-config with training context
-    this.router.navigate(['/configuration/survey-config'], {
+    this.router.navigate(['/configuration/training-quiz-config'], {
       queryParams: {
         source: 'training',
         trainingId: training.trainingId,
@@ -626,106 +725,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.getTrainingContent(training.trainingId);
   }
   
-  console = console;
-
-  onViewContent(training: any) {
-  this.clearAllPreviewData();
-
-  // Step 1: Load training content
-  this.trainingService.getTrainingContent(training.trainingId)
-    .subscribe({
-      next: (response: any) => {
-        const contents = response.serviceResponse || [];
-
-        if (contents.length === 0) {
-          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info');
-          return;
-        }
-
-        // Step 2: Pick active content
-        const activeContent = contents.find((c: any) => c.activeStatus === 'true') || contents[0];
-
-        this.viewingContent = activeContent;
-        this.isViewingExistingContent = true;
-
-        // Step 3: Populate content form
-        this.contentFormData = {
-          contentType: activeContent.contentType,
-          contentName: activeContent.contentName,
-          effectiveFrom: activeContent.effectiveFrom,
-          effectiveTo: activeContent.effectiveTo,
-          externalLinkUrl: activeContent.externalLinkUrl || ''
-        };
-
-        // Step 4: Handle different content types
-        const contentType = activeContent.contentType?.toUpperCase();
-
-        // LINK type - redirect
-        if (contentType === 'LINK') {
-          this.previewUrl = activeContent.externalLinkUrl;
-          this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
-          this.showPreview = true;
-          this.openPreviewModal();
-          return;
-        }
-
-        // For all other FILE types (IMAGE, VIDEO, AUDIO)
-        this.trainingService.downloadContent(activeContent.contentId)
-          .subscribe({
-            next: (resp: any) => {
-              const blob: Blob = resp.body;
-              const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
-
-              // Extract filename from header
-              let fileName = activeContent.contentName || 'content';
-              const disposition = resp.headers.get('Content-Disposition');
-              if (disposition) {
-                const match = disposition.match(/filename="(.+)"/);
-                if (match && match[1]) {
-                  fileName = match[1];
-                }
-              }
-
-              // Create blob URL for the file
-              this.previewUrl = URL.createObjectURL(
-                new Blob([blob], { type: contentType })
-              );
-              this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
-              this.showPreview = true;
-
-              if (activeContent.contentType === 'PDF') {
-                  const file = new File([blob], fileName, { type: contentType });
-                  this.file = file;
-                  this.fileSize = blob.size / 1024 / 1024;
-                  this.parsePDFFile(file);
-                } else {
-                  this.file = new File([blob], fileName, { type: contentType });
-                  this.fileSize = blob.size / 1024 / 1024;
-                }
-
-              // Store file info for download/preview
-              this.file = new File([blob], fileName, { type: contentType });
-              this.fileSize = blob.size / 1024 / 1024;
-
-              this.openPreviewModal();
-            },
-            error: (error: any) => {
-              if (error?.error instanceof Blob) {
-                error.error.text().then((text: string) => {
-                  this.openAlertMod(this.alertTemplate, text || 'Error loading content', 'error');
-                });
-              } else {
-                this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Error loading content', 'error');
-              }
-            }
-          });
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.serviceStatus || 'Error loading training content', 'error');
-      }
-    });
-}
-
   onAddContent() {
     if (!this.validateContentForm()) {
       return;
@@ -786,7 +785,16 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       if (result === 'confirm') {
         this.trainingService.deactivateTraining(training.trainingId, this.currentUser.empId).subscribe({
           next: (response: any) => {
-            this.openAlertMod(this.alertTemplate, 'Training deactivated successfully', 'success');
+            this.selectedTraining = training;
+            // Show deactivation success modal
+            this.successTitle = 'Training Deactivated';
+            this.successMessage = 'The training has been successfully deactivated.';
+            this.modalRef = this.modalService.open(this.deactivateSuccessTemplate, {
+              centered: false,
+              backdrop: 'static',
+              windowClass: 'success-modal',
+              size: 'sm'
+            });
             this.getAllTrainings();
           },
           error: (error: any) => {
@@ -797,42 +805,42 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     });
   }
 
+  showSuccessModal(title: string, message: string): void {
+    this.openAlertMod(this.alertTemplate, message, 'success', title);
+  }
+
   private openCreateQuizModal(createdTraining: any): void {
+    // Store the created training info for display
+    this.selectedTraining = createdTraining;
+    this.trainingFormData.trainingName = createdTraining.trainingName;
+    
+    this.modalRef = this.modalService.open(this.createQuizTemplate, {
+      backdrop: 'static',
+      windowClass: 'success-modal',
+      size: 'md'
+    });
 
-  this.modalRef = this.modalService.open(this.createQuizTemplate, {
-    centered: true
-  });
-
-  this.modalRef.result.then((result) => {
-
-    if (result === 'yes') {
-
-      // Redirect to quiz page
-      this.router.navigate(['/configuration/survey-config'], {
-        queryParams: {
-          source: 'trainingAccept',
-          trainingId: createdTraining.trainingId,
-          trainingName: createdTraining.trainingName,
-
-        }
-      });
-
-    } else {
-
-      // Stay in training page
+    this.modalRef.result.then((result) => {
+      if (result === 'yes') {
+        this.router.navigate(['/configuration/training-quiz-config'], {
+          queryParams: {
+            source: 'trainingAccept',
+            trainingId: createdTraining.trainingId,
+            trainingName: createdTraining.trainingName,
+            action: 'create'
+          }
+        });
+      } else {
+        this.resetContentForm();
+        this.resetTrainingForm();
+        this.showTable();
+      }
+    }).catch(() => {
       this.resetContentForm();
       this.resetTrainingForm();
       this.showTable();
-    }
-
-  }).catch(() => {
-
-    // If dismissed (X button)
-    this.resetContentForm();
-    this.resetTrainingForm();
-    this.showTable();
-  });
-}
+    });
+  }
 
 
   onFileSelect(event: any) {
@@ -1093,58 +1101,82 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
   }
 
   openPreviewModal() {
-  // For viewing existing content, we already have previewUrl set
-  if (this.isViewingExistingContent) {
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
-    });
-    return;
-  }
+    // Set content data
+    this.contentPreviewModal.content = this.viewingContent || this.contentFormData;
+    this.contentPreviewModal.contentType = this.contentFormData.contentType;
+    this.contentPreviewModal.contentName = this.contentFormData.contentName;
+    this.contentPreviewModal.previewUrl = this.previewUrl;
+    this.contentPreviewModal.file = this.file;
+    this.contentPreviewModal.isAdminMode = true; // Important: Set to true for admin
+    this.contentPreviewModal.showTimer = false; // No timer in admin mode
 
-  // For new content upload - use previewFile instead of file
-  if (!this.file && !(this.contentFormData.contentType === 'LINK' && this.contentFormData.externalLinkUrl)) {
-    this.openAlertMod(this.alertTemplate, 'Please select a file or enter a URL first', 'warning');
-    return;
-  }
-
-  // Handle PDF files for new uploads (ONLY PDF)
-  if (this.contentFormData.contentType === 'PDF' && this.file) {
-    // Open modal immediately with loading state
-    this.isLoadingPreview = true;
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
-    });
+    // Open the modal
+    this.contentPreviewModal.open();
     
-    // Then start parsing PDF using previewFile
-    this.parsePDFFile(this.file).catch(error => {
-      console.error('Error parsing PDF:', error);
-      this.isLoadingPreview = false;
-      this.openAlertMod(this.alertTemplate, 'Failed to parse PDF file', 'error');
-    });
-    return;
   }
 
-  // For all other file types (including PPT - leave as is)
-  // Generate preview URL if not already generated
-  if (!this.previewUrl) {
-    this.generatePreviewUrl();
-  }
+  // For viewing existing content (from the table)
+  onViewContent(training: any) {
 
-  if (this.previewUrl || (this.contentFormData.contentType === 'LINK' && this.contentFormData.externalLinkUrl)) {
-    this.previewModalRef = this.modalService.open(this.previewModalTemplate, {
-      size: 'xl',
-      centered: true,
-      modalDialogClass: 'preview-modal',
-      windowClass: 'preview-modal-window'
+    this.trainingService.getTrainingContent(training.trainingId).subscribe({
+      next: (response: any) => {
+        const contents = response.serviceResponse || [];
+        if (contents.length === 0) {
+          this.openAlertMod(this.alertTemplate, 'No content available for this training', 'info', null, 'sm');
+          return;
+        }
+
+        const activeContent = contents.find((c: any) => c.activeStatus === 'true') || contents[0];
+        this.viewingContent = activeContent;
+        
+        // Set content data for preview
+        this.contentFormData = {
+          contentType: activeContent.contentType,
+          contentName: activeContent.contentName,
+          effectiveFrom: activeContent.effectiveFrom,
+          effectiveTo: activeContent.effectiveTo,
+          externalLinkUrl: activeContent.externalLinkUrl || ''
+        };
+
+        // Handle different content types
+        if (activeContent.contentType === 'LINK') {
+          this.previewUrl = activeContent.externalLinkUrl;
+          this.safePreviewUrl = this.previewUrl ? this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl) : null;
+          this.openPreviewModal();
+          return;
+        }
+
+        // For file types
+        this.trainingService.downloadContent(activeContent.contentId).subscribe({
+          next: (resp: any) => {
+            const blob: Blob = resp.body;
+            const contentType = resp.headers.get('Content-Type') || 'application/octet-stream';
+            
+            let fileName = activeContent.contentName || 'content';
+            const disposition = resp.headers.get('Content-Disposition');
+            if (disposition) {
+              const match = disposition.match(/filename="(.+)"/);
+              if (match && match[1]) {
+                fileName = match[1];
+              }
+            }
+
+            this.previewUrl = URL.createObjectURL(new Blob([blob], { type: contentType }));
+            this.safePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.previewUrl);
+            
+            // Create file object for PDF parsing
+            this.file = new File([blob], fileName, { type: contentType });
+            this.fileSize = blob.size / 1024 / 1024;
+
+            this.openPreviewModal();
+          },
+          error: (error: any) => {
+            this.openAlertMod(this.alertTemplate, 'Error loading content', 'error');
+          }
+        });
+      }
     });
   }
-}
 
   openPreviewInNewTab() {
     if (this.previewUrl) {
@@ -1175,40 +1207,6 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
       this.openAlertMod(this.alertTemplate, 'File not available for download', 'warning');
     }
   }
-
-  clearAllPreviewData() {
-  // Clear preloaded slides
-  this.preloadedSlides.forEach((blobUrl) => {
-      URL.revokeObjectURL(blobUrl);
-  });
-  this.preloadedSlides.clear();
-  
-  // Clear slide blobs
-  this.slideBlobs.forEach(blobUrl => {
-      URL.revokeObjectURL(blobUrl);
-  });
-  this.slideBlobs = [];
-  
-  // Clear current blob
-  if (this.previewImageBlob) {
-      URL.revokeObjectURL(this.previewImageBlob);
-      this.previewImageBlob = null;
-  }
-  
-  // Reset all slide-related variables
-  this.slides = [];
-  this.totalSlides = 0;
-  this.currentSlideIndex = 0;
-  this.pptxSlides = [];
-  
-  // Reset other preview variables
-  this.previewUrl = '';
-  this.safePreviewUrl = null;
-  this.showPreview = false;
-  this.isLoadingPreview = false;
-  this.file = null;
-  this.fileSize = 0;
-}
 
   closePreviewModal() {
     if (this.previewModalRef) {
@@ -1538,14 +1536,16 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.sortDirection = event.direction;
   }
 
-  openAlertMod(template: TemplateRef<any>, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') {
+  openAlertMod(template: TemplateRef<any>, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info', title?: string, size: 'sm' | 'md' | 'lg' | 'xl' = 'sm') {
     this.alertMessage = message;
     this.alertType = type;
-    this.modalRef = this.modalService.open(template, {
-      backdrop: false,
-      windowClass: 'alert-toast-modal',
-      modalDialogClass: 'alert-toast-dialog',
-      size: 'sm'
+    this.alertTitle = title || '';
+    
+    this.modalRef = this.modalService.open(this.alertTemplate, {
+      centered: false,
+      backdrop: 'static',
+      windowClass: 'alert-modal',
+      size: size
     });
 
     // Auto-close after 3 seconds for success messages
@@ -1562,13 +1562,15 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.page = event;
   }
 
-  onViewTrainingResponse(training: any) {
-    console.log('View training response for:', training);
-    this.trainingService.getTrainingResponses(training.trainingId).subscribe({
+  onViewTrainingResponse(training: any, type: 'usersAttended' | 'usersNotAttended' = 'usersAttended') {
+    this.currCard = type;
+    this.selectedTraining = training;
+    this.getCountOfResponses(training.trainingId);
+    this.trainingService.getTrainingResponses(training.trainingId, type).subscribe({
       next: (response:any) =>{
         this.allTrainingResponse = response.serviceResponse || [];
         this.maxResponseSize = this.allTrainingResponse.length;
-         this.responsePage = 1;
+        this.responsePage = 1;
         this.showTrainingResponseModal();
       }, error: (error) =>{
         this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
@@ -1577,9 +1579,22 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     })
   }
 
+  getCountOfResponses(trainingId: number){
+    this.trainingService.getCountOfResponses(trainingId).subscribe({
+      next: (response:any) =>{
+        this.totalUsers = response.serviceResponse.totalCount || 0;
+        this.totalUsersAttended = response.serviceResponse.completedCount || 0;
+        this.totalUsersNotAttended = response.serviceResponse.notCompletedCount || 0;
+      }, error: (error) =>{
+        this.openAlertMod(this.alertTemplate, 'Error fetching count of responses', 'error');
+        console.log(error);
+      }
+    })
+  }
+
   showTrainingResponseModal(){
     this.modalRef = this.modalService.open(this.showTrainingResponse, {
-      backdrop: false,
+      backdrop: true,
       windowClass: 'alert-toast-modal',
       modalDialogClass: 'alert-toast-dialog',
       size: 'lg'
@@ -1612,325 +1627,10 @@ export class TrainingConfigComponent implements OnInit, OnDestroy {
     this.newTrainingType = '';
     this.modalRef = this.modalService.open(this.addTrainingTypeContent, { 
       centered: true,
-      backdrop: false, 
+      backdrop: true, 
       keyboard: false     
     });
   }
-
-  getAllTrainingTypes() {
-    this.trainingService.getAllTrainingTypes().subscribe({
-      next: (response: any) => {
-        console.log(response , '=============');
-        if (response.serviceStatus === 'Success') {
-          this.trainingTypes = response.serviceResponse || [];
-          console.log(this.trainingTypes,'=========training types ==========')
-        } else {
-          this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
-        }
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
-      }
-    });
-  }
-
-  saveNewTrainingType() {
-   const typeName = this.newTrainingType.trim();
-    
-    // Check if input is empty
-    if (!typeName) {
-        this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
-        return;
-    }
-
-    console.log('Submitting new training type:', typeName);
-
-    this.trainingService.addTrainingType(this.newTrainingType.trim(), this.currentUser.empId).subscribe({
-      next: (response: any) => {
-         console.log('Response:', response);
-
-        if (response.serviceStatus === 'Success') {
-          this.modalRef.close();
-          this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
-          console.log("=======addedddddd");
-          this.getAllTrainingTypes(); // dropdown method
-          this.newTrainingType = '';
-        } else {
-          this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
-        }
-      },
-      error: (error: any) => {
-        this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
-      }
-    });
-  }
-
-async renderLocalPDFPage(index: number): Promise<void> {
-  // CRITICAL FIX: Check if this page is already being rendered or is in cache
-  if (this.preloadedSlides.has(index)) {
-    console.log(`Page ${index} already cached, skipping render`);
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-    }
-    return Promise.resolve();
-  }
-  
-  // Check if this index is currently being rendered (prevent duplicate renders)
-  if (this.preloadQueue.includes(index)) {
-    console.log(`Page ${index} is already in queue, skipping`);
-    return Promise.resolve();
-  }
-  
-  // Add to queue to prevent duplicate renders
-  this.preloadQueue.push(index);
-  
-  try {
-    // Only set loading for the current slide
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = true;
-    }
-
-    const fileToUse = this.file;
-    
-    if (!fileToUse) {
-      throw new Error('No PDF file available');
-    }
-
-    const arrayBuffer = await fileToUse.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    const page = await pdf.getPage(index + 1);
-
-    const viewport = page.getViewport({ scale: 0.8 });
-
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    if (!context) {
-      throw new Error('Could not get canvas context');
-    }
-
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    const renderContext = {
-      canvasContext: context,
-      viewport: viewport
-    };
-
-    await page.render(renderContext).promise;
-
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      canvas.toBlob((b) => {
-        if (b) {
-          resolve(b);
-        } else {
-          reject(new Error('Failed to create blob from canvas'));
-        }
-      }, 'image/jpeg', 0.8);
-    });
-
-    const url = URL.createObjectURL(blob);
-    
-    if (this.preloadedSlides.has(index)) {
-      URL.revokeObjectURL(this.preloadedSlides.get(index)!);
-    }
-
-    this.preloadedSlides.set(index, url);
-    
-    if (index === this.currentSlideIndex) {
-      this.previewImageBlob = url;
-    }
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.resolve();
-  } catch (error) {
-    console.error('Error rendering PDF page:', error);
-    
-    const queueIndex = this.preloadQueue.indexOf(index);
-    if (queueIndex > -1) {
-      this.preloadQueue.splice(queueIndex, 1);
-    }
-    
-    if (index === this.currentSlideIndex) {
-      this.isLoadingPreview = false;
-    }
-    
-    return Promise.reject(error);
-  }
-}
-loadSlide(index: number) {
-  if (index < 0 || index >= this.totalSlides) return;
-
-  this.currentSlideIndex = index;
-
-  // Check if already preloaded
-  if (this.preloadedSlides.has(index)) {
-      this.previewImageBlob = this.preloadedSlides.get(index)!;
-      this.isLoadingPreview = false;
-      
-      // Preload next slides in background
-      this.triggerPreload(index);
-      return;
-  }
-
-  // CASE 1: NEW UPLOAD - PDF (client-side) - Load on demand
-  if (this.file && this.contentFormData.contentType === 'PDF') {
-      // Only show loading if page isn't already being rendered
-      if (!this.preloadQueue.includes(index)) {
-          this.isLoadingPreview = true;
-      }
-      
-      this.renderLocalPDFPage(index).then(() => {
-          // After loading current page, preload next few in background
-          this.triggerPreload(index);
-      });
-      return;
-  }
-}
-
-  nextSlide() {
-      if (this.currentSlideIndex < this.totalSlides - 1) {
-          this.currentSlideIndex++;
-          this.loadSlide(this.currentSlideIndex);
-      }
-  }
-
-  previousSlide() {
-      if (this.currentSlideIndex > 0) {
-          this.currentSlideIndex--;
-          this.loadSlide(this.currentSlideIndex);
-      }
-  }
-
-  goToSlide(index: number) {
-      if (index >= 0 && index < this.totalSlides) {
-          this.currentSlideIndex = index;
-          this.loadSlide(index);
-      }
-  }
-
-   onPreviewError(event: any) {
-      console.log('Preview error:', event);
-      // Show fallback image or message
-      event.target.src = 'assets/images/no-preview.png';
-      event.target.alt = 'Preview not available';
-    }
-
-triggerPreload(currentIndex: number) {
-  console.log('Triggering preload from index:', currentIndex);
-  
-  // For new uploads (client-side PDF)
-  if (this.file && this.contentFormData.contentType === 'PDF') {
-    // Preload next 3 slides only (to match your initial preload)
-    for (let i = 1; i <= 3; i++) { // Changed from 5 to 3
-        const nextIndex = currentIndex + i;
-        if (nextIndex < this.totalSlides && !this.preloadedSlides.has(nextIndex) && !this.preloadQueue.includes(nextIndex)) {
-            console.log('Preloading slide:', nextIndex);
-            // Don't await - let it load in background
-            this.renderLocalPDFPage(nextIndex).catch(err => 
-                console.error(`Failed to preload slide ${nextIndex}:`, err)
-            );
-        }
-    }
-
-    for (let i = 1; i <= 3; i++) {
-      const prevIndex = currentIndex - i;
-      if (prevIndex >= 0 && 
-          !this.preloadedSlides.has(prevIndex) && 
-          !this.preloadQueue.includes(prevIndex)) {
-        console.log('Preloading previous slide:', prevIndex);
-        this.renderLocalPDFPage(prevIndex).catch(err => 
-          console.error(`Failed to preload slide ${prevIndex}:`, err)
-        );
-      }
-    }
-  }
-}
-
-toggleFullscreen() {
-    this.isFullscreen = !this.isFullscreen;
-    const modalElement = document.querySelector('.preview-modal .modal-content');
-    
-    if (this.isFullscreen) {
-        if (modalElement) {
-            if ((modalElement as any).requestFullscreen) {
-                (modalElement as any).requestFullscreen();
-            } else if ((modalElement as any).webkitRequestFullscreen) {
-                (modalElement as any).webkitRequestFullscreen();
-            } else if ((modalElement as any).mozRequestFullScreen) {
-                (modalElement as any).mozRequestFullScreen();
-            } else if ((modalElement as any).msRequestFullscreen) {
-                (modalElement as any).msRequestFullscreen();
-            }
-        }
-    } else {
-        if ((document as any).exitFullscreen) {
-            (document as any).exitFullscreen();
-        } else if ((document as any).webkitExitFullscreen) {
-            (document as any).webkitExitFullscreen();
-        } else if ((document as any).mozCancelFullScreen) {
-            (document as any).mozCancelFullScreen();
-        } else if ((document as any).msExitFullscreen) {
-            (document as any).msExitFullscreen();
-        }
-    }
-}
-
-async parsePDFFile(file: File): Promise<void> {
-  try {
-    // Clear previous data but KEEP the file reference
-    this.isLoadingPreview = true;
-    this.clearAllPreviewData();
-    
-    this.file = file;
-    
-    const arrayBuffer = await file.arrayBuffer();
-    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-    const pdf = await loadingTask.promise;
-    
-    this.totalSlides = pdf.numPages;
-    this.slides = new Array(this.totalSlides);
-    
-    // Load the first page - AWAIT this completely
-    await this.renderLocalPDFPage(0);
-    
-    // Now preload next pages ONE BY ONE with delay
-    const preloadNextPages = async () => {
-      for (let i = 1; i <= 3; i++) { // Reduced to 3 for better performance
-        if (i < this.totalSlides) {
-          // Wait a bit between each preload
-          await new Promise(resolve => setTimeout(resolve, 200));
-          this.renderLocalPDFPage(i).catch(err => 
-            console.error(`Failed to preload slide ${i}:`, err)
-          );
-        }
-      }
-    };
-    
-    // Start preloading in background
-    preloadNextPages();
-    
-    this.isLoadingPreview = false;
-    console.log("Parse pdffile: ", this.file);
-    return Promise.resolve();
-    
-  } catch (error) {
-    console.error('Error parsing PDF file:', error);
-    this.isLoadingPreview = false;
-    this.openAlertMod(this.alertTemplate, 'Failed to parse PDF file. Please try again.', 'error');
-    return Promise.reject(error);
-  }
-}
 
 downloadResponsesToExcel(): void {
   if (!this.allTrainingResponse || this.allTrainingResponse.length === 0) {
@@ -1987,11 +1687,13 @@ downloadResponsesToExcel(): void {
         empId: response.empId || '',
         empName: response.empName || response.employeeName || '',
         lastCompletedCycleNumber: response.lastCompletedCycleNumber || '',
-        lastCompletedOn: response.lastCompletedOn 
+        lastCompletedOn: this.currCard === 'usersAttended' && response.lastCompletedOn 
           ? this.date.transform(response.lastCompletedOn, 'dd-MMM-yyyy') 
-          : '',
-        consentGiven: response.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No',
-        status: 'Completed',
+          : 'N/A',
+        consentGiven: this.currCard === 'usersAttended' 
+          ? (response.consentGiven?.toLowerCase() == 'true' ? 'Yes' : 'No') 
+          : 'No',
+        status: this.currCard === 'usersAttended' ? 'Completed' : 'Not Completed',
       };
 
       const row = worksheet.addRow(rowData);
@@ -2021,7 +1723,7 @@ downloadResponsesToExcel(): void {
           pattern: 'solid',
           fgColor: { argb: 'FFC6EFCE' } // Light green
         };
-      } else if (rowData.status?.toLowerCase() === 'incomplete' || rowData.status?.toLowerCase() === 'pending') {
+      } else if (rowData.status?.toLowerCase() === 'incomplete' || rowData.status?.toLowerCase() === 'not completed' || rowData.status?.toLowerCase() === 'pending') {
         row.getCell('status').fill = {
           type: 'pattern',
           pattern: 'solid',
@@ -2094,18 +1796,386 @@ getPendingCount(): number {
 
 Math = Math;
 
-// In your component
-// In your component
-onImageClick(event: MouseEvent) {
-    const imageElement = event.target as HTMLImageElement;
-    const clickX = event.offsetX; 
-    const imageWidth = imageElement.clientWidth;
+  openMenu(event: MouseEvent, row: any): void {
+    event.stopPropagation();
+    const currentState = (row as any)['_menuOpen'];
+    this.closeAllMenus();
     
-    if (clickX < imageWidth / 2) {
-        this.previousSlide();
-    } else {
-        this.nextSlide();
+    if (!currentState) {
+      const btn = event.currentTarget as HTMLElement;
+      const rect = btn.getBoundingClientRect();
+      const menuWidth = 180;
+      (row as any)['_menuTop']  = `${rect.bottom + 6}px`;
+      (row as any)['_menuLeft'] = `${rect.right - menuWidth}px`;
+      (row as any)['_menuOpen'] = true;
     }
+  }
+
+  closeAllMenus() {
+    this.trainings?.forEach(t => (t as any)['_menuOpen'] = false);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    this.closeAllMenus();
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.closeAllMenus();
+  }
+
+  // Handle scroll events from any container in the component
+  @HostListener('document:scroll')
+  onScroll() {
+    this.closeAllMenus();
+  }
+
+  // Add this property near your other properties
+isTrainingTypeDuplicate: boolean = false;
+
+// Add this method to check for duplicate training types in real-time
+checkTrainingTypeDuplicate(): void {
+  const typeName = this.newTrainingType?.trim();
+  
+  if (!typeName) {
+    this.isTrainingTypeDuplicate = false;
+    return;
+  }
+  
+  // Check if the training type already exists in the list
+  const exists = this.trainingTypes.some(
+    (type: any) => type.trainingType?.toLowerCase() === typeName.toLowerCase()
+  );
+  
+  this.isTrainingTypeDuplicate = exists;
+}
+
+// Update your saveNewTrainingType method to use the validation
+saveNewTrainingType() {
+  const typeName = this.newTrainingType?.trim();
+  
+  // Check if input is empty
+  if (!typeName) {
+    this.openAlertMod(this.alertTemplate, 'Please enter a training type name', 'warning');
+    return;
+  }
+  
+  // Check minimum length
+  if (typeName.length < 3) {
+    this.openAlertMod(this.alertTemplate, 'Training type name must be at least 3 characters long', 'warning');
+    return;
+  }
+  
+  // Check for duplicates before API call
+  if (this.isTrainingTypeDuplicate) {
+    this.openAlertMod(this.alertTemplate, 'This training type already exists. Please enter a unique name.', 'warning');
+    return;
+  }
+
+  console.log('Submitting new training type:', typeName);
+
+  this.trainingService.addTrainingType(typeName, this.currentUser.empId).subscribe({
+    next: (response: any) => {
+      console.log('Response:', response);
+
+      if (response.serviceStatus === 'Success') {
+        this.modalRef.close();
+        this.openAlertMod(this.alertTemplate, 'Training type added successfully', 'success');
+        this.getAllTrainingTypes(); // Refresh the dropdown
+        this.newTrainingType = '';
+        this.isTrainingTypeDuplicate = false;
+      } else {
+        this.openAlertMod(this.alertTemplate, response.message || 'Failed to add training type', 'error');
+      }
+    },
+    error: (error: any) => {
+      this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to add training type', 'error');
+    }
+  });
+}
+
+// Make sure getAllTrainingTypes is called on init (you already have this)
+getAllTrainingTypes() {
+  this.trainingService.getAllTrainingTypes().subscribe({
+    next: (response: any) => {
+      console.log(response, '=============');
+      if (response.serviceStatus === 'Success') {
+        this.trainingTypes = response.serviceResponse || [];
+        console.log(this.trainingTypes, '=========training types ==========');
+        // Reset duplicate flag when training types are loaded
+        this.checkTrainingTypeDuplicate();
+      } else {
+        this.openAlertMod(this.alertTemplate, response.message || 'Failed to load training types', 'error');
+      }
+    },
+    error: (error: any) => {
+      this.openAlertMod(this.alertTemplate, error.error?.message || 'Failed to load training types', 'error');
+    }
+  });
+}
+
+  fetchUsers(type: 'usersAttended' | 'usersNotAttended') {
+    this.currCard = type;
+    this.isResponseSearchEnabled = false;
+    this.responseTableFilters = {};
+    this.responsePage = 1;
+    this.maxResponseSize = 10;
+    this.selectedTraining = this.selectedTraining;
+    this.getCountOfResponses(this.selectedTraining.trainingId);
+    this.trainingService.getTrainingResponses(this.selectedTraining.trainingId, type).subscribe({
+      next: (response:any) =>{
+        this.allTrainingResponse = response.serviceResponse || [];
+        this.maxResponseSize = this.allTrainingResponse.length;
+        this.responsePage = 1;
+      }, error: (error) =>{
+        this.openAlertMod(this.alertTemplate, 'Error fetching training responses', 'error');
+        console.log(error);
+      }
+    })
+  }
+
+onAssignTraining(training: any) {
+  this.selectedTrainingForAssign = training;
+  this.assignDeptFilter  = '';
+  this.assignSearchText  = '';
+  this.assignStatusFilter = ''; 
+  this.assignLoading     = true;
+  this.assignableEmployees = [];
+  this.assignSelectedIds   = new Set();
+
+  this.modalRef = this.modalService.open(this.assignTrainingModal, {
+    size: 'lg',
+    backdrop: 'static',
+    scrollable: true
+  });
+
+  this.loadAssignableEmployees();
+}
+
+loadAssignableEmployees() {
+  this.assignLoading = true;
+  const trainingId = this.selectedTrainingForAssign.trainingId;
+
+  this.trainingService.getAssignableEmployees(trainingId, undefined).subscribe({
+    next: (response: any) => {
+      const employees: any[] = response?.serviceResponse || [];
+
+      const seen = new Set<number>();
+      this.assignableEmployees = employees.filter((emp: any) => {
+        if (seen.has(emp.empId)) return false;
+        seen.add(emp.empId);
+        return true;
+      });
+
+      this.assignLoading = false;
+
+      const hasAnyMappingInDB = this.assignableEmployees.some(
+        (e: any) => e.alreadyAssigned !== null
+      );
+      this.assignSelectedIds = new Set();
+
+      if (hasAnyMappingInDB) {
+        this.assignableEmployees.forEach((emp: any) => {
+          if (emp.alreadyAssigned) {
+            this.assignSelectedIds.add(emp.empId); 
+          }
+        });
+      } else {
+        this.assignableEmployees.forEach((emp: any) => {
+          this.assignSelectedIds.add(emp.empId);  
+        });
+      }
+      const deptMap = new Map<number, string>();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (emp.deptId && !deptMap.has(emp.deptId)) {
+          deptMap.set(emp.deptId, emp.departmentName);
+        }
+      });
+      this.assignDepartments = Array.from(deptMap.entries())
+        .map(([deptId, departmentName]) => ({ deptId, departmentName }))
+        .sort((a: any, b: any) => a.departmentName.localeCompare(b.departmentName));
+    },
+    error: (err: any) => {
+      this.assignLoading = false;
+      this.openAlertMod(this.alertTemplate, 'Failed to load employees', 'error');
+    }
+  });
+}
+
+getFilteredEmployees(): any[] {
+  let filtered = this.assignableEmployees;
+
+  if (this.assignDeptFilter) {
+    filtered = filtered.filter((emp: any) =>
+      emp.deptId === +this.assignDeptFilter
+    );
+  }
+
+  const search = this.assignSearchText.toLowerCase().trim();
+  if (search) {
+    filtered = filtered.filter((emp: any) =>
+      emp.name.toLowerCase().includes(search)
+    );
+  }
+
+  if (this.assignStatusFilter === 'included') {
+    filtered = filtered.filter((emp: any) =>
+      this.assignSelectedIds.has(emp.empId)
+    );
+  } else if (this.assignStatusFilter === 'excluded') {
+    filtered = filtered.filter((emp: any) =>
+      !this.assignSelectedIds.has(emp.empId)
+    );
+  }
+
+  return filtered;
+}
+
+toggleEmployeeSelection(empId: number) {
+  if (this.assignSelectedIds.has(empId)) {
+    this.assignSelectedIds.delete(empId);
+  } else {
+    this.assignSelectedIds.add(empId);
+  }
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+selectAllEmployees() {
+  this.assignableEmployees.forEach((emp: any) =>
+    this.assignSelectedIds.add(emp.empId) 
+  );
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+deselectAllEmployees() {
+  this.assignSelectedIds = new Set();
+}
+
+getSelectedCount(): number {
+  return this.assignSelectedIds.size;
+}
+
+isAllFilteredSelected(): boolean {
+  const filtered = this.getFilteredEmployees();
+  return filtered.length > 0 &&
+    filtered.every((emp: any) => this.assignSelectedIds.has(emp.empId));  
+}
+
+toggleAllFiltered(event: any) {
+  const filtered = this.getFilteredEmployees();
+  if (event.target.checked) {
+    filtered.forEach((emp: any) => this.assignSelectedIds.add(emp.empId));    
+  } else {
+    filtered.forEach((emp: any) => this.assignSelectedIds.delete(emp.empId)); 
+  }
+  this.assignSelectedIds = new Set(this.assignSelectedIds);
+}
+
+onUpdateAssignment() {
+  this.assignSaving = true;
+
+  const allUniqueIds = [...new Set(
+    this.assignableEmployees.map((emp: any) => emp.empId)
+  )];
+
+  const excludedIds = allUniqueIds.filter((id: number) =>
+    !this.assignSelectedIds.has(id)
+  );
+  if (this.isTrainingForm) {
+    this.pendingExcludedIds = excludedIds;
+    this.assignSaving = false;
+    this.modalRef.close();
+    this.openAlertMod(
+      this.alertTemplate,
+      excludedIds.length > 0
+        ? `${excludedIds.length} employee(s) will be excluded when training is saved.`
+        : 'All employees will be included.',
+      'info'
+    );
+    return;
+  }
+  const payload = {
+    excludedEmployeeIds: excludedIds,
+    allEmployeeIds: allUniqueIds,  
+    updatedBy: this.currentUser.empId
+  };
+
+  this.trainingService.assignEmployees(
+    this.selectedTrainingForAssign.trainingId,
+    payload
+  ).subscribe({
+    next: () => {
+      this.assignSaving = false;
+      this.modalRef.close();
+      this.openAlertMod(this.alertTemplate, 'Training assignment updated successfully.', 'success');
+    },
+    error: (err: any) => {
+      this.assignSaving = false;
+      this.openAlertMod(this.alertTemplate, err.error?.message || 'Failed to update assignment.', 'error');
+    }
+  });
+}
+openExcludeFromForm() {
+  this.selectedTrainingForAssign = {
+    trainingId: this.trainingFormData.trainingId,
+    trainingName: this.trainingFormData.trainingName || 'New Training'
+  };
+
+  this.assignDeptFilter  = '';
+  this.assignSearchText  = '';
+  this.assignStatusFilter = ''; 
+  this.assignLoading     = true;
+  this.assignableEmployees = [];
+  this.assignSelectedIds   = new Set();
+
+  this.modalRef = this.modalService.open(this.assignTrainingModal, {
+    size: 'lg',
+    backdrop: 'static',
+    scrollable: true
+  });
+  if (this.isEditMode && this.trainingFormData.trainingId) {
+    this.loadAssignableEmployees(); 
+  } else {
+    this.loadAllEmployeesForNewTraining();
+  }
+}
+
+loadAllEmployeesForNewTraining() {
+  this.assignLoading = true;
+  this.trainingService.getAssignableEmployees(0, undefined).subscribe({
+    next: (response: any) => {
+      const employees: any[] = response?.serviceResponse || [];
+
+      const seen = new Set<number>();
+      this.assignableEmployees = employees.filter((emp: any) => {
+        if (seen.has(emp.empId)) return false;
+        seen.add(emp.empId);
+        return true;
+      });
+
+      this.assignLoading = false;
+      this.assignSelectedIds = new Set();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (!this.pendingExcludedIds.includes(emp.empId)) {
+          this.assignSelectedIds.add(emp.empId);
+        }
+      });
+      const deptMap = new Map<number, string>();
+      this.assignableEmployees.forEach((emp: any) => {
+        if (emp.deptId && !deptMap.has(emp.deptId)) {
+          deptMap.set(emp.deptId, emp.departmentName);
+        }
+      });
+      this.assignDepartments = Array.from(deptMap.entries())
+        .map(([deptId, departmentName]) => ({ deptId, departmentName }))
+        .sort((a: any, b: any) => a.departmentName.localeCompare(b.departmentName));
+    },
+    error: () => {
+      this.assignLoading = false;
+      this.openAlertMod(this.alertTemplate, 'Failed to load employees', 'error');
+    }
+  });
 }
 
 }

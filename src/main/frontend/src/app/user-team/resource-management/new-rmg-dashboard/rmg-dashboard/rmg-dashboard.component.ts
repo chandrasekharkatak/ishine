@@ -303,8 +303,8 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false ,isDate: true}
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false ,isDate: true}
   ];
 
   onBenchEmployeesColumnConfig = [
@@ -313,7 +313,7 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'departmentName', header: 'Department', sortable: true, searchable: true }
     , { field: 'billable', header: 'Is Billable', sortable: true, searchable: true }
     , { field: 'billableType', header: 'User Billable Type', sortable: true, searchable: true }
-    , { field: 'onbenchDate', header: 'On Bench Date', sortable: true, searchable: false }
+    , { field: 'onbenchDate', header: 'On Bench Date', sortable: true, searchable: false ,isDate: true}
     , { field: 'dayOnbench', header: 'No Of Days On Bench', sortable: true, searchable: false }
     , { field: 'projectName', header: 'Project Name', sortable: true, searchable: true }
     , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
@@ -354,8 +354,8 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false ,isDate: true}
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false,isDate: true }
     , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
     , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
     , { field: 'employeeRole', header: 'Employee Role', sortable: true, searchable: true }
@@ -368,8 +368,8 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false ,isDate: true}
+    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false ,isDate: true}
   ];
 
   mappedEmployeeDetailsSubTableColumnConfig = [
@@ -379,8 +379,8 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'clientRM', header: 'Client RM', sortable: false, searchable: false }
     , { field: 'poNo', header: 'PO No.', sortable: false, searchable: false }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: false, searchable: false }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: false, searchable: false ,isDate: true}
+    , { field: 'poEndDate', header: 'PO End Date', sortable: false, searchable: false ,isDate: true}
     , { field: 'projectManagerName', header: 'Project Manager Name', sortable: false, searchable: false }
     , { field: 'teamName', header: 'Team Name', sortable: false, searchable: false }
     , { field: 'employeeRole', header: 'Employee Role', sortable: false, searchable: false }
@@ -397,9 +397,9 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
     , { field: 'poProjectType', header: 'PO Project Type', sortable: true, searchable: true }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
-    , { field: 'etmStartDate', header: 'Employee Start Date', sortable: true, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false ,isDate: true}
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false ,isDate: true}
+    , { field: 'etmStartDate', header: 'Employee Start Date', sortable: true, searchable: false ,isDate: true}
     , { field: 'etmActive', header: 'Approval Status', sortable: false, searchable: false }
   ];
 
@@ -409,8 +409,8 @@ export class RmgDashboardComponent implements OnInit {
     , { field: 'apmosysRM', header: 'ApMSys RM', sortable: true, searchable: true }
     , { field: 'clientRM', header: 'Client RM', sortable: true, searchable: true }
     , { field: 'poNo', header: 'PO No.', sortable: true, searchable: true }
-    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false }
-    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false }
+    , { field: 'poStartDate', header: 'PO Start Date', sortable: true, searchable: false, isDate: true }
+    , { field: 'poEndDate', header: 'PO End Date', sortable: true, searchable: false,isDate: true}
     , { field: 'projectManagerName', header: 'Project Manager Name', sortable: true, searchable: true }
     , { field: 'teamName', header: 'Team Name', sortable: true, searchable: true }
     , { field: 'name', header: 'Employee Name', sortable: true, searchable: true }

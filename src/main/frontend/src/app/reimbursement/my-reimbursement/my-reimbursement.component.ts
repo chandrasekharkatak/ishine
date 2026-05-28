@@ -57,6 +57,9 @@ vehicleTypeList:any[] = [];
     toDate: null,
     dateOfFood: null,
     purpose: '',
+    businessJustification: '',
+    hodApproval: false,
+    preApprovalDate: null as string | null,
     fromLocation: '',
     toLocation: '',
     supportingDocument: null,
@@ -64,7 +67,12 @@ vehicleTypeList:any[] = [];
     foodAllowanceType: null,
     vehicleType: '',
     othersProjectName: '',
+    pocProjectName: '',
     othersClientId: null as number | null,
+    clientPickerKey: null as string | null,
+    prospectiveClientName: '',
+    recurringExpense: false,
+    pocProject: false,
     displayClientName: '',
     expenditureTypeDescription: ''
   };
@@ -73,9 +81,18 @@ vehicleTypeList:any[] = [];
   mappedProjectsForClaim: { projectId: number; projectName: string; clientName?: string; clientId?: number | null }[] = [];
   /** How {@link #mappedProjectsForClaim} was built (for empty-state messaging). */
   projectPickerSource: 'TEAM' | 'DEPARTMENT' | null = null;
-  /** Distinct clients for Others picker. */
-  clientsForOthers: { clientId: number; clientName: string }[] = [];
+  /** Master + reimbursement clients for Others / POC picker. */
+  clientsForManualProject: {
+    pickerKey: string;
+    clientId?: number | null;
+    reimbursementClientId?: number | null;
+    clientName: string;
+    clientCategory?: string;
+    prospectiveEntry?: boolean;
+  }[] = [];
   readonly RMB_OTHERS_PROJECT_ID = -1;
+  readonly RMB_POC_PROJECT_ID = -2;
+  readonly PROSPECTIVE_CLIENT_PICKER_KEY = 'PROSPECTIVE_NEW';
 
   /** Text binding for total amount (digits and one decimal only; synced to reimbursementObj.amount). */
   claimAmountInput = '';
@@ -94,9 +111,33 @@ vehicleTypeList:any[] = [];
   claimDateMax = '';
   /** From configured approval matrix for this employee. */
   approvalFlowSummary = '';
-  /** When false, monthly submission window is closed (after configured day of month). */
+  /** Always true: late submissions are auto-carried to the next processing cycle. */
   submissionWindowAllowed = true;
   submissionWindowMessage = '';
+  carriedToNextCycle = false;
+  processingCycleLabel = '';
+
+  isClaimModeSelected(): boolean {
+    return !!this.reimbursementObj?.recurringExpense || !!this.reimbursementObj?.pocProject;
+  }
+
+  /**
+   * UI constraint: pre-approval must be strictly before From Date (when From Date exists).
+   * Returns yyyy-MM-dd max for date input, else null.
+   */
+  preApprovalDateMax(): string | null {
+    const from = this.reimbursementObj?.fromDate;
+    if (!from) {
+      return null;
+    }
+    // from is yyyy-MM-dd; use noon to avoid timezone edge cases
+    const d = new Date(String(from) + 'T12:00:00');
+    if (Number.isNaN(d.getTime())) {
+      return null;
+    }
+    d.setDate(d.getDate() - 1);
+    return this.formatDate(d);
+  }
 
   ngOnInit(): void {
     this.refreshClaimDateBounds();
@@ -244,7 +285,7 @@ vehicleTypeList:any[] = [];
         });
       }
       this.mappedProjectsForClaim = [...othersRows, ...normalRows];
-      await this.loadClientsForOthers();
+      await this.loadClientsForManualProject();
     } catch (e) {
       console.error('loadMappedProjectsForReimbursement', e);
       this.projectPickerSource = null;
@@ -252,8 +293,8 @@ vehicleTypeList:any[] = [];
     }
   }
 
-  async loadClientsForOthers(): Promise<void> {
-    if (this.clientsForOthers.length > 0) {
+  async loadClientsForManualProject(force = false): Promise<void> {
+    if (!force && this.clientsForManualProject.length > 0) {
       return;
     }
     try {
@@ -265,16 +306,18 @@ vehicleTypeList:any[] = [];
         return;
       }
       const raw = response.serviceResponse as any[];
-      this.clientsForOthers = raw
-        .filter((r) => r.clientId != null)
+      this.clientsForManualProject = raw
+        .filter((r) => r?.pickerKey)
         .map((r) => ({
-          clientId: Number(r.clientId),
-          clientName: r.clientName != null ? String(r.clientName) : ''
-        }))
-        .filter((r) => Number.isFinite(r.clientId))
-        .sort((a, b) => a.clientName.localeCompare(b.clientName));
+          pickerKey: String(r.pickerKey),
+          clientId: r.clientId != null ? Number(r.clientId) : null,
+          reimbursementClientId: r.reimbursementClientId != null ? Number(r.reimbursementClientId) : null,
+          clientName: r.clientName != null ? String(r.clientName) : '',
+          clientCategory: r.clientCategory != null ? String(r.clientCategory) : '',
+          prospectiveEntry: r.prospectiveEntry === true
+        }));
     } catch (e) {
-      console.error('loadClientsForOthers', e);
+      console.error('loadClientsForManualProject', e);
     }
   }
 
@@ -306,16 +349,234 @@ vehicleTypeList:any[] = [];
   clearSelectedProject(): void {
     this.reimbursementObj.projectId = null;
     this.reimbursementObj.othersProjectName = '';
+    this.reimbursementObj.pocProjectName = '';
     this.reimbursementObj.othersClientId = null;
+    this.reimbursementObj.clientPickerKey = null;
+    this.reimbursementObj.prospectiveClientName = '';
+    this.reimbursementObj.pocProject = false;
     this.reimbursementObj.displayClientName = '';
   }
 
-  clearOthersClient(): void {
+  clearManualProjectClient(): void {
     this.reimbursementObj.othersClientId = null;
+    this.reimbursementObj.clientPickerKey = null;
+    this.reimbursementObj.prospectiveClientName = '';
   }
 
   isOthersProjectSelected(): boolean {
     return Number(this.reimbursementObj.projectId) === this.RMB_OTHERS_PROJECT_ID;
+  }
+
+  isPocProjectSelected(): boolean {
+    return Number(this.reimbursementObj.projectId) === this.RMB_POC_PROJECT_ID
+      || this.reimbursementObj.pocProject === true;
+  }
+
+  isManualProjectSelected(): boolean {
+    return this.isOthersProjectSelected() || this.isPocProjectSelected();
+  }
+
+  isProspectiveClientEntry(): boolean {
+    return this.reimbursementObj.clientPickerKey === this.PROSPECTIVE_CLIENT_PICKER_KEY;
+  }
+
+  prospectiveClientNameDuplicate = false;
+
+  private normalizeClientName(name: string): string {
+    return String(name || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase();
+  }
+
+  /** Returns true if the entered prospective client name already exists in master or reimbursement client lists. */
+  private prospectiveClientAlreadyExists(name: string): boolean {
+    const n = this.normalizeClientName(name);
+    if (!n) {
+      return false;
+    }
+    // clientsForManualProject includes both master clients (M:*) and reimbursement clients (R:*).
+    return (this.clientsForManualProject || []).some((c) => {
+      if (!c || c.prospectiveEntry === true) {
+        return false;
+      }
+      const existing = this.normalizeClientName(String(c.clientName || ''));
+      return existing !== '' && existing === n;
+    });
+  }
+
+  async onProspectiveClientNameChange(value: string): Promise<void> {
+    this.reimbursementObj.prospectiveClientName = value;
+    if (!this.isProspectiveClientEntry()) {
+      this.prospectiveClientNameDuplicate = false;
+      return;
+    }
+    // Ensure client list is loaded (best-effort) so the check is accurate.
+    if (!this.clientsForManualProject || this.clientsForManualProject.length === 0) {
+      await this.loadClientsForManualProject(true);
+    }
+    this.prospectiveClientNameDuplicate = this.prospectiveClientAlreadyExists(value || '');
+  }
+
+  manualProjectNameLabel(): string {
+    return this.isPocProjectSelected() ? 'Project name (POC)' : 'Project name (Others)';
+  }
+
+  get manualProjectNameModel(): string {
+    return this.isPocProjectSelected()
+      ? (this.reimbursementObj.pocProjectName || '')
+      : (this.reimbursementObj.othersProjectName || '');
+  }
+
+  set manualProjectNameModel(value: string) {
+    if (this.isPocProjectSelected()) {
+      this.reimbursementObj.pocProjectName = value;
+    } else {
+      this.reimbursementObj.othersProjectName = value;
+    }
+  }
+
+  onPocProjectChange(): void {
+    if (this.reimbursementObj.pocProject) {
+      // Checkbox-only: don't show "POC - Project" in project dropdown.
+      // We still submit sentinel -2 in the payload when this flag is true.
+      this.reimbursementObj.projectId = null;
+      this.reimbursementObj.othersProjectName = '';
+      void this.loadClientsForManualProject();
+      return;
+    }
+    this.reimbursementObj.pocProjectName = '';
+    this.clearManualProjectClient();
+  }
+
+  onManualClientPickerChange(): void {
+    if (!this.isProspectiveClientEntry()) {
+      this.reimbursementObj.prospectiveClientName = '';
+      this.prospectiveClientNameDuplicate = false;
+    }
+    const key = this.reimbursementObj.clientPickerKey;
+    if (!key || key === this.PROSPECTIVE_CLIENT_PICKER_KEY) {
+      this.reimbursementObj.othersClientId = null;
+      return;
+    }
+    if (key.startsWith('M:')) {
+      this.reimbursementObj.othersClientId = Number(key.slice(2));
+      return;
+    }
+    this.reimbursementObj.othersClientId = null;
+  }
+
+  private buildClientPayloadFromForm(): {
+    clientId: number | null;
+    reimbursementClientId: number | null;
+    prospectiveClientName: string | null;
+    clientCategory: string | null;
+    clientName: string;
+  } {
+    const key = this.reimbursementObj.clientPickerKey;
+    if (key === this.PROSPECTIVE_CLIENT_PICKER_KEY) {
+      const name = (this.reimbursementObj.prospectiveClientName || '').trim();
+      return {
+        clientId: null,
+        reimbursementClientId: null,
+        prospectiveClientName: name || null,
+        clientCategory: 'PROSPECTIVE_NEW_CLIENT',
+        clientName: name
+      };
+    }
+    if (key && key.startsWith('R:')) {
+      const rid = Number(key.slice(2));
+      const row = this.clientsForManualProject.find((c) => c.pickerKey === key);
+      return {
+        clientId: null,
+        reimbursementClientId: Number.isFinite(rid) ? rid : null,
+        prospectiveClientName: null,
+        clientCategory: row?.clientCategory || 'PROSPECTIVE_NEW_CLIENT',
+        clientName: row?.clientName || ''
+      };
+    }
+    const cid = key && key.startsWith('M:') ? Number(key.slice(2))
+      : (this.reimbursementObj.othersClientId != null ? Number(this.reimbursementObj.othersClientId) : NaN);
+    const row = this.clientsForManualProject.find((c) => c.pickerKey === `M:${cid}`)
+      || this.clientsForManualProject.find((c) => c.clientId === cid);
+    return {
+      clientId: Number.isFinite(cid) ? cid : null,
+      reimbursementClientId: null,
+      prospectiveClientName: null,
+      clientCategory: 'MASTER',
+      clientName: row?.clientName || ''
+    };
+  }
+
+  private buildClaimDraftFromForm(selectedPid: number, row: { clientId?: number | null; clientName?: string } | undefined): any {
+    const manual = selectedPid === this.RMB_OTHERS_PROJECT_ID || selectedPid === this.RMB_POC_PROJECT_ID;
+    const clientFields = manual ? this.buildClientPayloadFromForm() : null;
+    return {
+      expenditureType: this.reimbursementObj.expenditureType,
+      expenditureTypeDescription: this.reimbursementObj.expenditureTypeDescription,
+      amount: Number(this.reimbursementObj.amount),
+      travelMode: this.reimbursementObj.travelMode,
+      distance: this.reimbursementObj.distance,
+      vehicleType: this.reimbursementObj.vehicleType,
+      foodAllowanceType: this.reimbursementObj.foodAllowanceType,
+      dateOfFood: this.reimbursementObj.dateOfFood,
+      fromDate: this.reimbursementObj.fromDate,
+      toDate: this.reimbursementObj.toDate,
+      purpose: this.reimbursementObj.purpose.trim(),
+      businessJustification: (this.reimbursementObj.businessJustification || '').trim(),
+      hodApproval: true,
+      preApprovalDate: this.reimbursementObj.preApprovalDate,
+      projectId: selectedPid,
+      projectName: this.selectedProjectLabel(),
+      recurringExpense: !!this.reimbursementObj.recurringExpense,
+      pocProject: selectedPid === this.RMB_POC_PROJECT_ID || !!this.reimbursementObj.pocProject,
+      othersProjectName: selectedPid === this.RMB_OTHERS_PROJECT_ID
+        ? (this.reimbursementObj.othersProjectName || '').trim() : null,
+      pocProjectName: selectedPid === this.RMB_POC_PROJECT_ID
+        ? (this.reimbursementObj.pocProjectName || '').trim() : null,
+      othersClientId: clientFields?.clientId ?? null,
+      clientId: !manual && row?.clientId != null ? Number(row.clientId) : clientFields?.clientId ?? null,
+      reimbursementClientId: clientFields?.reimbursementClientId ?? null,
+      prospectiveClientName: clientFields?.prospectiveClientName ?? null,
+      clientCategory: clientFields?.clientCategory ?? null,
+      clientName: manual
+        ? (clientFields?.clientName || '')
+        : (row?.clientName || this.reimbursementObj.displayClientName || ''),
+      clientPickerKey: this.reimbursementObj.clientPickerKey
+    };
+  }
+
+  private restoreClientPickerFromClaim(c: any): void {
+    if (c.prospectiveClientName) {
+      this.reimbursementObj.clientPickerKey = this.PROSPECTIVE_CLIENT_PICKER_KEY;
+      this.reimbursementObj.prospectiveClientName = c.prospectiveClientName;
+      this.reimbursementObj.othersClientId = null;
+      return;
+    }
+    if (c.reimbursementClientId != null) {
+      this.reimbursementObj.clientPickerKey = `R:${c.reimbursementClientId}`;
+      this.reimbursementObj.prospectiveClientName = '';
+      this.reimbursementObj.othersClientId = null;
+      return;
+    }
+    if (c.othersClientId != null || c.clientId != null) {
+      const cid = c.othersClientId != null ? c.othersClientId : c.clientId;
+      this.reimbursementObj.clientPickerKey = `M:${cid}`;
+      this.reimbursementObj.othersClientId = Number(cid);
+      this.reimbursementObj.prospectiveClientName = '';
+      return;
+    }
+    this.reimbursementObj.clientPickerKey = null;
+    this.reimbursementObj.prospectiveClientName = '';
+    this.reimbursementObj.othersClientId = null;
+  }
+
+  assignedHodName(): string {
+    return String(this.currentUser?.hodName ?? '').trim();
+  }
+
+  assignedHodEmail(): string {
+    return String(this.currentUser?.hodEmail ?? '').trim();
   }
 
   showReadonlyClientForProject(): boolean {
@@ -328,18 +589,29 @@ vehicleTypeList:any[] = [];
     if (!Number.isFinite(id)) {
       this.reimbursementObj.displayClientName = '';
       this.reimbursementObj.othersProjectName = '';
-      this.reimbursementObj.othersClientId = null;
+      this.reimbursementObj.pocProjectName = '';
+      this.clearManualProjectClient();
+      this.reimbursementObj.pocProject = false;
       return;
     }
     if (id === this.RMB_OTHERS_PROJECT_ID) {
+      this.reimbursementObj.pocProject = false;
+      this.reimbursementObj.pocProjectName = '';
       this.reimbursementObj.displayClientName = '';
-      if (!this.clientsForOthers.length) {
-        void this.loadClientsForOthers();
-      }
+      void this.loadClientsForManualProject();
       return;
     }
+    if (id === this.RMB_POC_PROJECT_ID) {
+      this.reimbursementObj.pocProject = true;
+      this.reimbursementObj.othersProjectName = '';
+      this.reimbursementObj.displayClientName = '';
+      void this.loadClientsForManualProject();
+      return;
+    }
+    this.reimbursementObj.pocProject = false;
     this.reimbursementObj.othersProjectName = '';
-    this.reimbursementObj.othersClientId = null;
+    this.reimbursementObj.pocProjectName = '';
+    this.clearManualProjectClient();
     const p = this.mappedProjectsForClaim.find((x) => x.projectId === id);
     this.reimbursementObj.displayClientName = p?.clientName ? String(p.clientName) : '';
   }
@@ -349,13 +621,14 @@ vehicleTypeList:any[] = [];
     if (!Number.isFinite(id)) {
       return '';
     }
-    if (id === this.RMB_OTHERS_PROJECT_ID) {
-      const pn = (this.reimbursementObj.othersProjectName || '').trim();
-      const cid = this.reimbursementObj.othersClientId != null ? Number(this.reimbursementObj.othersClientId) : NaN;
-      const cn = Number.isFinite(cid)
-        ? (this.clientsForOthers.find((c) => c.clientId === cid)?.clientName || '')
-        : '';
-      return cn ? `${pn} (${cn})` : pn;
+    if (id === this.RMB_OTHERS_PROJECT_ID || id === this.RMB_POC_PROJECT_ID) {
+      const pn = id === this.RMB_POC_PROJECT_ID
+        ? (this.reimbursementObj.pocProjectName || '').trim()
+        : (this.reimbursementObj.othersProjectName || '').trim();
+      const clientFields = this.buildClientPayloadFromForm();
+      const cn = clientFields.clientName || '';
+      const prefix = id === this.RMB_POC_PROJECT_ID ? 'POC: ' : '';
+      return cn ? `${prefix}${pn} (${cn})` : `${prefix}${pn}`;
     }
     const p = this.mappedProjectsForClaim.find((x) => x.projectId === id);
     if (!p) {
@@ -524,6 +797,9 @@ vehicleTypeList:any[] = [];
       toDate: null,
       dateOfFood: null,
       purpose: '',
+      businessJustification: '',
+      hodApproval: false,
+      preApprovalDate: null,
       fromLocation: '',
       toLocation: '',
       supportingDocument: '',
@@ -532,10 +808,17 @@ vehicleTypeList:any[] = [];
       vehicleType: '',
       file: '',
       othersProjectName: '',
+      pocProjectName: '',
       othersClientId: null,
+      clientPickerKey: null,
+      prospectiveClientName: '',
+      recurringExpense: false,
+      pocProject: false,
       displayClientName: '',
       expenditureTypeDescription: ''
     };
+    this.fileUploads = [{}];
+    this.preApprovalFileUploads = [{}];
     const fileInput: HTMLInputElement | null = document.querySelector('input[type="file"]');
     if (fileInput) {
       fileInput.value = ''; // Clear the file input value
@@ -548,6 +831,10 @@ vehicleTypeList:any[] = [];
 
   /** Index of draft claim loaded into the form for editing; `null` when adding a new claim. */
   editingClaimIndex: number | null = null;
+
+  hasPendingTicket(): boolean {
+    return Array.isArray(this.ticketClaims) && this.ticketClaims.length > 0;
+  }
 
   ticketTotalAmount(): number {
     return this.ticketClaims.reduce((s, c) => s + (Number(c.amount) || 0), 0);
@@ -583,14 +870,33 @@ vehicleTypeList:any[] = [];
     this.reimbursementObj.fromDate = c.fromDate || null;
     this.reimbursementObj.toDate = c.toDate || null;
     this.reimbursementObj.purpose = c.purpose || '';
+    this.reimbursementObj.businessJustification = c.businessJustification || '';
+    this.reimbursementObj.hodApproval = true;
+    this.reimbursementObj.preApprovalDate = c.preApprovalDate || null;
+    this.reimbursementObj.recurringExpense = !!c.recurringExpense;
+    this.reimbursementObj.pocProject = !!c.pocProject;
     this.reimbursementObj.projectId = c.projectId != null ? Number(c.projectId) : null;
+    if (c.pocProject && this.reimbursementObj.projectId == null) {
+      this.reimbursementObj.projectId = this.RMB_POC_PROJECT_ID;
+    }
     if (Number(this.reimbursementObj.projectId) === this.RMB_OTHERS_PROJECT_ID) {
-      this.reimbursementObj.othersProjectName = (c.othersProjectName || '').trim();
-      this.reimbursementObj.othersClientId = c.othersClientId != null ? Number(c.othersClientId) : null;
+      this.reimbursementObj.othersProjectName = (c.othersProjectName || c.projectName || '').trim();
+      this.reimbursementObj.pocProjectName = '';
       this.reimbursementObj.displayClientName = '';
+      void this.loadClientsForManualProject();
+      this.restoreClientPickerFromClaim(c);
+    } else if (Number(this.reimbursementObj.projectId) === this.RMB_POC_PROJECT_ID || c.pocProject) {
+      this.reimbursementObj.projectId = this.RMB_POC_PROJECT_ID;
+      this.reimbursementObj.pocProject = true;
+      this.reimbursementObj.pocProjectName = (c.pocProjectName || c.projectName || '').trim();
+      this.reimbursementObj.othersProjectName = '';
+      this.reimbursementObj.displayClientName = '';
+      void this.loadClientsForManualProject();
+      this.restoreClientPickerFromClaim(c);
     } else {
       this.reimbursementObj.othersProjectName = '';
-      this.reimbursementObj.othersClientId = null;
+      this.reimbursementObj.pocProjectName = '';
+      this.clearManualProjectClient();
       this.reimbursementObj.displayClientName = (c.clientName || '').trim();
       this.onReimbursementProjectSelected();
     }
@@ -605,7 +911,9 @@ vehicleTypeList:any[] = [];
     this.invalidFromDate = false;
     this.invalidToDate = false;
     this.fileUploads = [{}];
+    this.preApprovalFileUploads = [{}];
     this.ensureClaimDocumentsList(c);
+    this.ensureClaimPreApprovalDocumentsList(c);
   }
 
   cancelEditDraftClaim() {
@@ -613,6 +921,7 @@ vehicleTypeList:any[] = [];
     this.draftDocPreview = null;
     this.resetAfterSubmit();
     this.fileUploads = [{}];
+    this.preApprovalFileUploads = [{}];
     this.invalidFromDate = false;
     this.invalidToDate = false;
   }
@@ -632,6 +941,43 @@ vehicleTypeList:any[] = [];
     }
     claim.documents = [];
     return claim.documents;
+  }
+
+  ensureClaimPreApprovalDocumentsList(claim: any): { docId: number; fileName: string }[] {
+    if (claim.preApprovalDocuments?.length) {
+      return claim.preApprovalDocuments;
+    }
+    if (claim.preApprovalDocIds?.length) {
+      claim.preApprovalDocuments = claim.preApprovalDocIds.map((id: number) => ({
+        docId: id,
+        fileName: 'HOD pre-approval #' + id
+      }));
+      return claim.preApprovalDocuments;
+    }
+    claim.preApprovalDocuments = [];
+    return claim.preApprovalDocuments;
+  }
+
+  preApprovalDocCountForClaim(c: any): number {
+    if (c?.preApprovalDocuments?.length) {
+      return c.preApprovalDocuments.length;
+    }
+    return c?.preApprovalDocIds?.length || 0;
+  }
+
+  documentsForEditingClaimPreApproval(): { docId: number; fileName: string }[] {
+    if (this.editingClaimIndex === null) {
+      return [];
+    }
+    const claim = this.ticketClaims[this.editingClaimIndex];
+    if (!claim) {
+      return [];
+    }
+    return this.ensureClaimPreApprovalDocumentsList(claim);
+  }
+
+  hasPreApprovalDocumentsOnEditingClaim(): boolean {
+    return this.documentsForEditingClaimPreApproval().length > 0;
   }
 
   openDraftDocumentsModal(template: TemplateRef<any>, claimIndex: number) {
@@ -798,14 +1144,18 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, this.emptyProjectPickerHint());
       return;
     }
-    if (this.reimbursementObj.projectId == null || this.reimbursementObj.projectId === '') {
-      this.openAlertMod(template, 'Please select a Project.');
-      return;
-    }
-    const selectedPid = Number(this.reimbursementObj.projectId);
-    if (!this.mappedProjectsForClaim.some((p) => p.projectId === selectedPid)) {
-      this.openAlertMod(template, 'Please select a valid project from the list.');
-      return;
+    const selectedPid = this.reimbursementObj.pocProject === true
+      ? this.RMB_POC_PROJECT_ID
+      : Number(this.reimbursementObj.projectId);
+    if (this.reimbursementObj.pocProject !== true) {
+      if (this.reimbursementObj.projectId == null || this.reimbursementObj.projectId === '') {
+        this.openAlertMod(template, 'Please select a Project.');
+        return;
+      }
+      if (!this.mappedProjectsForClaim.some((p) => p.projectId === selectedPid)) {
+        this.openAlertMod(template, 'Please select a valid project from the list.');
+        return;
+      }
     }
     if (selectedPid === this.RMB_OTHERS_PROJECT_ID) {
       const on = (this.reimbursementObj.othersProjectName || '').trim();
@@ -813,8 +1163,30 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Enter the project name for Others.');
         return;
       }
-      if (this.reimbursementObj.othersClientId == null || this.reimbursementObj.othersClientId === '') {
-        this.openAlertMod(template, 'Select a client for Others.');
+    }
+    if (selectedPid === this.RMB_POC_PROJECT_ID) {
+      const pn = (this.reimbursementObj.pocProjectName || '').trim();
+      if (!pn) {
+        this.openAlertMod(template, 'Enter the project name for POC.');
+        return;
+      }
+    }
+    if (this.isManualProjectSelected()) {
+      const clientFields = this.buildClientPayloadFromForm();
+      if (this.isProspectiveClientEntry()) {
+        if (!clientFields.prospectiveClientName) {
+          this.openAlertMod(template, 'Enter the prospective new client name.');
+          return;
+        }
+        if (this.prospectiveClientAlreadyExists(clientFields.prospectiveClientName)) {
+          this.openAlertMod(
+            template,
+            'This client already exists. Please select the client from the dropdown instead of using Prospective New Client.'
+          );
+          return;
+        }
+      } else if (clientFields.clientId == null && clientFields.reimbursementClientId == null) {
+        this.openAlertMod(template, 'Select a client or choose Prospective New Client.');
         return;
       }
     }
@@ -839,42 +1211,29 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Please select Food Allowance Type.');
         return;
       }
-      if (!this.reimbursementObj.dateOfFood) {
-        this.openAlertMod(template, 'Please select the Fooding Date.');
-        return;
-      }
-      if (!this.dateInClaimWindow(this.reimbursementObj.dateOfFood)) {
-        this.openAlertMod(
-          template,
-          `Food expense date must be in the previous calendar month only (${this.claimDateWindowHint})`
-        );
-        return;
-      }
     }
     if (!this.isValidClaimAmount(this.reimbursementObj.amount)) {
       this.openAlertMod(template, 'Please enter a valid Total Amount greater than 0 (numbers and decimal only).');
       return;
     }
-    if (this.reimbursementObj.expenditureType !== 'Food') {
-      if (!this.reimbursementObj.fromDate) {
-        this.openAlertMod(template, 'Please select From Date.');
-        return;
-      }
-      if (!this.reimbursementObj.toDate) {
-        this.openAlertMod(template, 'Please select To Date.');
-        return;
-      }
-      if (String(this.reimbursementObj.toDate) < String(this.reimbursementObj.fromDate)) {
-        this.openAlertMod(template, 'To date cannot be earlier than From date.');
-        return;
-      }
-      if (!this.dateInClaimWindow(this.reimbursementObj.fromDate) || !this.dateInClaimWindow(this.reimbursementObj.toDate)) {
-        this.openAlertMod(
-          template,
-          `From and To dates must be in the previous calendar month only (${this.claimDateWindowHint})`
-        );
-        return;
-      }
+    if (!this.reimbursementObj.fromDate) {
+      this.openAlertMod(template, 'Please select From Date.');
+      return;
+    }
+    if (!this.reimbursementObj.toDate) {
+      this.openAlertMod(template, 'Please select To Date.');
+      return;
+    }
+    if (String(this.reimbursementObj.toDate) < String(this.reimbursementObj.fromDate)) {
+      this.openAlertMod(template, 'To date cannot be earlier than From date.');
+      return;
+    }
+    if (!this.dateInClaimWindow(this.reimbursementObj.fromDate) || !this.dateInClaimWindow(this.reimbursementObj.toDate)) {
+      this.openAlertMod(
+        template,
+        `From and To dates must be in the previous calendar month only (${this.claimDateWindowHint})`
+      );
+      return;
     }
     if (!this.reimbursementObj.purpose || this.reimbursementObj.purpose.trim() === '') {
       this.openAlertMod(template, 'Please enter the Purpose.');
@@ -884,8 +1243,30 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, 'Purpose must contain only letters, numbers, and spaces.');
       return;
     }
+    if (!this.reimbursementObj.businessJustification || this.reimbursementObj.businessJustification.trim() === '') {
+      this.openAlertMod(template, 'Please enter the Business Justification.');
+      return;
+    }
+    if (!this.assignedHodName() || !this.currentUser?.hodId) {
+      this.openAlertMod(template, 'Your assigned HOD is missing on your profile. Contact HR before adding a claim.');
+      return;
+    }
+    if (!this.reimbursementObj.preApprovalDate) {
+      this.openAlertMod(template, 'Please select the HOD pre-approval date.');
+      return;
+    }
+    if (this.reimbursementObj.fromDate) {
+      const pa = String(this.reimbursementObj.preApprovalDate);
+      const fd = String(this.reimbursementObj.fromDate);
+      if (pa >= fd) {
+        this.openAlertMod(template, 'HOD pre-approval date must be before the claim From date.');
+        return;
+      }
+    }
     const isEdit = this.editingClaimIndex !== null;
     const hasNewUpload = !!(this.fileUploads?.length && this.fileUploads.some(f => f.file));
+    const hasNewPreApprovalUpload = !!(this.preApprovalFileUploads?.length
+      && this.preApprovalFileUploads.some(f => f.file));
     if (isEdit) {
       const idx = this.editingClaimIndex as number;
       if (idx < 0 || idx >= this.ticketClaims.length) {
@@ -903,10 +1284,17 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, 'Please upload a valid document.');
       return;
     }
+    const existingPreCount = isEdit
+      ? this.ensureClaimPreApprovalDocumentsList(this.ticketClaims[this.editingClaimIndex as number]).length
+      : 0;
+    if (!hasNewPreApprovalUpload && existingPreCount === 0) {
+      this.openAlertMod(template, 'Please attach at least one email from your assigned HOD (' + this.assignedHodName() + ').');
+      return;
+    }
     try {
-      const uploadNewFiles = async (): Promise<{ docId: number; fileName: string }[]> => {
+      const uploadNewFiles = async (slots: { file?: File }[]): Promise<{ docId: number; fileName: string }[]> => {
         const uploaded: { docId: number; fileName: string }[] = [];
-        for (const fileObj of this.fileUploads) {
+        for (const fileObj of slots || []) {
           if (fileObj.file) {
             const fileFormData = new FormData();
             fileFormData.append('file', fileObj.file);
@@ -926,6 +1314,22 @@ vehicleTypeList:any[] = [];
         return uploaded;
       };
 
+      const mergePreApprovalDocuments = async (
+        existing: { docId: number; fileName: string }[]
+      ): Promise<{ docId: number; fileName: string }[] | null> => {
+        const documents = existing.map((d) => ({ docId: d.docId, fileName: d.fileName }));
+        const newDocs = await uploadNewFiles(this.preApprovalFileUploads);
+        if (newDocs.length === 0 && hasNewPreApprovalUpload) {
+          return null;
+        }
+        documents.push(...newDocs);
+        if (documents.length === 0) {
+          this.openAlertMod(template, 'At least one HOD pre-approval email (from ' + this.assignedHodName() + ') is required.');
+          return null;
+        }
+        return documents;
+      };
+
       if (isEdit) {
         const idx = this.editingClaimIndex as number;
         const existing = this.ticketClaims[idx];
@@ -933,7 +1337,7 @@ vehicleTypeList:any[] = [];
         const documents: { docId: number; fileName: string }[] = existing.documents.map(
           (d: { docId: number; fileName: string }) => ({ docId: d.docId, fileName: d.fileName })
         );
-        const newDocs = await uploadNewFiles();
+        const newDocs = await uploadNewFiles(this.fileUploads);
         if (newDocs.length === 0 && hasNewUpload) {
           return;
         }
@@ -942,63 +1346,48 @@ vehicleTypeList:any[] = [];
           this.openAlertMod(template, 'At least one supporting document is required.');
           return;
         }
+        const preApprovalDocuments = await mergePreApprovalDocuments(
+          this.ensureClaimPreApprovalDocumentsList(existing)
+        );
+        if (preApprovalDocuments === null) {
+          return;
+        }
         const docIds = documents.map(d => d.docId);
+        const preApprovalDocIds = preApprovalDocuments.map(d => d.docId);
         const row = this.mappedProjectsForClaim.find((p) => p.projectId === selectedPid);
         this.ticketClaims[idx] = {
-          expenditureType: this.reimbursementObj.expenditureType,
-          expenditureTypeDescription: this.reimbursementObj.expenditureTypeDescription,
-          amount: Number(this.reimbursementObj.amount),
-          travelMode: this.reimbursementObj.travelMode,
-          distance: this.reimbursementObj.distance,
-          vehicleType: this.reimbursementObj.vehicleType,
-          foodAllowanceType: this.reimbursementObj.foodAllowanceType,
-          dateOfFood: this.reimbursementObj.dateOfFood,
-          fromDate: this.reimbursementObj.fromDate,
-          toDate: this.reimbursementObj.toDate,
-          purpose: this.reimbursementObj.purpose.trim(),
-          projectId: selectedPid,
-          projectName: this.selectedProjectLabel(),
-          othersProjectName: selectedPid === this.RMB_OTHERS_PROJECT_ID ? (this.reimbursementObj.othersProjectName || '').trim() : null,
-          othersClientId: selectedPid === this.RMB_OTHERS_PROJECT_ID ? Number(this.reimbursementObj.othersClientId) : null,
-          clientId: selectedPid !== this.RMB_OTHERS_PROJECT_ID && row?.clientId != null ? Number(row.clientId) : null,
-          clientName: selectedPid !== this.RMB_OTHERS_PROJECT_ID ? (row?.clientName || this.reimbursementObj.displayClientName || '') : null,
+          ...this.buildClaimDraftFromForm(selectedPid, row),
           docIds,
-          documents
+          documents,
+          preApprovalDocIds,
+          preApprovalDocuments
         };
         this.cancelEditDraftClaim();
         this.openAlertMod(template, 'Claim updated in your ticket.');
         return;
       }
 
-      const documents = await uploadNewFiles();
+      const documents = await uploadNewFiles(this.fileUploads);
       if (documents.length === 0) {
         return;
       }
+      const preApprovalDocuments = await mergePreApprovalDocuments([]);
+      if (preApprovalDocuments === null) {
+        return;
+      }
       const docIds = documents.map(d => d.docId);
+      const preApprovalDocIds = preApprovalDocuments.map(d => d.docId);
       const row = this.mappedProjectsForClaim.find((p) => p.projectId === selectedPid);
       this.ticketClaims.push({
-        expenditureType: this.reimbursementObj.expenditureType,
-        expenditureTypeDescription: this.reimbursementObj.expenditureTypeDescription,
-        amount: Number(this.reimbursementObj.amount),
-        travelMode: this.reimbursementObj.travelMode,
-        distance: this.reimbursementObj.distance,
-        vehicleType: this.reimbursementObj.vehicleType,
-        foodAllowanceType: this.reimbursementObj.foodAllowanceType,
-        dateOfFood: this.reimbursementObj.dateOfFood,
-        fromDate: this.reimbursementObj.fromDate,
-        toDate: this.reimbursementObj.toDate,
-        purpose: this.reimbursementObj.purpose.trim(),
-        projectId: selectedPid,
-        projectName: this.selectedProjectLabel(),
-        othersProjectName: selectedPid === this.RMB_OTHERS_PROJECT_ID ? (this.reimbursementObj.othersProjectName || '').trim() : null,
-        othersClientId: selectedPid === this.RMB_OTHERS_PROJECT_ID ? Number(this.reimbursementObj.othersClientId) : null,
-        clientId: selectedPid !== this.RMB_OTHERS_PROJECT_ID && row?.clientId != null ? Number(row.clientId) : null,
-        clientName: selectedPid !== this.RMB_OTHERS_PROJECT_ID ? (row?.clientName || this.reimbursementObj.displayClientName || '') : null,
+        ...this.buildClaimDraftFromForm(selectedPid, row),
         docIds,
-        documents
+        documents,
+        preApprovalDocIds,
+        preApprovalDocuments
       });
       this.resetAfterSubmit();
       this.fileUploads = [{}];
+      this.preApprovalFileUploads = [{}];
       this.openAlertMod(template, 'Claim added to your ticket. You may add more claims or submit the ticket.');
     } catch (error: any) {
       console.error('Error during add claim:', error);
@@ -1010,8 +1399,10 @@ vehicleTypeList:any[] = [];
     try {
       const res: any = await this.reimbursementService.getReimbursementSubmissionWindowStatus().toPromise();
       if (res?.serviceStatus === 'Success' && res.serviceResponse) {
-        this.submissionWindowAllowed = res.serviceResponse.allowed !== false;
+        this.submissionWindowAllowed = true;
         this.submissionWindowMessage = res.serviceResponse.message || '';
+        this.carriedToNextCycle = res.serviceResponse.carriedToNextCycle === true;
+        this.processingCycleLabel = res.serviceResponse.processingCycleLabel || '';
       }
     } catch {
       this.submissionWindowAllowed = true;
@@ -1020,10 +1411,6 @@ vehicleTypeList:any[] = [];
   }
 
   async submitEntireTicket(template: TemplateRef<any>) {
-    if (!this.submissionWindowAllowed) {
-      this.openAlertMod(template, this.submissionWindowMessage || 'Reimbursement submission is closed for this month.');
-      return;
-    }
     if (this.ticketClaims.length < 1) {
       this.openAlertMod(template, 'Use "Add claim to ticket" to add at least one claim before submitting.');
       return;
@@ -1038,15 +1425,7 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Each claim must have a project. Edit any claim missing a project and update it.');
         return;
       }
-      if (c.expenditureType === 'Food') {
-        if (c.dateOfFood && !this.dateInClaimWindow(c.dateOfFood)) {
-          this.openAlertMod(
-            template,
-            `Each food claim date must be in the previous calendar month only (${this.claimDateWindowHint}). Edit the invalid claim.`
-          );
-          return;
-        }
-      } else if (c.fromDate && c.toDate) {
+      if (c.fromDate && c.toDate) {
         if (!this.dateInClaimWindow(c.fromDate) || !this.dateInClaimWindow(c.toDate)) {
           this.openAlertMod(
             template,
@@ -1055,11 +1434,30 @@ vehicleTypeList:any[] = [];
           return;
         }
       }
-      if (c.expenditureType !== 'Food' && c.fromDate && c.toDate && String(c.toDate) < String(c.fromDate)) {
+      if (c.fromDate && c.toDate && String(c.toDate) < String(c.fromDate)) {
         this.openAlertMod(
           template,
           'Each claim must have To date on or after From date. Edit the claim with invalid dates.'
         );
+        return;
+      }
+      if (!c.businessJustification || String(c.businessJustification).trim() === '') {
+        this.openAlertMod(template, 'Each claim must include Business Justification. Edit the incomplete claim.');
+        return;
+      }
+      if (!c.preApprovalDate) {
+        this.openAlertMod(template, 'Each claim must have a HOD pre-approval date. Edit the incomplete claim.');
+        return;
+      }
+      if (c.fromDate && String(c.preApprovalDate) >= String(c.fromDate)) {
+        this.openAlertMod(
+          template,
+          'Each claim must have HOD pre-approval date before From date. Edit the claim with invalid dates.'
+        );
+        return;
+      }
+      if (this.preApprovalDocCountForClaim(c) < 1) {
+        this.openAlertMod(template, 'Each claim must include at least one HOD pre-approval email (from your assigned HOD only). Edit the incomplete claim.');
         return;
       }
     }
@@ -1077,15 +1475,39 @@ vehicleTypeList:any[] = [];
         fromDate: c.fromDate ? new Date(this.toIsoStartOfDay(c.fromDate)!).toISOString() : null,
         toDate: c.toDate ? new Date(this.toIsoEndOfDay(c.toDate)!).toISOString() : null,
         purpose: c.purpose,
+        businessJustification: c.businessJustification,
+        hodApproval: true,
+        preApprovalDate: c.preApprovalDate
+          ? new Date(this.toIsoStartOfDay(c.preApprovalDate)!).toISOString()
+          : null,
         projectId: pid,
-        docIds: (c.documents && c.documents.length ? c.documents.map((d: { docId: number }) => d.docId) : c.docIds) || []
+        docIds: (c.documents && c.documents.length ? c.documents.map((d: { docId: number }) => d.docId) : c.docIds) || [],
+        preApprovalDocIds: (c.preApprovalDocuments && c.preApprovalDocuments.length
+          ? c.preApprovalDocuments.map((d: { docId: number }) => d.docId)
+          : c.preApprovalDocIds) || []
       };
+      base.recurringExpense = !!c.recurringExpense;
+      base.pocProject = !!c.pocProject;
       if (pid === this.RMB_OTHERS_PROJECT_ID) {
         base.othersProjectName = (c.othersProjectName || '').trim();
-        base.clientId = c.othersClientId != null ? Number(c.othersClientId) : null;
+        base.pocProjectName = null;
+      } else if (pid === this.RMB_POC_PROJECT_ID) {
+        base.pocProjectName = (c.pocProjectName || '').trim();
+        base.othersProjectName = null;
       } else {
         base.othersProjectName = null;
+        base.pocProjectName = null;
+      }
+      if (pid === this.RMB_OTHERS_PROJECT_ID || pid === this.RMB_POC_PROJECT_ID) {
+        base.clientId = c.clientId != null ? Number(c.clientId) : null;
+        base.reimbursementClientId = c.reimbursementClientId != null ? Number(c.reimbursementClientId) : null;
+        base.prospectiveClientName = c.prospectiveClientName ? String(c.prospectiveClientName).trim() : null;
+        base.clientCategory = c.clientCategory || null;
+      } else {
         base.clientId = null;
+        base.reimbursementClientId = null;
+        base.prospectiveClientName = null;
+        base.clientCategory = null;
       }
       return base;
     });
@@ -1108,10 +1530,13 @@ vehicleTypeList:any[] = [];
         this.ticketClaims = [];
         this.resetAfterSubmit();
         this.fileUploads = [{}];
+        this.preApprovalFileUploads = [{}];
         const ticketRef = this.displaySubmittedTicketRef(response.serviceResponse);
+        const cycleNote = response.serviceMessage
+          || (this.processingCycleLabel ? ` Processing cycle: ${this.processingCycleLabel}.` : '');
         const successMsg = ticketRef
-          ? `Success! Your request has been registered with Ticket ID:- ${ticketRef}`
-          : 'Success! Your reimbursement ticket was submitted.';
+          ? `Success! Your request has been registered with Ticket ID:- ${ticketRef}.${cycleNote ? ' ' + cycleNote : ''}`
+          : `Success! Your reimbursement ticket was submitted.${cycleNote ? ' ' + cycleNote : ''}`;
         this.openAlertMod(template, successMsg);
       } else {
         this.openAlertMod(template, response.serviceError || response.serviceResponse || 'Submit failed.');
@@ -1190,6 +1615,9 @@ vehicleTypeList:any[] = [];
       toDate: null,
       dateOfFood: null,
       purpose: '',
+      businessJustification: '',
+      hodApproval: false,
+      preApprovalDate: null,
       fromLocation: '',
       toLocation: '',
       supportingDocument: '',
@@ -1198,10 +1626,17 @@ vehicleTypeList:any[] = [];
       vehicleType: '',
       file: '',
       othersProjectName: '',
+      pocProjectName: '',
       othersClientId: null,
+      clientPickerKey: null,
+      prospectiveClientName: '',
+      recurringExpense: false,
+      pocProject: false,
       displayClientName: '',
       expenditureTypeDescription: ''
     };
+    this.fileUploads = [{}];
+    this.preApprovalFileUploads = [{}];
     const fileInput: HTMLInputElement | null = document.querySelector('input[type="file"]');
     if (fileInput) {
       fileInput.value = ''; // Clear the file input value
@@ -1259,6 +1694,35 @@ vehicleTypeList:any[] = [];
   }
 
   fileUploads: any[] = [{}];
+  preApprovalFileUploads: any[] = [{}];
+
+  addPreApprovalFileSlot(): void {
+    if (this.preApprovalFileUploads.length < 6) {
+      this.preApprovalFileUploads.push({});
+    }
+  }
+
+  removePreApprovalFileSlot(index: number): void {
+    this.preApprovalFileUploads.splice(index, 1);
+  }
+
+  onPreApprovalFileChange(event: any, index: number, template: TemplateRef<any>): void {
+    const file = event?.target?.files?.[0];
+    if (!file) {
+      if (this.preApprovalFileUploads[index]) {
+        this.preApprovalFileUploads[index].file = null;
+      }
+      return;
+    }
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.openAlertMod(template, 'File size must not exceed 10 MB.');
+      event.target.value = '';
+      return;
+    }
+    this.preApprovalFileUploads[index].file = file;
+    this.preApprovalFileUploads[index].uploadedBy = this.currentEmployeeInfo.empId;
+  }
 
   onFileChange1(event: any, index: number, template: TemplateRef<any>) {
     const file = event.target.files[0];
