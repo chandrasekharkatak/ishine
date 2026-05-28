@@ -53,9 +53,9 @@ public class TabMasterService {
 					dto.setTabRouteName(tab[6] != null ? tab[6].toString() : null);
 					
 					dto.setTabSequence(tab[7] != null ? Integer.parseInt(tab[7].toString()) : null);	
-					 dto.setTabGroup(tab[8] != null ? tab[8].toString() : "OTHER");                    // ✅ shifted to index 8
-		             dto.setGroupSequence(tab[9] != null ? Integer.parseInt(tab[9].toString()) : 999); // ✅ shifted to index 9
-		             dto.setGroupIcon(tab[10] != null ? tab[10].toString() : "fa-solid fa-folder");    // ✅ shifted to index 10
+					 dto.setTabGroup(tab[8] != null ? tab[8].toString() : "OTHER");                    
+		             dto.setGroupSequence(tab[9] != null ? Integer.parseInt(tab[9].toString()) : 999); 
+		             dto.setGroupIcon(tab[10] != null ? tab[10].toString() : "fa-solid fa-folder");   
 		                
 					dtoList.add(dto);
 					
