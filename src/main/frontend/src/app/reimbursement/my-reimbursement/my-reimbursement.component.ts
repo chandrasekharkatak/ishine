@@ -121,6 +121,24 @@ vehicleTypeList:any[] = [];
     return !!this.reimbursementObj?.recurringExpense || !!this.reimbursementObj?.pocProject;
   }
 
+  /**
+   * UI constraint: pre-approval must be strictly before From Date (when From Date exists).
+   * Returns yyyy-MM-dd max for date input, else null.
+   */
+  preApprovalDateMax(): string | null {
+    const from = this.reimbursementObj?.fromDate;
+    if (!from) {
+      return null;
+    }
+    // from is yyyy-MM-dd; use noon to avoid timezone edge cases
+    const d = new Date(String(from) + 'T12:00:00');
+    if (Number.isNaN(d.getTime())) {
+      return null;
+    }
+    d.setDate(d.getDate() - 1);
+    return this.formatDate(d);
+  }
+
   ngOnInit(): void {
     this.refreshClaimDateBounds();
     void this.loadSubmissionWindowStatus();
@@ -775,6 +793,10 @@ vehicleTypeList:any[] = [];
   /** Index of draft claim loaded into the form for editing; `null` when adding a new claim. */
   editingClaimIndex: number | null = null;
 
+  hasPendingTicket(): boolean {
+    return Array.isArray(this.ticketClaims) && this.ticketClaims.length > 0;
+  }
+
   ticketTotalAmount(): number {
     return this.ticketClaims.reduce((s, c) => s + (Number(c.amount) || 0), 0);
   }
@@ -1079,10 +1101,6 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, 'Please select an Expenditure Type.');
       return;
     }
-    if (!this.isClaimModeSelected()) {
-      this.openAlertMod(template, 'Please select Recurring Expense or POC - Project before filling the claim.');
-      return;
-    }
     if (!this.mappedProjectsForClaim.length) {
       this.openAlertMod(template, this.emptyProjectPickerHint());
       return;
@@ -1147,42 +1165,29 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Please select Food Allowance Type.');
         return;
       }
-      if (!this.reimbursementObj.dateOfFood) {
-        this.openAlertMod(template, 'Please select the Fooding Date.');
-        return;
-      }
-      if (!this.dateInClaimWindow(this.reimbursementObj.dateOfFood)) {
-        this.openAlertMod(
-          template,
-          `Food expense date must be in the previous calendar month only (${this.claimDateWindowHint})`
-        );
-        return;
-      }
     }
     if (!this.isValidClaimAmount(this.reimbursementObj.amount)) {
       this.openAlertMod(template, 'Please enter a valid Total Amount greater than 0 (numbers and decimal only).');
       return;
     }
-    if (this.reimbursementObj.expenditureType !== 'Food') {
-      if (!this.reimbursementObj.fromDate) {
-        this.openAlertMod(template, 'Please select From Date.');
-        return;
-      }
-      if (!this.reimbursementObj.toDate) {
-        this.openAlertMod(template, 'Please select To Date.');
-        return;
-      }
-      if (String(this.reimbursementObj.toDate) < String(this.reimbursementObj.fromDate)) {
-        this.openAlertMod(template, 'To date cannot be earlier than From date.');
-        return;
-      }
-      if (!this.dateInClaimWindow(this.reimbursementObj.fromDate) || !this.dateInClaimWindow(this.reimbursementObj.toDate)) {
-        this.openAlertMod(
-          template,
-          `From and To dates must be in the previous calendar month only (${this.claimDateWindowHint})`
-        );
-        return;
-      }
+    if (!this.reimbursementObj.fromDate) {
+      this.openAlertMod(template, 'Please select From Date.');
+      return;
+    }
+    if (!this.reimbursementObj.toDate) {
+      this.openAlertMod(template, 'Please select To Date.');
+      return;
+    }
+    if (String(this.reimbursementObj.toDate) < String(this.reimbursementObj.fromDate)) {
+      this.openAlertMod(template, 'To date cannot be earlier than From date.');
+      return;
+    }
+    if (!this.dateInClaimWindow(this.reimbursementObj.fromDate) || !this.dateInClaimWindow(this.reimbursementObj.toDate)) {
+      this.openAlertMod(
+        template,
+        `From and To dates must be in the previous calendar month only (${this.claimDateWindowHint})`
+      );
+      return;
     }
     if (!this.reimbursementObj.purpose || this.reimbursementObj.purpose.trim() === '') {
       this.openAlertMod(template, 'Please enter the Purpose.');
@@ -1203,6 +1208,14 @@ vehicleTypeList:any[] = [];
     if (!this.reimbursementObj.preApprovalDate) {
       this.openAlertMod(template, 'Please select the HOD pre-approval date.');
       return;
+    }
+    if (this.reimbursementObj.fromDate) {
+      const pa = String(this.reimbursementObj.preApprovalDate);
+      const fd = String(this.reimbursementObj.fromDate);
+      if (pa >= fd) {
+        this.openAlertMod(template, 'HOD pre-approval date must be before the claim From date.');
+        return;
+      }
     }
     const isEdit = this.editingClaimIndex !== null;
     const hasNewUpload = !!(this.fileUploads?.length && this.fileUploads.some(f => f.file));
@@ -1362,23 +1375,11 @@ vehicleTypeList:any[] = [];
     }
     await this.onGetEmployeeInfo();
     for (const c of this.ticketClaims) {
-      if (!c.recurringExpense && !c.pocProject) {
-        this.openAlertMod(template, 'Each claim must be marked as Recurring Expense or POC - Project. Edit the incomplete claim.');
-        return;
-      }
       if (c.projectId == null || c.projectId === '') {
         this.openAlertMod(template, 'Each claim must have a project. Edit any claim missing a project and update it.');
         return;
       }
-      if (c.expenditureType === 'Food') {
-        if (c.dateOfFood && !this.dateInClaimWindow(c.dateOfFood)) {
-          this.openAlertMod(
-            template,
-            `Each food claim date must be in the previous calendar month only (${this.claimDateWindowHint}). Edit the invalid claim.`
-          );
-          return;
-        }
-      } else if (c.fromDate && c.toDate) {
+      if (c.fromDate && c.toDate) {
         if (!this.dateInClaimWindow(c.fromDate) || !this.dateInClaimWindow(c.toDate)) {
           this.openAlertMod(
             template,
@@ -1387,7 +1388,7 @@ vehicleTypeList:any[] = [];
           return;
         }
       }
-      if (c.expenditureType !== 'Food' && c.fromDate && c.toDate && String(c.toDate) < String(c.fromDate)) {
+      if (c.fromDate && c.toDate && String(c.toDate) < String(c.fromDate)) {
         this.openAlertMod(
           template,
           'Each claim must have To date on or after From date. Edit the claim with invalid dates.'
@@ -1400,6 +1401,13 @@ vehicleTypeList:any[] = [];
       }
       if (!c.preApprovalDate) {
         this.openAlertMod(template, 'Each claim must have a HOD pre-approval date. Edit the incomplete claim.');
+        return;
+      }
+      if (c.fromDate && String(c.preApprovalDate) >= String(c.fromDate)) {
+        this.openAlertMod(
+          template,
+          'Each claim must have HOD pre-approval date before From date. Edit the claim with invalid dates.'
+        );
         return;
       }
       if (this.preApprovalDocCountForClaim(c) < 1) {
