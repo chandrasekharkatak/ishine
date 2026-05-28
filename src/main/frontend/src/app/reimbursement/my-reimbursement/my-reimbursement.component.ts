@@ -121,6 +121,24 @@ vehicleTypeList:any[] = [];
     return !!this.reimbursementObj?.recurringExpense || !!this.reimbursementObj?.pocProject;
   }
 
+  /**
+   * UI constraint: pre-approval must be strictly before From Date (when From Date exists).
+   * Returns yyyy-MM-dd max for date input, else null.
+   */
+  preApprovalDateMax(): string | null {
+    const from = this.reimbursementObj?.fromDate;
+    if (!from) {
+      return null;
+    }
+    // from is yyyy-MM-dd; use noon to avoid timezone edge cases
+    const d = new Date(String(from) + 'T12:00:00');
+    if (Number.isNaN(d.getTime())) {
+      return null;
+    }
+    d.setDate(d.getDate() - 1);
+    return this.formatDate(d);
+  }
+
   ngOnInit(): void {
     this.refreshClaimDateBounds();
     void this.loadSubmissionWindowStatus();
@@ -1200,6 +1218,14 @@ vehicleTypeList:any[] = [];
       this.openAlertMod(template, 'Please select the HOD pre-approval date.');
       return;
     }
+    if (this.reimbursementObj.expenditureType !== 'Food' && this.reimbursementObj.fromDate) {
+      const pa = String(this.reimbursementObj.preApprovalDate);
+      const fd = String(this.reimbursementObj.fromDate);
+      if (pa >= fd) {
+        this.openAlertMod(template, 'HOD pre-approval date must be before the claim From date.');
+        return;
+      }
+    }
     const isEdit = this.editingClaimIndex !== null;
     const hasNewUpload = !!(this.fileUploads?.length && this.fileUploads.some(f => f.file));
     const hasNewPreApprovalUpload = !!(this.preApprovalFileUploads?.length
@@ -1358,10 +1384,6 @@ vehicleTypeList:any[] = [];
     }
     await this.onGetEmployeeInfo();
     for (const c of this.ticketClaims) {
-      if (!c.recurringExpense && !c.pocProject) {
-        this.openAlertMod(template, 'Each claim must be marked as Recurring Expense or POC - Project. Edit the incomplete claim.');
-        return;
-      }
       if (c.projectId == null || c.projectId === '') {
         this.openAlertMod(template, 'Each claim must have a project. Edit any claim missing a project and update it.');
         return;
@@ -1396,6 +1418,13 @@ vehicleTypeList:any[] = [];
       }
       if (!c.preApprovalDate) {
         this.openAlertMod(template, 'Each claim must have a HOD pre-approval date. Edit the incomplete claim.');
+        return;
+      }
+      if (c.expenditureType !== 'Food' && c.fromDate && String(c.preApprovalDate) >= String(c.fromDate)) {
+        this.openAlertMod(
+          template,
+          'Each claim must have HOD pre-approval date before From date. Edit the claim with invalid dates.'
+        );
         return;
       }
       if (this.preApprovalDocCountForClaim(c) < 1) {

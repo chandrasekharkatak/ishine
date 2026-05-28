@@ -452,6 +452,7 @@
                                 <label class="rmb-label" for="rmbPreApprovalDate"><span class="rmb-req">*</span>HOD Pre-Approval Date</label>
                                 <input class="form-control rmb-control" id="rmbPreApprovalDate" type="date"
                                     [(ngModel)]="reimbursementObj.preApprovalDate"
+                                    [max]="preApprovalDateMax() || null"
                                     (keydown)="onClaimDateKeydown($event)" (paste)="onClaimDatePaste($event)"
                                     (click)="openClaimDatePicker($event)" (focus)="openClaimDatePicker($event)" autocomplete="off">
                             </div>
