@@ -34,53 +34,53 @@ const routes: Routes = [
   {
     path: 'update-info',
     loadChildren: () => import('./module-routing/update-info/update-info.module').then(m => m.UpdateInfoModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   { path: 'user-profile', component: UserProfileComponent, canActivate: [AuthGuard] },
   {
     path: 'configuration',
     loadChildren: () => import('./module-routing/configuration/configuration.module').then(m => m.ConfigurationModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-leaves',
     loadChildren: () => import('./module-routing/user-leaves/user-leaves.module').then(m => m.UserLeavesModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-timesheet',
     loadChildren: () => import('./module-routing/user-timesheet/user-timesheet.module').then(m => m.UserTimesheetModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-leaves/:tabName',
     loadChildren: () => import('./module-routing/user-leaves-tabname/user-leaves-tabname.module').then(m => m.UserLeavesTabnameModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-timesheet/:tabName',
     loadChildren: () => import('./module-routing/user-timesheet-tabname/user-timesheet-tabname.module').then(m => m.UserTimesheetTabnameModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'project-insight',
     loadChildren: () => import('./module-routing/project-insight/project-insight.module').then(m => m.ProjectInsightModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-team',
     loadChildren: () => import('./module-routing/user-team/user-team.module').then(m => m.UserTeamModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'user-reports',
     loadChildren: () => import('./module-routing/user-reports/user-reports.module').then(m => m.UserReportsModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'rewards-tab',
     loadChildren: () => import('./module-routing/rewards-tab/rewards-tab.module').then(m => m.RewardsTabModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   { path: 'user-appreciation', component: UserAppreciationComponent, canActivate: [AuthGuard] },
   {
@@ -106,12 +106,12 @@ const routes: Routes = [
   {
     path: 'user-performance',
     loadChildren: () => import('./module-routing/user-performance/user-performance.module').then(m => m.UserPerformanceModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'skill-matrix',
     loadChildren: () => import('./module-routing/skill-matrix/skill-matrix.module').then(m => m.SkillMatrixModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   { path: 'hr-policies', component: HrPoliciesComponent, canActivate: [AuthGuard] },
   { path: 'helpdesk', component: HelpdeskComponent },
@@ -127,17 +127,17 @@ const routes: Routes = [
   {
     path: 'travelDesk',
     loadChildren: () => import('./module-routing/travel-desk/travel-desk.module').then(m => m.TravelDeskModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'reimbursement',
     loadChildren: () => import('./module-routing/reimbursement/reimbursement.module').then(m => m.ReimbursementModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   {
     path: 'interview-tracker',
     loadChildren: () => import('./module-routing/interview-tracker/interview-tracker.module').then(m => m.InterviewTrackerModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard], data: { preload: true }
   },
   { path: 'qr-code', component: QrCodeGeneratorComponent, canActivate: [AuthGuard] },
   { path: '**', component: ConnectionLostComponent },
