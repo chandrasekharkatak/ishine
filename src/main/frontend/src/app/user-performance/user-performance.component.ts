@@ -2431,7 +2431,12 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   /** Disabled state for feedback textarea: HOD can always edit; Manager when Ongoing/Completed; HR when not in edit mode */
   getFeedbackTextareaDisabled(): boolean {
     if (this.userMapping?.performance_action_by_hod && this.userMapping?.performance_action_by_hr) return false;
-    if (this.userMapping?.performance_action_by_hr) return !this.isEditMode;
+    // HR must be able to type remarks for Accept/Reject even when rating edit mode is off.
+    // Lock the textarea only after HR has finalized (Accepted/Rejected).
+    if (this.userMapping?.performance_action_by_hr) {
+      const s = (this.hrReviewStatus || '').toString();
+      return s === 'Accepted' || s === 'Rejected';
+    }
     if (this.userMapping?.performance_action_by_hod) return false;
     return this.currentStatus === 'Ongoing' || this.currentStatus === 'Completed' || this.currentStatus === 'Pending';
   }
@@ -2539,7 +2544,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
     this.submitPerformance.finalRating = this.finalRating;
     this.submitPerformance.hodRemarks = this.hodRemarks;
-    if(this.userMapping.performance_action_by_hod && this.userMapping.performance_action_by_hr) {
+    if(this.userMapping.performance_action_by_hr) {
       if (!this.validationService.validateNullUndefinedEmptyString(this.hrRemarks)) {
         this.alertMessage = "Please justify your rating by providing remarks!";
         this.openAlertMod(template, this.alertMessage);
