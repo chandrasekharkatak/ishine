@@ -18170,20 +18170,33 @@ List<Object[]> findTimesheetShadowDetailsByPoAndEmpIds(
 	+ "and ptsn.project_id = :projectId and  etn.day_type_id in (1,3,8) and etn.status = 2 ",nativeQuery = true )
 	List<java.sql.Date> findTimesheetDatesByEmpIdAndDateBetween(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId);
 
-	@Query(value="select etn.emp_id, etn.date from employee_timesheets_new etn "
+	@Query(value="select etn.emp_id, etn.date, etm.role_id from employee_timesheets_new etn "
 	+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
 	+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id and ptsn.location_mapping_id = etlm.location_mapping_id "
+	+ " inner join employee_team_mapping etm on etm.emp_id = etn.emp_id"
+	+ "   and etm.po_id = :poId"
+	+ "   and DATE(etn.date) >= DATE(etm.start_date)"
+	+ "   and (etm.end_date is null or DATE(etn.date) <= DATE(etm.end_date))"
+	+ "   and etm.active != 2"
 	+ " where etn.emp_id IN (:empIds) and etn.date between :startDate and :endDate and ptsn.shadow_emp_id is null "
 	+ "and ptsn.project_id = :projectId and  etn.day_type_id in (1,3,8) and etn.status = 2 ",nativeQuery = true )
-	List<Object[]> findTimesheetDatesByEmpIdsAndDateBetween(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId);
+	List<Object[]> findTimesheetDatesByEmpIdsAndDateBetween(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("poId") Long poId);
 
-	@Query(value=" select etn.emp_id,  Max(etn.date), Min(etn.date) from employee_timesheets_new etn "
+
+	@Query(value=" select etn.emp_id, etm.role_id, Max(etn.date), Min(etn.date) from employee_timesheets_new etn "
 	+ " inner join employee_timesheet_location_mapping etlm on etn.timesheet_id = etlm.timesheet_id "
 	+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id "
-	+ " and ptsn.location_mapping_id = etlm.location_mapping_id where etn.emp_id in (:empIds) "
+	+ " and ptsn.location_mapping_id = etlm.location_mapping_id"
+	+ " inner join employee_team_mapping etm on etm.emp_id = etn.emp_id"
+	+ "   and etm.po_id = :poId"
+	+ "   and DATE(etn.date) >= DATE(etm.start_date)"
+	+ "   and (etm.end_date is null or DATE(etn.date) <= DATE(etm.end_date))"
+	+ "   and etm.active != 2"
+	+ " where etn.emp_id in (:empIds) "
 	+ " and etn.date between :startDate and :endDate and ptsn.project_id = :projectId and ptsn.shadow_emp_id is null and etn.status = 2 "
-	+ " group by etn.emp_id ", nativeQuery = true)
-	List<Object[]> findMaxAndMinDateOfTimesheet(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId);
+	+ " group by etn.emp_id, etm.role_id ", nativeQuery = true)
+	List<Object[]> findMaxAndMinDateOfTimesheet(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("poId") Long poId);
+
 	
 
 }

@@ -168,7 +168,7 @@ public class ResourceManagementController {
 
 	@PostMapping("/ishineToPoEmpDetails")
 	public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest, @RequestBody IshineToPoRequestDTO ishineToPoRequest) {
-		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
 		return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
 	}
 }

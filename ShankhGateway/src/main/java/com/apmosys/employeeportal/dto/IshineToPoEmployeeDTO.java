@@ -3,6 +3,8 @@ package com.apmosys.employeeportal.dto;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -42,6 +44,8 @@ public class IshineToPoEmployeeDTO {
 	private List<LocalDate>workingOnANonWorkingDay;
 	private LocalDate empEndDate;
 	private Boolean isEmployeeOnLeaveWhenDeboarded;
+	@JsonIgnore
+	private Long etmRoleId;
 
 
 
@@ -106,6 +110,25 @@ public class IshineToPoEmployeeDTO {
 		this.ishineEmpId = ishineEmpId;
 	   
 	}
+	
+    public IshineToPoEmployeeDTO(Long employeementId, String empName, String roleName, String experience, String departmentName,
+            Long clientRoleId, Integer clientSideId, Long timesheetFilledCount,
+            String isApmosysProduct, Long poId, Long ishineEmpId, Long etmRoleId
+            ) {
+        this.empId = "true".equalsIgnoreCase(isApmosysProduct) ? "AP-" + employeementId : "A-" + employeementId;
+        this.empName = empName;
+        this.roleName = roleName;
+        this.exp = experience;
+        this.departmentName = departmentName;
+        this.roleId = clientRoleId;
+        this.clientSideId = clientSideId;
+        this.noOfWorkingDays = timesheetFilledCount;
+        this.billableDays = timesheetFilledCount;
+        this.isApmosysProduct = isApmosysProduct;
+        this.poId = poId;
+        this.ishineEmpId = ishineEmpId;
+        this.etmRoleId = etmRoleId;
+    }
 
 	
 }
