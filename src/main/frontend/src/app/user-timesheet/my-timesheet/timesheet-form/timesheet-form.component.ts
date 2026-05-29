@@ -4257,9 +4257,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       loc.projects = results.map((r:any)=> r.project);
       loc.projects = loc.projects?.filter(p => (p.clientId !== null && p.clientId !== undefined) && (p.clientLocationId !== null && p.clientLocationId !== undefined));
       if(this.dayType == 7){
-        loc.projects = loc.projects?.filter(p => p.poProjectType == 'Fixed Cost' || p.poProjectType  == 'TNM')
+        loc.projects = loc.projects?.filter(p => p.poProjectType?.toLowerCase().trim() == 'fixed cost' || p.poProjectType?.toLowerCase().trim()  == 'tnm')
       }else if (this.dayType == 6){
-        loc.projects = loc.projects?.filter(p => p.poProjectType != 'Fixed Cost' && p.poProjectType != 'TNM')
+        loc.projects = loc.projects?.filter(p => p.poProjectType?.toLowerCase().trim() != 'fixed cost' && p.poProjectType?.toLowerCase().trim()  != 'tnm')
       }
     })
   );
