@@ -2265,7 +2265,7 @@ public class TimesheetValidationHelper {
     
                 // Apmosys Holiday
                 if (dayTypeId == 6 && poProjectType != null &&
-                	    ("Fixed Cost".equalsIgnoreCase(poProjectType) || "TNM".equalsIgnoreCase(poProjectType))) {
+                	    "TNM".equalsIgnoreCase(poProjectType)) {
                     throw new TimesheetValidationFailedException(
                             "Apmosys Holiday cannot be applied for client-side projects."
                     );
