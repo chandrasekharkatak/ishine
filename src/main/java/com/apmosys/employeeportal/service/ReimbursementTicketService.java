@@ -1118,11 +1118,14 @@ public class ReimbursementTicketService {
 		}
 		String exp = c.getExpenditureType();
 		if ("Food".equalsIgnoreCase(exp)) {
-			if (c.getDateOfFood() == null) {
-				throw new IllegalArgumentException("Claim " + index + ": food date is required for Food.");
-			}
 			if (!StringUtils.hasText(c.getFoodAllowanceType())) {
 				throw new IllegalArgumentException("Claim " + index + ": food allowance type is required.");
+			}
+			if (c.getFromDate() == null || c.getToDate() == null) {
+				throw new IllegalArgumentException("Claim " + index + ": from and to dates are required for Food claims.");
+			}
+			if (c.getToDate().before(c.getFromDate())) {
+				throw new IllegalArgumentException("Claim " + index + ": to date must be on or after from date.");
 			}
 		} else {
 			if (c.getFromDate() == null || c.getToDate() == null) {
