@@ -12,7 +12,7 @@ import lombok.ToString;
 @ToString
 
 public class EmployeeRewardForHomeDTO {
-    private Long rewardId;
+//    private Long rewardId;
     private Integer isActive;
     private Long id; 
     private Long rewardedTo;

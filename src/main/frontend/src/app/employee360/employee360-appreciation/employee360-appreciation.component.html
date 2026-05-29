@@ -61,7 +61,7 @@
           </td>
           <td>{{ event.
             appreciationDate
-            | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+            | date: 'dd-MM-yyyy HH:mm:ss' }}</td>
           <td>{{ event.comment }}</td>
 
         </tr>
@@ -106,7 +106,7 @@
           <td id="clickablefor360" [navigateToEmployee360]="event.emp360AppreciationBy" (click)="refresh()">
             {{ event.appreciationByName }}
           </td>
-          <td>{{ event.appreciationDate | date: 'yyyy-MM-dd HH:mm:ss' }}</td>
+          <td>{{ event.appreciationDate | date: 'dd-MM-yyyy HH:mm:ss' }}</td>
           <td>{{ event.comment }}</td>
 
         </tr>

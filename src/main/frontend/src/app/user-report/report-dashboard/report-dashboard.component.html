@@ -1452,7 +1452,7 @@
                   </a>
                 </ng-container>
               </td>
-              <td>{{ leave.dateOfJoining }}</td>
+              <td>{{ leave.dateOfJoining | date:'dd-MM-yyyy'}}</td>
               <td>{{ leave.mobileNo }}</td>
               <td class="text-capitalize">{{ leave.employmentstatus }}</td>
               <td>{{ leave.totalExperience || 0}}</td>

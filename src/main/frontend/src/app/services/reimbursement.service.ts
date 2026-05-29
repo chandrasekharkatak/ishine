@@ -164,6 +164,12 @@ export class ReimbursementService {
     return this.http.post(`${this.baseUrl}api/fetchReimbursementDashboard`, filter || {});
   }
 
+  fetchReimbursementDashboardExcel(filter?: any) {
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementDashboardExcel`, filter || {}, {
+      responseType: 'blob'
+    });
+  }
+
   getAllReimbursementApprovalMatrices() {
     return this.http.get(`${this.baseUrl}api/getAllReimbursementApprovalMatrices`);
   }

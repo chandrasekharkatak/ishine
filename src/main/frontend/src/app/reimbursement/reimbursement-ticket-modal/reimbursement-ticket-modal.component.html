@@ -1,6 +1,6 @@
 <div class="rmbtm-header">
   <div class="rmbtm-header__title">
-    <div class="rmbtm-kicker">Reimbursement ticket</div>
+    <div class="rmbtm-kicker">Reimbursement Ticket</div>
     <div class="rmbtm-title-row">
       <h5 class="rmbtm-title mb-0">{{ ticket?.ticketNo || ('#' + ticket?.ticketId) }}</h5>
       <span class="rmbtm-pill rmbtm-pill--status">{{ ticket?.displayStatus | rmbCamelDisplay }}</span>
@@ -26,7 +26,7 @@
   <div class="rmbtm-meta">
     <div class="rmbtm-meta__row">
       <div class="rmbtm-meta__item">
-        <div class="rmbtm-meta__label">Full name</div>
+        <div class="rmbtm-meta__label">Full Name</div>
         <div class="rmbtm-meta__value">
           {{ ticket?.fullName | rmbCamelDisplay }}<span *ngIf="ticket?.employeementId != null" class="rmbtm-meta__muted"> ({{ ticket?.employeementId }})</span>
         </div>
@@ -48,12 +48,17 @@
       <thead>
         <tr>
           <th>Claim</th>
-          <th>Expense type</th>
+          <th>Expense Type</th>
+          <th>Claim Mode</th>
           <th>Project</th>
           <th>Client</th>
           <th class="text-right">Amount (₹)</th>
+          <th class="text-nowrap">From Date</th>
+          <th class="text-nowrap">To Date</th>
           <th>Claim status</th>
           <th>Purpose</th>
+          <th>Business Justification</th>
+          <th>HOD Pre-Approval</th>
           <th>Proofs</th>
           <th *ngIf="isDecisionStage">Action</th>
         </tr>
@@ -63,9 +68,16 @@
             [class.rmbtm-claim-row--muted]="isDecisionStage && !decisionForClaim(c.claimId)">
           <td>{{ c.lineNo || (i + 1) }}</td>
           <td>{{ c.expenditureType | rmbCamelDisplay }}</td>
+          <td class="text-nowrap">
+            <span class="badge badge-info mr-1" *ngIf="c.recurringExpense">Recurring</span>
+            <span class="badge badge-warning" *ngIf="c.pocProject">POC</span>
+            <span class="text-muted" *ngIf="!c.recurringExpense && !c.pocProject">—</span>
+          </td>
           <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
           <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
           <td class="text-right">{{ c.amount | number:'1.0-2' }}</td>
+          <td class="small text-nowrap">{{ c.fromDate ? (c.fromDate | date:'dd MMM yyyy') : '—' }}</td>
+          <td class="small text-nowrap">{{ c.toDate ? (c.toDate | date:'dd MMM yyyy') : '—' }}</td>
           <td class="text-nowrap">
             <span class="rmbtm-status"
               [ngClass]="{
@@ -85,6 +97,13 @@
             </button>
           </td>
           <td class="small">{{ (c.purpose || '—') | rmbCamelDisplay }}</td>
+          <td class="small">{{ (c.businessJustification || '—') | rmbCamelDisplay }}</td>
+          <td class="small text-nowrap">
+            <ng-container *ngIf="c.hodApproval || c.preApprovalDate; else noHodPre">
+              HOD<span *ngIf="c.preApprovalDate"> · {{ c.preApprovalDate | date:'dd MMM yyyy' }}</span>
+            </ng-container>
+            <ng-template #noHodPre>—</ng-template>
+          </td>
           <td class="text-nowrap">
             <button
               type="button"
@@ -93,6 +112,14 @@
               (click)="openProofsModal(c)">
               <i class="fa fa-paperclip mr-1" aria-hidden="true"></i>
               Proofs ({{ c.docIds?.length || 0 }})
+            </button>
+            <button
+              *ngIf="c.preApprovalDocIds?.length"
+              type="button"
+              class="btn btn-sm rmbtm-proof-btn ml-1"
+              (click)="openPreApprovalProofsModal(c)">
+              <i class="fa fa-envelope-o mr-1" aria-hidden="true"></i>
+              HOD Pre-Approval ({{ c.preApprovalDocIds?.length || 0 }})
             </button>
           </td>
           <td *ngIf="isDecisionStage" class="text-nowrap rmb-claim-actions">
@@ -120,7 +147,7 @@
           </td>
         </tr>
         <tr *ngIf="!ticket?.claims?.length">
-          <td [attr.colspan]="isDecisionStage ? 9 : 8" class="text-center text-muted">No claims on this ticket.</td>
+          <td [attr.colspan]="isDecisionStage ? 14 : 13" class="text-center text-muted">No claims on this ticket.</td>
         </tr>
       </tbody>
     </table>
@@ -130,7 +157,7 @@
     <div class="rmbtm-bulk-bar__copy">
       <strong>{{ pendingDecisionCount() }} claim(s)</strong> need a decision at this stage.
       Use <strong>Approve all</strong> or <strong>Reject all</strong>, or decide each claim below.
-      <span class="rmbtm-bulk-bar__note">If every claim is rejected, the ticket closes as rejected and the employee must submit a new reimbursement request.</span>
+      <span class="rmbtm-bulk-bar__note">If every claim is rejected, the ticket closes as rejected and the employee must submit a new Reimbursement Request.</span>
     </div>
     <div class="rmbtm-bulk-bar__actions">
       <button type="button" class="btn btn-sm btn-success rmbtm-bulk-btn" (click)="openApproveAllReason()">
@@ -283,14 +310,14 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" (click)="closeRejectionInfo()">ok</button>
+    <button type="button" class="btn btn-primary" (click)="closeRejectionInfo()">OK</button>
   </div>
 </ng-template>
 
 <ng-template #proofsModal>
   <div class="modal-header rmbtm-proof-modal__header">
     <div>
-      <div class="rmbtm-proof-modal__kicker">Supporting documents</div>
+      <div class="rmbtm-proof-modal__kicker">Supporting Documents</div>
       <div class="rmbtm-proof-modal__title">
         Ticket {{ ticket?.ticketNo || ('#' + ticket?.ticketId) }} · {{ (selectedClaim?.expenditureType || 'Claim') | rmbCamelDisplay }}
       </div>

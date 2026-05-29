@@ -34,6 +34,8 @@ public class ReimbursementTicket {
 	public static final String STAGE_PENDING_LEVEL = "PENDING_LEVEL";
 	public static final String STAGE_REJECTED = "REJECTED";
 	public static final String STAGE_PAID = "PAID";
+	/** Submitted after the monthly deadline; approval starts when the processing cycle month begins. */
+	public static final String STAGE_HELD_FOR_CYCLE = "HELD_FOR_CYCLE";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -85,6 +87,10 @@ public class ReimbursementTicket {
 
 	@Column(name = "submitted_on")
 	private Timestamp submittedOn;
+
+	/** Payroll processing cycle as yyyy-MM (current month if within deadline, else next month). */
+	@Column(name = "processing_cycle_year_month", length = 7)
+	private String processingCycleYearMonth;
 
 	@Column(name = "is_active")
 	private Integer isActive;

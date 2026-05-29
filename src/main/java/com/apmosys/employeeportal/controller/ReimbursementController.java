@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -193,6 +194,12 @@ public class ReimbursementController {
 		return reimbursementSubmissionSettingsService.fetchSubmissionWindowStatus();
 	}
 
+	/** UAT / ops: run the same job as {@code ReimbursementHeldTicketReleaseScheduler} (daily 00:10). */
+	@PostMapping("/releaseHeldReimbursementTickets")
+	public ServiceResponse releaseHeldReimbursementTickets() {
+		return reimbursementTicketService.releaseHeldReimbursementTicketsManual();
+	}
+
 	@PostMapping("/saveReimbursementTicket")
 	public ServiceResponse saveReimbursementTicket(@RequestBody ReimbursementTicketSubmitRequestDTO body) {
 		return reimbursementTicketService.submitTicket(body);
@@ -255,6 +262,19 @@ public class ReimbursementController {
 	@PostMapping("/fetchReimbursementDashboard")
 	public ServiceResponse fetchReimbursementDashboard(@RequestBody(required = false) ReimbursementDashboardFilterDTO filter) {
 		return reimbursementTicketService.dashboard(filter != null ? filter : new ReimbursementDashboardFilterDTO());
+	}
+
+	@PostMapping("/fetchReimbursementDashboardExcel")
+	public ResponseEntity<byte[]> fetchReimbursementDashboardExcel(
+			@RequestBody(required = false) ReimbursementDashboardFilterDTO filter) {
+		byte[] bytes = reimbursementTicketService.exportDashboardExcel(
+				filter != null ? filter : new ReimbursementDashboardFilterDTO());
+		String filename = "Reimbursement_Dashboard.xlsx";
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+				.header(HttpHeaders.CONTENT_TYPE,
+						"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+				.body(bytes);
 	}
 
 	@GetMapping("/getAllReimbursementApprovalMatrices")

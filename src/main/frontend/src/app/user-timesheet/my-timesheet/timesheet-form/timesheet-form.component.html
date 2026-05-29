@@ -459,7 +459,7 @@
                                                 </div>
                                                 <!-- Shadow For (Show when shadow is enabled; in update mode show when project was saved as shadow) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId && project.isShadowRequired == 1">
+                                                    *ngIf="project.isShadowTimesheet && !project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.isShadowRequired == 1">
                                                     <label class="info-label">
                                                         <span class="text-danger">*</span> Shadow For
                                                     </label>
@@ -472,7 +472,7 @@
                                                 </div>
                                                 <!-- Shadow Timesheet Toggle (show when no clientSideId, or in update mode when project is shadow so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="((!project.isShadowForSelf && isDayTypeFillable() && project.projectId && project.hasClientSideId) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf && project.hasClientSideId)) && project.isShadowRequired == 1">
+                                                    *ngIf="((!project.isShadowForSelf && isDayTypeFillable() && project.projectId ) || (isUpdation && project.isShadowTimesheet && !project.isShadowForSelf )) && project.isShadowRequired == 1">
                                                     <label class="info-label d-block">
                                                         <span class="text-danger">*</span> Shadow Timesheet
                                                     </label>
@@ -500,7 +500,7 @@
 
                                                 <!-- Shadow For Self (show when no clientSideId, or in update mode when project is shadow-for-self so choice is visible) -->
                                                 <div class="col-md-3 mb-3"
-                                                    *ngIf="((!project.isShadowTimesheet && isDayTypeFillable() && project.projectId && project.hasClientSideId)  || (isUpdation && project.isShadowForSelf && project.hasClientSideId)) && project.isShadowRequired == 1">
+                                                    *ngIf="((!project.isShadowTimesheet && isDayTypeFillable() && project.projectId )  || (isUpdation && project.isShadowForSelf )) && project.isShadowRequired == 1">
                                                     <label class="info-label d-block"><span
                                                             class="text-danger">*</span>Shadow For Self</label>
 

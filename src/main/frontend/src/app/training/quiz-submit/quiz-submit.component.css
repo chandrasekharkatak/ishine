@@ -9,9 +9,9 @@
 
 .card {
     border: none;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
     overflow: hidden;
+    background: transparent;
 }
 
 .card-header {
@@ -20,8 +20,7 @@
 }
 
 .card-header h5 {
-    font-weight: 600;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     margin-bottom: 0;
 }
 
@@ -37,53 +36,54 @@
 .stats-badge {
     display: flex;
     align-items: center;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 30px;
+    background: #f8fafc;
+    border-radius: 8px;
     padding: 4px 10px;
-    font-size: 0.85rem;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 0.8rem;
+    color: #475569;
+    border: 1px solid #e2e8f0;
 }
 
 .stats-label {
     margin-right: 6px;
-    opacity: 0.9;
-    font-weight: 400;
+    font-weight: 500;
 }
 
 .stats-value {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 2px 10px;
-    border-radius: 20px;
     font-weight: 600;
     font-size: 0.85rem;
-    color: white;
+    padding: 2px 6px;
+    border-radius: 6px;
 }
 
 .stats-value.bg-primary {
-    background-color: rgba(0, 84, 174, 0.9) !important;
+    background-color: #e0f2fe !important;
+    color: #0369a1;
 }
 
 .stats-value.bg-success {
-    background-color: rgba(40, 167, 69, 0.9) !important;
+    background-color: #dcfce7 !important;
+    color: #15803d;
 }
 
 .stats-value.bg-danger {
-    background-color: rgba(220, 53, 69, 0.9) !important;
+    background-color: #fee2e2 !important;
+    color: #b91c1c;
 }
 
 .stats-value.bg-info {
-    background-color: rgba(23, 162, 184, 0.9) !important;
+    background-color: #e0f2fe !important;
+    color: #0284c7;
 }
 
 .stats-value.bg-warning {
-    background-color: rgba(255, 193, 7, 0.9) !important;
-    color: #212529;
+    background-color: #fef9c3 !important;
+    color: #a16207;
 }
 
 .card-body {
-    padding: 30px;
-    min-height: 300px;
+    padding: 4px 0;
+    min-height: 180px;
 }
 
 /* Loading Container Styles */
@@ -251,19 +251,18 @@
 
 /* Quiz Styles - Global */
 ::ng-deep .form-group {
-    margin-bottom: 25px;
-    padding: 20px;
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
+    margin-bottom: 8px;
+    padding: 4px 0;
+    background-color: transparent;
+    border-radius: 0;
+    border: none;
 }
 
 ::ng-deep .form-group h5 {
-    color: #343a40;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 8px;
+    color: #1e293b;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
 }
@@ -284,38 +283,91 @@
 }
 
 ::ng-deep .form-check {
-    margin-bottom: 12px;
-    padding-left: 30px;
+    margin-bottom: 6px;
+    padding: 6px 8px;
     position: relative;
-}
-
-::ng-deep .form-check-input {
-    position: absolute;
-    margin-left: -30px;
-    margin-top: 0.3rem;
-    width: 18px;
-    height: 18px;
+    display: flex;
+    align-items: center;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    transition: background 0.15s ease;
     cursor: pointer;
 }
 
-::ng-deep .form-check-input[type="radio"] {
+::ng-deep .form-check:hover {
+    background-color: #f8fafc;
+    border-radius: 6px;
+}
+
+/* Custom Input Styling */
+::ng-deep .form-check-input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    margin: 0 12px 0 0;
+    border: 2px solid #cbd5e1;
     border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    background-color: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 ::ng-deep .form-check-input[type="checkbox"] {
-    border-radius: 4px;
+    border-radius: 6px;
+}
+
+/* Checked State colors */
+::ng-deep .form-check-input:checked {
+    border-color: #0ea5e9;
+    background-color: #0ea5e9;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+}
+
+/* Inner dot for radio */
+::ng-deep .form-check-input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Checkmark for checkbox */
+::ng-deep .form-check-input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px; /* Adjusted to visually center */
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: translate(-0%, -50%) rotate(45deg);
 }
 
 ::ng-deep .form-check-label {
-    color: #495057;
+    color: #475569;
     font-size: 0.95rem;
-    padding-left: 5px;
+    padding-left: 0;
+    margin-bottom: 0;
     cursor: pointer;
     user-select: none;
+    width: 100%;
 }
 
 ::ng-deep .form-check-input:checked ~ .form-check-label {
-    color: #007bff;
+    color: #0f172a;
     font-weight: 500;
 }
 
@@ -416,18 +468,19 @@
 
 /* Add to your existing CSS */
 .question-number {
-  background: linear-gradient(135deg, #0052D4, #4364F7);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 700;
-  font-size: 1.2rem;
+  font-weight: 600;
+  font-size: 1rem;
   display: inline-block;
 }
 
 .question-text {
   color: #1e293b;
-  font-weight: 600;
-  font-size: 1.1rem;
+  font-weight: 500;
+  font-size: 1rem;
 }
 
 /* If you want a different style - with background */

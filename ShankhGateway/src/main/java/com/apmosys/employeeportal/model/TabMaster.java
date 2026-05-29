@@ -24,6 +24,7 @@ public class TabMaster {
 	private String tabIcon;
 	
 	private Integer tabSequence;
+	
 
 	public Long getTabId() {
 		return tabId;
@@ -57,10 +58,6 @@ public class TabMaster {
 		this.tabIcon = tabIcon;
 	}
 
-	
-
-	
-	
 	
 
 }

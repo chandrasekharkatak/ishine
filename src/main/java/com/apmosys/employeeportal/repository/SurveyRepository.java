@@ -21,24 +21,24 @@ public interface SurveyRepository extends JpaRepository<Survey, Long> {
 		    " s.surveyId, " +
 		    " s.surveyName, " +
 		    " s.description, " +
-		    " CASE \n"+
-			" WHEN tqm.activeStatus = 'false' THEN 'false' \n"+
-			" WHEN tqm.activeStatus = 'true' THEN 'true' \n"+
-			" WHEN tqm.activeStatus = 'Completed' THEN 'Completed' \n"+
-			" END as is_active, \n"+
+		    " tqm.activeStatus, " +
 		    " cb.name, " +
 		    " s.createdOn, " +
 		    " ub.name, " +
 		    " s.updatedOn, " +
 		    " s.type, " +
 		    " s.createdBy, " +
-		    " s.updatedBy, s.cutOffQuestions " +
+		    " s.updatedBy, " +
+		    " s.cutOffQuestions, " +
+		    " COUNT(sq.surveyQuestionId) " +
 		    "FROM TrainingQuizMapping tqm " +
 		    "JOIN tqm.survey s " +
+		    "LEFT JOIN SurveyQuestion sq ON sq.surveyId = s.surveyId " +
 		    "LEFT JOIN Employee cb ON cb.empId = s.createdBy " +
 		    "LEFT JOIN Employee ub ON ub.empId = s.updatedBy " +
 		    "WHERE tqm.trainingMaster.trainingId = :trainingId " +
-		    "AND tqm.activeStatus IN ('true','Completed','false')"
+		    "AND tqm.activeStatus IN ('true', 'Completed', 'false') " +
+		    "GROUP BY s.surveyId, s.surveyName, s.description, tqm.activeStatus, cb.name, s.createdOn, ub.name, s.updatedOn, s.type, s.createdBy, s.updatedBy, s.cutOffQuestions"
 		)
 		List<Object[]> getSurveysByTrainingId(@Param("trainingId") Integer trainingId);
 

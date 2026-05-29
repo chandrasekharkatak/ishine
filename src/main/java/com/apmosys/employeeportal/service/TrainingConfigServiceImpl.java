@@ -45,6 +45,7 @@ import com.apmosys.employeeportal.Exception.GlobalException;
 import com.apmosys.employeeportal.Exception.ResourceNotFoundException;
 import com.apmosys.employeeportal.Exception.TrainingException;
 import com.apmosys.employeeportal.dto.ComplianceReportDTO;
+import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.LockStatusDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
 import com.apmosys.employeeportal.dto.TrainingContentDTO;
@@ -70,6 +71,12 @@ import com.apmosys.employeeportal.serviceInterface.TrainingConfigService;
 import com.apmosys.employeeportal.serviceInterface.TrainingUserService;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.dto.FilteredEmployeeGroupDTO;
+import com.apmosys.employeeportal.dto.PageResponseDTO;
+import com.apmosys.employeeportal.model.Department;
+import com.apmosys.employeeportal.model.Designation;
+import com.apmosys.employeeportal.repository.DepartmentRepository;
+import com.apmosys.employeeportal.repository.DesignationRepository;
 import com.apmosys.employeeportal.utility.TrainingFileValidator;
 
 /**
@@ -93,6 +100,12 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
+
+	@Autowired
+	private DepartmentRepository departmentRepository;
+
+	@Autowired
+	private DesignationRepository designationRepository;
 
 	@Autowired
 	private HttpServletRequest httpRequest;
@@ -907,15 +920,17 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 
 			List<TrainingContentDTO> dtoList = new ArrayList<>();
 
-			TrainingContentDTO dto = convertToTrainingContentDTO(content);
+			if (content != null) {
+				TrainingContentDTO dto = convertToTrainingContentDTO(content);
 
-			// Check if currently active
-			boolean isActive = "true".equals(content.getActiveStatus())
-					&& content.getEffectiveFrom().isBefore(today)
-					&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today));
-			dto.setIsCurrentlyActive(isActive);
+				// Check if currently active
+				boolean isActive = "true".equals(content.getActiveStatus())
+						&& content.getEffectiveFrom().isBefore(today.plusDays(1))
+						&& (content.getEffectiveTo() == null || content.getEffectiveTo().isAfter(today.minusDays(1)));
+				dto.setIsCurrentlyActive(isActive);
 
-			dtoList.add(dto);
+				dtoList.add(dto);
+			}
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(dtoList);
@@ -1473,7 +1488,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 	}
 
 	@Override
-	public ServiceResponse getTrainingResponses(Integer trainingId){
+	public ServiceResponse getTrainingResponses(Integer trainingId, String type){
 		ServiceResponse response = new ServiceResponse();
 		LogDTO apiLogInfo = new LogDTO();
 		apiLogInfo.setSubFeatureName("Get Training Responses");
@@ -1492,7 +1507,7 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
 				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
 			}
 
-			List<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId);
+			List<TrainingResponseDTO> trainingResponses = trainingConsentRepository.findByTrainingId(trainingId, type);
 			response.setStatusCode(HttpStatus.OK.value());
 			response.setServiceResponse(trainingResponses);
 			apiLogInfo.setApiResponse(trainingResponses.toString());
@@ -1726,4 +1741,137 @@ public class TrainingConfigServiceImpl implements TrainingConfigService {
         
         return response;
     }
+
+	@Override
+	public ServiceResponse getCountOfResponses(Integer trainingId) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Count Of Responses");
+		apiLogInfo.setApiUrl("/api/training/getCountOfResponses");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Training ID: ").append(trainingId);
+		try {
+			TrainingMaster existingTraining = trainingMasterRepository.findById(trainingId).orElse(null);
+			if (existingTraining == null) {
+				apiLogInfo.setApiResponse("Training Not Found");
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				throw new ResourceNotFoundException("Training Not Found for trainingId: " + trainingId);
+			}
+
+			List<Object[]> trainingResponses = trainingConsentRepository.getTrainingCounts(trainingId);
+			Map<String, Long> trainingResponsesMap = new HashMap<>();
+			for (Object[] resp : trainingResponses) {
+				trainingResponsesMap.put("completedCount", resp[0] != null ? (Long) resp[0] : 0L);
+				trainingResponsesMap.put("notCompletedCount", resp[1] != null ? (Long) resp[1] : 0L);
+				trainingResponsesMap.put("totalCount", resp[2] != null ? (Long) resp[2] : 0L);
+			}
+			response.setStatusCode(HttpStatus.OK.value());
+			response.setServiceResponse(trainingResponsesMap);
+			apiLogInfo.setApiResponse(trainingResponsesMap.toString());
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+
+	}
+
+	@Override
+	public ServiceResponse getEmployeesByFilter(String filter, String searchName, List<Long> ids, int page, int size) {
+		ServiceResponse response = new ServiceResponse();
+		LogDTO apiLogInfo = new LogDTO();
+		apiLogInfo.setSubFeatureName("Get Employees By Filter");
+		apiLogInfo.setApiUrl("/api/training/getEmployeesByFilter");
+		apiLogInfo.setLogLevel("INFO");
+
+		StringBuilder logBuilder = new StringBuilder();
+		logBuilder.append("Filter: ").append(filter)
+		          .append(", searchName: ").append(searchName)
+		          .append(", ids: ").append(ids)
+		          .append(", page: ").append(page)
+		          .append(", size: ").append(size);
+		try {
+			Pageable pageable = PageRequest.of(page, size);
+			
+			if ("individuals".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> employeePage = employeeRepository.findActiveEmployeesForIndividuals(searchName, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					employeePage.getContent(),
+					employeePage.getNumber(),
+					employeePage.getSize(),
+					employeePage.getTotalElements(),
+					employeePage.getTotalPages()
+				);
+				
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else if ("department".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> deptPage = departmentRepository.findActiveDepartmentsEmployeesByFilter(searchName,ids, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					deptPage.getContent(),
+					deptPage.getNumber(),
+					deptPage.getSize(),
+					deptPage.getTotalElements(),
+					deptPage.getTotalPages()
+				);
+				
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else if ("designation".equalsIgnoreCase(filter)) {
+				Page<EmpIdAndNameDTO> emps = designationRepository.findEmployeesByDesignationIds(searchName,ids, pageable);
+				
+				PageResponseDTO<EmpIdAndNameDTO> pageResponse = new PageResponseDTO<>(
+					emps.getContent(),
+					emps.getNumber(),
+					emps.getSize(),
+					emps.getTotalElements(),
+					emps.getTotalPages()
+				);
+				response.setStatusCode(HttpStatus.OK.value());
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(pageResponse);
+				apiLogInfo.setApiResponse(pageResponse.toString());
+				
+			} else {
+				response.setStatusCode(HttpStatus.BAD_REQUEST.value());
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Invalid filter category. Allowed values: department, designation, individuals");
+				apiLogInfo.setApiResponse("Invalid filter value: " + filter);
+			}
+			
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+		} catch (Exception e) {
+			e.printStackTrace();
+			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+			apiLogInfo.setLogLevel("ERROR");
+			apiLogInfo.setApiRequest(logBuilder.toString());
+			logService.logMyInfo(httpRequest, apiLogInfo);
+			throw e;
+		}
+
+		apiLogInfo.setApiRequest(logBuilder.toString());
+		logService.logMyInfo(httpRequest, apiLogInfo);
+		return response;
+	}
+
 }
