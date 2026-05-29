@@ -23,6 +23,8 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 public class ReimbursementSubmissionSettingsService {
 
 	private static final int DEFAULT_DEADLINE_DAY = 10;
+	private static final DateTimeFormatter CYCLE_KEY = DateTimeFormatter.ofPattern("yyyy-MM");
+	private static final DateTimeFormatter CYCLE_LABEL = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH);
 
 	@Autowired
 	private ReimbursementSubmissionSettingsRepository settingsRepository;
@@ -104,41 +106,103 @@ public class ReimbursementSubmissionSettingsService {
 		return resp;
 	}
 
+	/** Submissions are always allowed; late submissions are auto-assigned to the next processing cycle. */
 	public void assertSubmissionAllowed() {
-		Map<String, Object> status = buildWindowStatusMap();
-		if (!Boolean.TRUE.equals(status.get("allowed"))) {
-			throw new IllegalArgumentException(String.valueOf(status.get("message")));
+		// no-op
+	}
+
+	public ZoneId reimbursementZoneId() {
+		return ZoneId.of(reimbursementZone != null ? reimbursementZone : "Asia/Kolkata");
+	}
+
+	public LocalDate todayInReimbursementZone() {
+		return LocalDate.now(reimbursementZoneId());
+	}
+
+	/**
+	 * Processing cycle key (yyyy-MM). Through deadline day = current month; after deadline = next month.
+	 * When the rule is disabled, uses the calendar month of submission.
+	 */
+	public String resolveProcessingCycleYearMonth(LocalDate submissionDate) {
+		LocalDate today = submissionDate != null ? submissionDate : todayInReimbursementZone();
+		ReimbursementSubmissionSettings s = getOrCreateSettings();
+		if (!"Y".equalsIgnoreCase(s.getEnabled())) {
+			return YearMonth.from(today).format(CYCLE_KEY);
 		}
+		int deadlineDay = s.getMonthlyDeadlineDay() != null ? s.getMonthlyDeadlineDay() : DEFAULT_DEADLINE_DAY;
+		YearMonth cycle = YearMonth.from(today);
+		if (today.getDayOfMonth() > deadlineDay) {
+			cycle = cycle.plusMonths(1);
+		}
+		return cycle.format(CYCLE_KEY);
+	}
+
+	public String formatProcessingCycleLabel(String cycleYearMonth) {
+		if (cycleYearMonth == null || cycleYearMonth.isBlank()) {
+			return "";
+		}
+		return YearMonth.parse(cycleYearMonth.trim()).format(CYCLE_LABEL);
+	}
+
+	/** True when calendar date is on or after the first day of the ticket's processing cycle month. */
+	public boolean isProcessingCycleOpen(String processingCycleYearMonth, LocalDate asOf) {
+		if (processingCycleYearMonth == null || processingCycleYearMonth.isBlank()) {
+			return true;
+		}
+		LocalDate today = asOf != null ? asOf : todayInReimbursementZone();
+		YearMonth cycle = YearMonth.parse(processingCycleYearMonth.trim());
+		return !YearMonth.from(today).isBefore(cycle);
+	}
+
+	public boolean isCarriedToNextCycle(LocalDate submissionDate) {
+		LocalDate today = submissionDate != null ? submissionDate : todayInReimbursementZone();
+		ReimbursementSubmissionSettings s = getOrCreateSettings();
+		if (!"Y".equalsIgnoreCase(s.getEnabled())) {
+			return false;
+		}
+		int deadlineDay = s.getMonthlyDeadlineDay() != null ? s.getMonthlyDeadlineDay() : DEFAULT_DEADLINE_DAY;
+		return today.getDayOfMonth() > deadlineDay;
 	}
 
 	private Map<String, Object> buildWindowStatusMap() {
 		ReimbursementSubmissionSettings s = getOrCreateSettings();
 		boolean ruleEnabled = "Y".equalsIgnoreCase(s.getEnabled());
 		int deadlineDay = s.getMonthlyDeadlineDay() != null ? s.getMonthlyDeadlineDay() : DEFAULT_DEADLINE_DAY;
-		ZoneId zone = ZoneId.of(reimbursementZone != null ? reimbursementZone : "Asia/Kolkata");
-		LocalDate today = LocalDate.now(zone);
+		LocalDate today = todayInReimbursementZone();
 		int currentDay = today.getDayOfMonth();
-		boolean allowed = !ruleEnabled || currentDay <= deadlineDay;
+		boolean carriedToNextCycle = isCarriedToNextCycle(today);
+		String processingCycleYearMonth = resolveProcessingCycleYearMonth(today);
+		String processingCycleLabel = formatProcessingCycleLabel(processingCycleYearMonth);
+		YearMonth currentMonth = YearMonth.from(today);
 
 		Map<String, Object> out = new LinkedHashMap<>();
-		out.put("allowed", allowed);
+		out.put("allowed", true);
 		out.put("ruleEnabled", ruleEnabled);
 		out.put("monthlyDeadlineDay", deadlineDay);
 		out.put("currentDayOfMonth", currentDay);
-		out.put("currentMonthLabel", YearMonth.from(today).format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)));
-		out.put("zoneId", zone.getId());
-		if (!allowed) {
-			YearMonth next = YearMonth.from(today).plusMonths(1);
-			out.put("nextOpenLabel", "1 " + next.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)));
-			out.put("message",
-					"Reimbursement applications are closed for "
-							+ YearMonth.from(today).format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH))
-							+ " after day " + deadlineDay
-							+ ". You can apply again from the 1st of next month.");
-		} else if (ruleEnabled) {
-			out.put("message", "You may submit reimbursement requests until day " + deadlineDay + " of this month (inclusive).");
-		} else {
+		out.put("currentMonthLabel", currentMonth.format(CYCLE_LABEL));
+		out.put("zoneId", reimbursementZoneId().getId());
+		out.put("carriedToNextCycle", carriedToNextCycle);
+		out.put("processingCycleYearMonth", processingCycleYearMonth);
+		out.put("processingCycleLabel", processingCycleLabel);
+
+		if (!ruleEnabled) {
 			out.put("message", "Submission window restriction is not enabled.");
+		} else if (carriedToNextCycle) {
+			out.put("message",
+					"Today is after day " + deadlineDay + " of "
+							+ currentMonth.format(CYCLE_LABEL)
+							+ ". Your submission will be queued for the "
+							+ processingCycleLabel
+							+ " processing cycle. Approvers will receive it from the 1st of "
+							+ processingCycleLabel
+							+ " (submission window 1st–" + deadlineDay + " in that month).");
+		} else {
+			out.put("message",
+					"Submit by day " + deadlineDay + " (inclusive) for the "
+							+ currentMonth.format(CYCLE_LABEL)
+							+ " processing cycle. Submissions after day " + deadlineDay
+							+ " are still accepted and assigned to the next month's cycle.");
 		}
 		return out;
 	}

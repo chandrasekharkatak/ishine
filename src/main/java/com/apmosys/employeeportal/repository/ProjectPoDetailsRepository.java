@@ -236,9 +236,9 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
 
     @Query("SELECT new com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO( "
         		+ "       e.employeementId,e.name,rd.role,rd.experience,rd.department,"
-        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT CASE WHEN et.dayTypeId IN (1,3,8) THEN et.timesheetId ELSE NULL END),"
+        		+ "       prm.clientRoleId,p.clientId,COUNT(DISTINCT CASE WHEN et.dayTypeId IN (1,8) THEN et.timesheetId ELSE NULL END),"
         		+ "       e.isApmosysProduct,ppo.poId,"
-        		+ "	 et.empId) "
+        		+ "	 et.empId, etm.roleId) "
         		+ "     FROM EmployeeTimesheetsNew et  "
                         + " inner join EmployeeTimesheetLocationMapping etlm on etlm.timesheetId = et.timesheetId "
                         + " inner join ProjectTimesheetStatusNew ptsn on ptsn.id.timesheetId = etlm.timesheetId "
@@ -247,27 +247,30 @@ public interface ProjectPoDetailsRepository extends JpaRepository<ProjectPoDetai
         		// + "		LEFT JOIN TimesheetActivityMap etam on etam.timesheetId=et.timesheetId"
 //                        + " and ptsn.id.projectId = etam.projectId and etlm.locationMappingId = etam.locationMappingId "
 //        		+ "		LEFT JOIN Activity a on a.activityId=etam.activityId"
-        		+ "		LEFT JOIN TimesheetDocumentDetailsNew edd on edd.timesheetId=et.timesheetId and ptsn.id.projectId = edd.projectId "
-        		+ "         AND edd.clientApprovalStatusId = 2 AND edd.finalFlag = 1 "
+//        		+ "		LEFT JOIN TimesheetDocumentDetailsNew edd on edd.timesheetId=et.timesheetId and ptsn.id.projectId = edd.projectId "
+//        		+ "         AND edd.clientApprovalStatusId = 2 AND edd.finalFlag = 1 "
 //        		+ "		LEFT JOIN Team t on t.teamId=a.teamId "
-        		+ "		LEFT JOIN Project p on p.projectId=ptsn.id.projectId "
-        		+ "     LEFT JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
+        		+ "		INNER JOIN Project p on p.projectId=ptsn.id.projectId "
+        		+ "     INNER JOIN ProjectPoDetails ppo on ppo.projectId = p.projectId "
         		+ "          AND ppo.clientAddressId IS NOT NULL AND ppo.active=1"
-        		+ "		LEFT JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
-        		+ "		LEFT JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=ppo.poId "
+        		+ "		INNER JOIN PoRequirementMapping prm ON prm.poId = ppo.poId "
+        		+ "		INNER JOIN EmployeeTeamMap etm on etm.empId = et.empId AND etm.poId=ppo.poId "
         		+ "            and etm.roleId = prm.roleId"
-        		+ "		LEFT JOIN RoleDetails rd on rd.roleId = etm.roleId "
-        		+ "		LEFT JOIN Employee e on e.empId=etm.empId "
-        		+ "		LEFT JOIN Department d ON d.name = prm.department "
+        		+ "		INNER JOIN RoleDetails rd on rd.roleId = etm.roleId "
+        		+ "		INNER JOIN Employee e on e.empId=etm.empId "
+//        		+ "		INNER JOIN Department d ON d.name = prm.department "
         		+ "		where 1=1 AND et.empId in (:empIds) "
         		+ "        AND etm.poId = :poId and et.status = 2 "
-        		+ "        AND etm.active!= 2 "
+        		+ "        AND etm.active != 2 "
         		+ "        AND et.date BETWEEN :startDate AND :endDate and ptsn.shadowEmpId is null"
+        		+ "        AND FUNCTION('DATE', et.date) >= FUNCTION('DATE', etm.startDate)"
+        		+ "        AND (etm.endDate IS NULL OR FUNCTION('DATE', et.date) <= FUNCTION('DATE', etm.endDate))"
                         + " group by  e.employeementId,e.name,rd.role,rd.experience,rd.department,prm.clientRoleId,"
-                        + " p.clientId,e.isApmosysProduct,ppo.poId, et.empId "
+                        + " p.clientId,e.isApmosysProduct,ppo.poId, et.empId, etm.roleId "
                 )
         	List<IshineToPoEmployeeDTO> findEmployeesWithTimesheetCount(List<Long> empIds,
         	         LocalDate startDate,LocalDate endDate,Long poId);
+
 
 	ProjectPoDetails findByPoId(Long poId);
 

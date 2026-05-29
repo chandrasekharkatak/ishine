@@ -79,9 +79,11 @@ import com.apmosys.employeeportal.customrepository.ProjectCustomRepository;
 import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
+import com.apmosys.employeeportal.dto.DateRange;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmpRoleKey;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
@@ -17544,8 +17546,39 @@ public class ResourceManagementService {
         		.distinct()
         		.collect(Collectors.toList());
 
+			// Build the EmpRoleWindowMap to know which dates belong to which role.
+			// If an employee has multiple stints with the same role, we merge them into a single 
+			// overarching min-max window, as requested.
+			Map<EmpRoleKey, List<DateRange>> empRoleWindowMap = new HashMap<>();
+			for (EmpMappingDTO m : etm) {
+				if (m.getEmpId() == null || m.getRoleId() == null) continue;
+				EmpRoleKey key = new EmpRoleKey(m.getEmpId(), m.getRoleId());
+				
+				LocalDate winStart = m.getStartDate() != null ? m.getStartDate().toLocalDate() : null;
+				LocalDate winEnd   = m.getEndDate() != null ? m.getEndDate().toLocalDate() : null;
+				
+				if (!empRoleWindowMap.containsKey(key)) {
+					empRoleWindowMap.put(key, new ArrayList<>());
+				}
+				empRoleWindowMap.get(key).add(new DateRange(winStart, winEnd));
+			}
+
+			// After finding the actual disjoint stints for each role, intersect with the billing period
+			for (List<DateRange> list : empRoleWindowMap.values()) {
+				for (int i = 0; i < list.size(); i++) {
+					DateRange stint = list.get(i);
+					LocalDate s = stint.getFrom();
+					LocalDate e = stint.getTo();
+					
+					if (s != null && s.isBefore(startDate)) s = startDate;
+					if (e == null || e.isAfter(endDate)) e = endDate;
+					
+					list.set(i, new DateRange(s, e));
+				}
+			}
+
 			List<IshineToPoEmployeeDTO> employees = new ArrayList<>();
-			Map<Long,List<LocalDate>> datesTimesheetFilled = new HashMap<>();
+			Map<EmpRoleKey, List<LocalDate>> datesTimesheetFilled = new HashMap<>();
 
 			ishineToPoHelperMethods.fetchEmployeesWithTimesheets(
                 allMappedEmpIds, startDate, endDate, ishineToPoRequest.getPoId(),
@@ -17557,24 +17590,24 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
-			Map<Long , LocalDate> minDateMap = new HashMap<>();
-			Map<Long , LocalDate> maxDateMap = new HashMap<>();
+			Map<EmpRoleKey , LocalDate> minDateMap = new HashMap<>();
+			Map<EmpRoleKey , LocalDate> maxDateMap = new HashMap<>();
 			Map<Long, LocalDate> empEndDateMap = new HashMap<>();
 
-			ishineToPoHelperMethods.getTimesheetMinMaxDateMap(allMappedEmpIds, startDate, endDate, dto.getIshineProjectId(), minDateMap, maxDateMap);
-			empEndDateMap = ishineToPoHelperMethods.getMaxEndDatePerEmployee(allMappedEmpIds,ishineToPoRequest.getPoId());
+			ishineToPoHelperMethods.getTimesheetMinMaxDateMap(allMappedEmpIds, startDate, endDate, dto.getIshineProjectId(), ishineToPoRequest.getPoId(), minDateMap, maxDateMap);
+			empEndDateMap = ishineToPoHelperMethods.getMaxEndDatePerEmployee(allMappedEmpIds,dto.getPoId());
 
 			for (IshineToPoEmployeeDTO emp : employees) {
-				Long ishineId = emp.getIshineEmpId();
-				emp.setStartDate(minDateMap.get(ishineId));
-				emp.setEndDate(maxDateMap.get(ishineId));
-				emp.setEmpEndDate(empEndDateMap.get(ishineId));
+				EmpRoleKey key = new EmpRoleKey(emp.getIshineEmpId(), emp.getEtmRoleId());
+				emp.setStartDate(minDateMap.get(key));
+				emp.setEndDate(maxDateMap.get(key));
+				emp.setEmpEndDate(empEndDateMap.get(emp.getIshineEmpId()));
 			}
 			
 
 			employees = ishineToPoHelperMethods.mergeShadowTimesheets(
             employees, allMappedEmpIds, datesTimesheetFilled,
-            ishineToPoRequest.getPoId(), startDate, endDate);
+            ishineToPoRequest.getPoId(), startDate, endDate, empRoleWindowMap);
 
 			List<Long> empIds = employees.stream().map(IshineToPoEmployeeDTO::getIshineEmpId)
 			        .filter(Objects::nonNull)
@@ -17609,31 +17642,39 @@ public class ResourceManagementService {
 			
 			// Set leave count in DTO
 			for (IshineToPoEmployeeDTO emp : employees) {
-				Long ishineId = emp.getIshineEmpId();
-				List<LocalDate> leaves = employeeLeavesMap.getOrDefault(emp.getIshineEmpId(),new ArrayList<>());
+				EmpRoleKey key = new EmpRoleKey(emp.getIshineEmpId(), emp.getEtmRoleId());
+				List<DateRange> windows = empRoleWindowMap.getOrDefault(key, new ArrayList<>());
+
+				// Helper to filter dates to only those inside this role's windows
+				java.util.function.Function<List<LocalDate>, List<LocalDate>> filterByWindow = (rawDates) -> {
+					if (rawDates == null) return new ArrayList<>();
+					return rawDates.stream().filter(d -> {
+						for (DateRange dr : windows) {
+							if (dr.contains(d)) return true;
+						}
+						return false;
+					}).collect(Collectors.toList());
+				};
+
+				List<LocalDate> leaves = filterByWindow.apply(employeeLeavesMap.get(emp.getIshineEmpId()));
 			    emp.setEmpLeaveCount((long)leaves.size());
 				emp.setEmpLeaveDates(leaves);
 
-				emp.setWeekoffDate(weekOffMap.getOrDefault(ishineId, new ArrayList<>()));
+				emp.setWeekoffDate(filterByWindow.apply(weekOffMap.get(emp.getIshineEmpId())));
 
-				emp.setWorkingOnANonWorkingDay(workingOnANonWorkingMap.getOrDefault(ishineId, new ArrayList<>()));
+				emp.setWorkingOnANonWorkingDay(filterByWindow.apply(workingOnANonWorkingMap.get(emp.getIshineEmpId())));
 
-				emp.setClientHoliday(clientHolidayMap.getOrDefault(ishineId, new ArrayList<>()));
+				emp.setClientHoliday(filterByWindow.apply(clientHolidayMap.get(emp.getIshineEmpId())));
 
-				emp.setCompoffleave(compOffMap.getOrDefault(ishineId, new ArrayList<>()));
+				emp.setCompoffleave(filterByWindow.apply(compOffMap.get(emp.getIshineEmpId())));
 
 				// Flag: was the employee on leave on the day they were deboarded?
 				// Condition: endDate is non-null (deboarded), endDate falls in leave dates, and leave count > 1
 				LocalDate deboarDate = emp.getEmpEndDate();
 				boolean onLeaveWhenDeboarded = deboarDate != null
-            	&& !leaves.isEmpty()
-            	&& (
-                (leaves.contains(deboarDate) && leaves.size() > 1)
-                || leaves.stream().max(Comparator.naturalOrder()).get().isAfter(deboarDate)
-            	);
+				        && leaves.contains(deboarDate)
+				        && leaves.size() > 1;
 				emp.setIsEmployeeOnLeaveWhenDeboarded(onLeaveWhenDeboarded);
-
-				
 
 			}
 

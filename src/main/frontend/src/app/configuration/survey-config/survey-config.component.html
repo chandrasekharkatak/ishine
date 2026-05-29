@@ -273,7 +273,7 @@
                         <td  *ngIf="(isFromTraining && !userMapping.quiz_config) || (!isFromTraining && !userMapping.employee360_view_survey_config)">{{(survey.isActive == 'true')? 'Active' : (survey.isActive == 'false')? 'In-Active' : 'Completed'}}</td>
                         <td  *ngIf="userMapping.employee360_view_survey_config" id="clickablefor360" [navigateToEmployee360]="survey.emp360CreatedBy" style="cursor: pointer;" title="Click to view Employee 360">{{survey.createdByName}}</td>
                         <td  *ngIf="isFromTraining && userMapping.quiz_config" style="cursor: pointer;">{{survey.createdByName}}</td>
-                        <td>{{convertWithMoment(survey.createdOn)}}</td>
+                        <td>{{convertWithMoment(survey.createdOn) | date:'dd-MM-yyyy hh:mm a'}}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-primary" type="submit" (click)="onSurveyPreview(survey, preview_template)"><em>Preview</em></button>
 

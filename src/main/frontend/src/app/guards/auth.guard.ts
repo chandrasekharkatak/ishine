@@ -69,8 +69,8 @@ export class AuthGuard  {
           // Hard lock: deadline crossed (regardless of lock enabled) - user is frozen, cannot navigate anywhere except training page
           if (currentUser.trainingLockStatus.isLocked == true || currentUser.trainingLockStatus.isHardLock === true) {
             if (!isTrainingRoute) {
-              // Block navigation to any other page - redirect to training
-              this.router.navigate(['/training']);
+              // Block navigation to any other page - redirect to training with mandatory tab preselected
+              this.router.navigate(['/training'], { queryParams: { status: 'mandatory' } });
               return false;
             }
             // Allow navigation to training page

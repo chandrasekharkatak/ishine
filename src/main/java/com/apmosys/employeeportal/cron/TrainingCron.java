@@ -34,7 +34,6 @@ public class TrainingCron {
 
 	@Scheduled(cron = "${trainingReminder.time}")
 	public void sendTrainingReminders() {
-
 		
 		try {
 

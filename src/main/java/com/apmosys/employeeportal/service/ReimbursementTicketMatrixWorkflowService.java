@@ -253,6 +253,7 @@ public class ReimbursementTicketMatrixWorkflowService {
 		}
 		int currentOrder = ticket.getCurrentLevelOrder() != null ? ticket.getCurrentLevelOrder() : 1;
 		String stage = ticket.getWorkflowStage();
+		boolean heldForCycle = ReimbursementTicket.STAGE_HELD_FOR_CYCLE.equals(stage);
 		boolean atFinance = ReimbursementTicket.STAGE_PENDING_FINANCE.equals(stage)
 				|| ReimbursementTicket.STAGE_PAID.equals(stage);
 		boolean closedRejected = ReimbursementTicket.STAGE_REJECTED.equals(stage);
@@ -261,9 +262,11 @@ public class ReimbursementTicketMatrixWorkflowService {
 		for (ReimbursementApprovalMatrixLevelDTO lvl : matrix.getLevels()) {
 			int order = lvl.getOrder() != null ? lvl.getOrder() : out.size() + 1;
 			String label = matrixService.formatLevelLabel(lvl);
-			String name = plannedApproverDisplay(lvl, ticket);
+			String name = resolveApproverDisplayName(lvl, ticket, atLevelStage && order == currentOrder);
 			String status;
-			if (closedRejected) {
+			if (heldForCycle) {
+				status = order == 1 ? "Queued" : "—";
+			} else if (closedRejected) {
 				status = order < currentOrder || (!atLevelStage && order <= currentOrder) ? levelAggregateStatus(ticket, order)
 						: (order == currentOrder && atLevelStage ? levelAggregateStatus(ticket, order) : "—");
 			} else if (order < currentOrder || (atFinance && order <= matrix.getLevels().size())) {
@@ -279,7 +282,7 @@ public class ReimbursementTicketMatrixWorkflowService {
 			out.add(approvalLevelRow(order, label, name, status, false));
 		}
 		String finName = lookupEmployeeNameByEmail(workflowFinanceMail);
-		String finStatus = financeAggregateStatus(ticket);
+		String finStatus = heldForCycle ? "—" : financeAggregateStatus(ticket);
 		out.add(approvalLevelRow(matrix.getLevels().size() + 1, "Finance", finName, finStatus, true));
 		return out;
 	}
@@ -439,6 +442,18 @@ public class ReimbursementTicketMatrixWorkflowService {
 
 	private String normRouting(String routing) {
 		return routing == null ? "" : routing.trim().toUpperCase(Locale.ROOT);
+	}
+
+	/** Prefer the active assignee on the current level; otherwise matrix routing rules. */
+	public String resolveApproverDisplayName(ReimbursementApprovalMatrixLevelDTO lvl, ReimbursementTicket t,
+			boolean useCurrentAssignee) {
+		if (useCurrentAssignee && t.getCurrentAssigneeEmpId() != null) {
+			Employee assignee = employeeRepository.findByEmpId(t.getCurrentAssigneeEmpId().longValue());
+			if (assignee != null && StringUtils.hasText(assignee.getName())) {
+				return assignee.getName().trim();
+			}
+		}
+		return plannedApproverDisplay(lvl, t);
 	}
 
 	public String plannedApproverDisplay(ReimbursementApprovalMatrixLevelDTO lvl, ReimbursementTicket t) {

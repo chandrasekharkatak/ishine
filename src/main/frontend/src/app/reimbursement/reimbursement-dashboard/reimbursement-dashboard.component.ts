@@ -10,7 +10,6 @@ type DashTab =
   | 'overview'
   | 'lifecycle'
   | 'approval'
-  | 'rejection'
   | 'employee'
   | 'alerts'
   | 'clientTrend'
@@ -41,6 +40,7 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
   loadError: string | null = null;
   travelDeskLoadError: string | null = null;
   loading = false;
+  exportingExcel = false;
   lastLoadedAt: Date | null = null;
 
   activeTab: DashTab = 'overview';
@@ -161,9 +161,9 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   get projectFilterPlaceholder(): string {
     if (this.filter.clientId !== '' && this.filter.clientId != null) {
-      return 'Search and select project for client';
+      return 'Select project for client';
     }
-    return 'Search and select project';
+    return 'Select project';
   }
 
   onMasterFilterChange(): void {
@@ -743,6 +743,46 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     return (this.reimbursementDashboard?.alerts || []).length;
   }
 
+  exportDashboardExcel(): void {
+    try {
+      const body = this.buildFilterPayload();
+      this.exportingExcel = true;
+      this.reimbursementService.fetchReimbursementDashboardExcel(body).pipe(first()).subscribe({
+        next: (blob: Blob) => {
+          const stamp = new Date();
+          const pad = (n: number) => String(n).padStart(2, '0');
+          const fname =
+            'Reimbursement_Dashboard_' +
+            stamp.getFullYear() +
+            '-' +
+            pad(stamp.getMonth() + 1) +
+            '-' +
+            pad(stamp.getDate()) +
+            '_' +
+            pad(stamp.getHours()) +
+            pad(stamp.getMinutes()) +
+            '.xlsx';
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = fname;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          this.exportingExcel = false;
+        },
+        error: (e) => {
+          this.loadError = e?.message || 'Unable to export Excel.';
+          this.exportingExcel = false;
+        }
+      });
+    } catch (e: any) {
+      this.loadError = e?.message || 'Unable to export Excel.';
+      this.exportingExcel = false;
+    }
+  }
+
   async loadDashboard(): Promise<void> {
     this.loadError = null;
     this.travelDeskLoadError = null;
@@ -886,9 +926,6 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
     }
     if (tab === 'overview') {
       this.renderOverviewCharts(d);
-    } else if (tab === 'rejection') {
-      this.renderRejectionTypeChart(d);
-      this.renderRejectionChannelChart(d);
     } else if (tab === 'clientTrend') {
       this.renderInsightTabCharts(d, 'client');
     } else if (tab === 'projectTrend') {
@@ -939,12 +976,143 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
   private renderApprovalCharts(d: any): void {
     const legacyColors = ['#1B3461', '#0ea5e9', '#64748b', '#f59e0b', '#16a34a'];
     const matrixColors = ['#1B3461', '#0ea5e9', '#f59e0b', '#16a34a'];
+    this.renderWorkflowStageDonut(d);
+    this.renderClaimStatusLineChart(d);
+    this.renderRejectionTypeChart(d);
+    this.renderRejectionChannelChart(d);
     if (d.approvalFunnel) {
       this.renderFunnelPieChart('rmbDashApprovalFunnelPie', d.approvalFunnel, this.funnelSteps, legacyColors);
     }
     if (d.approvalFunnelMatrix && Number(d.matrixTicketCount || 0) > 0) {
       this.renderFunnelPieChart('rmbDashMatrixFunnelPie', d.approvalFunnelMatrix, this.matrixFunnelSteps, matrixColors);
     }
+  }
+
+  private renderWorkflowStageDonut(d: any): void {
+    const el = document.getElementById('rmbDashChartWorkflowStage') as HTMLElement | null;
+    const raw = d.workflowStageTicketCounts || {};
+    if (!el || !Object.keys(raw).length) {
+      return;
+    }
+    const labelMap: Record<string, string> = {
+      PENDING_HOD: 'Pending HOD',
+      PENDING_LEVEL: 'Pending approval level',
+      PENDING_HR: 'Pending HR',
+      PENDING_FINANCE: 'Pending Finance',
+      PAID: 'Paid / closed',
+      REJECTED: 'Rejected',
+      HELD_FOR_CYCLE: 'Held for cycle'
+    };
+    const pairs = Object.keys(raw)
+      .map((k) => ({ key: k, name: labelMap[k] || k, y: Number(raw[k] || 0) }))
+      .filter((p) => p.y > 0);
+    if (!pairs.length) {
+      return;
+    }
+    const colors: Record<string, string> = {
+      PENDING_HOD: '#f59e0b',
+      PENDING_LEVEL: '#7c3aed',
+      PENDING_HR: '#2563eb',
+      PENDING_FINANCE: '#0ea5e9',
+      PAID: '#16a34a',
+      REJECTED: '#dc2626',
+      HELD_FOR_CYCLE: '#64748b'
+    };
+    this.charts.push(
+      Highcharts.chart(el, {
+        chart: { type: 'pie', backgroundColor: 'transparent', height: 240 },
+        title: { text: undefined },
+        tooltip: { pointFormat: '<b>{point.y}</b> ticket(s) — {point.percentage:.1f}%' },
+        plotOptions: {
+          pie: {
+            innerSize: '62%',
+            borderWidth: 0,
+            dataLabels: { enabled: false },
+            showInLegend: true
+          }
+        },
+        series: [
+          {
+            type: 'pie',
+            name: 'Tickets',
+            data: pairs.map((p) => ({
+              name: p.name,
+              y: p.y,
+              color: colors[p.key] || undefined
+            }))
+          }
+        ],
+        credits: { enabled: false },
+        legend: { itemStyle: { fontSize: '10px' } }
+      })
+    );
+  }
+
+  private renderClaimStatusLineChart(d: any): void {
+    const el = document.getElementById('rmbDashChartClaimStatusLines') as HTMLElement | null;
+    const raw = d.claimStatusLineCounts || {};
+    if (!el || !Object.keys(raw).length) {
+      return;
+    }
+    const order = [
+      'PENDING_HOD',
+      'PENDING_APPROVAL',
+      'PENDING_HR',
+      'PENDING_FINANCE',
+      'PAID',
+      'HOD_REJECTED',
+      'LEVEL_REJECTED',
+      'HR_REJECTED',
+      'FINANCE_REJECTED',
+      'HELD_FOR_CYCLE'
+    ];
+    const labelMap: Record<string, string> = {
+      PENDING_HOD: 'Pending HOD',
+      PENDING_APPROVAL: 'Pending approval level',
+      PENDING_HR: 'Pending HR',
+      PENDING_FINANCE: 'Pending Finance',
+      PAID: 'Paid',
+      HOD_REJECTED: 'Rejected by HOD',
+      LEVEL_REJECTED: 'Rejected by approval level',
+      HR_REJECTED: 'Rejected by HR',
+      FINANCE_REJECTED: 'Rejected by Finance',
+      HELD_FOR_CYCLE: 'Held for cycle'
+    };
+    const keys = order.filter((k) => Number(raw[k] || 0) > 0);
+    const pairs = keys.map((k) => ({ k, name: labelMap[k] || k, y: Number(raw[k] || 0) }));
+    if (!pairs.length) {
+      return;
+    }
+    const isRejected = (k: string) => k.includes('REJECTED');
+    this.charts.push(
+      Highcharts.chart(el, {
+        chart: { type: 'bar', backgroundColor: 'transparent', height: 260 },
+        title: { text: undefined },
+        xAxis: { type: 'category', categories: pairs.map((p) => p.name), labels: { style: { fontSize: '10px' } } },
+        yAxis: { min: 0, title: { text: undefined }, allowDecimals: false },
+        tooltip: { pointFormat: '<b>{point.y}</b> claim line(s)' },
+        plotOptions: {
+          bar: {
+            borderRadius: 3,
+            pointPadding: 0.04,
+            groupPadding: 0.06
+          }
+        },
+        series: [
+          {
+            type: 'bar',
+            name: 'Claim lines',
+            data: pairs.map((p) => ({
+              name: p.name,
+              y: p.y,
+              color: isRejected(p.k) ? '#dc2626' : '#1B3461'
+            }))
+          }
+        ],
+        credits: { enabled: false },
+        legend: { enabled: false }
+      })
+    );
   }
 
   private renderFunnelPieChart(
@@ -1003,6 +1171,50 @@ export class ReimbursementDashboardComponent implements OnInit, OnDestroy {
 
   private renderOverviewCharts(d: any): void {
     const el = (id: string): HTMLElement | null => document.getElementById(id) as HTMLElement | null;
+
+    const claimModeEl = el('rmbDashChartClaimMode');
+    const claimModes = d.claimsByClaimMode || {};
+    const claimModeColors: Record<string, string> = {
+      'Recurring Expense': '#0ea5e9',
+      'POC - Project': '#1B3461',
+      'Not specified': '#94a3b8'
+    };
+    if (claimModeEl && Object.keys(claimModes).length) {
+      this.charts.push(
+        Highcharts.chart(claimModeEl, {
+          chart: { type: 'pie', backgroundColor: 'transparent', height: 220 },
+          title: { text: undefined },
+          tooltip: {
+            pointFormat: '<b>{point.y}</b> claim(s) — {point.percentage:.1f}%'
+          },
+          plotOptions: {
+            pie: {
+              innerSize: '55%',
+              dataLabels: {
+                enabled: true,
+                distance: 10,
+                format: '{point.name}<br><b>{point.y}</b>',
+                style: { fontSize: '10px', fontWeight: 'normal', textOutline: 'none' }
+              },
+              borderWidth: 0
+            }
+          },
+          series: [
+            {
+              type: 'pie',
+              name: 'Claims',
+              data: Object.keys(claimModes).map((name) => ({
+                name,
+                y: Number(claimModes[name] || 0),
+                color: claimModeColors[name] || undefined
+              }))
+            }
+          ],
+          credits: { enabled: false },
+          legend: { itemStyle: { fontSize: '10px' } }
+        })
+      );
+    }
 
     const statusEl = el('rmbDashChartStatus');
     const breakdown = d.ticketStatusBreakdown || {};

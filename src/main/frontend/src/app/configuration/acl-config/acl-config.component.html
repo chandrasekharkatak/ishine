@@ -1,0 +1,352 @@
+<div class="row d-flex">
+
+  <div class="col-md-12 table-header">
+    <h1 class="table-header-title">Access Control List</h1>
+  </div>
+
+  <div class="col-md-3 col-sm-6 custom-control custom-switch ml-4">
+    <input type="checkbox" class="custom-control-input" id="access-control-switch" (change)="toggleAccessList($event)">
+    <label class="custom-control-label" for="access-control-switch">View Default Role Access</label>
+  </div>
+
+  <div class="col-md-12" *ngIf="isAccessFeatureMapping">
+    <div class="col-md-12 ml-auto d-flex flex-column flex-md-row  align-items-center">
+      <div class="col-md-12 ml-auto mt-2">
+        <div class="d-flex flex-wrap align-items-center">
+          <label *ngFor="let p of personas" class="d-inline-flex align-items-center mr-3 mb-2 persona-item">
+            <input type="radio" name="persona" class="mr-1" [value]="p.value"
+              (click)="selectPersona($event)" />
+            <span>{{ p.label }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- <div class="col-md-2 ml-auto mb-2">
+        <label class="info-label">Show Column</label>
+        <select class="form-control" aria-hidden="true" [(ngModel)]="selectedColumnToShow"
+          (change)="showColumn(selectedColumnToShow)">
+          <option selected value="select">Select</option>
+          <option *ngFor="let show of showColumnList" [value]="show.header">{{show.header}}</option>
+        </select>
+      </div> -->
+      <div class="export-button">
+        <button type="button" class="btn btn-sm btn-outline-primary ml-auto mb-2 excel-button"
+          (click)="exportToExcel()">
+          <em class="fa fa-file-arrow-down fa-2x"></em>
+        </button>
+      </div>
+
+    </div>
+      <div class="acl-filter-panel" *ngIf="employeeRole">
+      <div class="acl-filter-panel__title">
+        Refine Access View
+        <span class="acl-filter-panel__subtitle">Filter by department and designation</span>
+      </div>
+      <div class="acl-filter-row">
+        <!-- Department Dropdown -->
+        <div class="acl-filter-item">
+          <label class="dropdown">Select Department(s)
+            <span class="acl-filter-count" *ngIf="selectedDepartments?.length">{{selectedDepartments.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #departmentSelectBox class="form-control department-select"
+              placeholder="Select Department(s)" [(ngModel)]="selectedDepartments"
+              (dropdownClosed)="onAclAdvSearch(departmentSelectBox,'departmentSearch')"
+              [options]="filteredDepartments" displayKey="header" valueKey="header" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Department Filter"
+              (click)="applyAclDropdownFilter(departmentSelectBox,'departmentSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDepartments?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Department Selection"
+              (click)="clearAclDropdownFilter('Dept')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Designation Dropdown -->
+        <div *ngIf="designationDropdown" class="acl-filter-item">
+          <label class="dropdown">Select Designation(s)
+            <span class="acl-filter-count" *ngIf="selectedDesignations?.length">{{selectedDesignations.length}} selected</span>
+          </label>
+          <div class="acl-filter-input-group">
+            <app-my-select #designationSelect class="form-control department-select"
+              placeholder="Select Designation(s)" [(ngModel)]="selectedDesignations"
+              (dropdownClosed)="onAclAdvSearch(designationSelect,'designationSearch')"
+              [options]="filteredDesignationsForDropdown" displayKey="desig" valueKey="desig" [multiple]="true" [wrapOptions]="true">
+            </app-my-select>
+            <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Designation Filter"
+              (click)="applyAclDropdownFilter(designationSelect,'designationSearch')">
+              <i class="fa fa-check"></i>
+            </button>
+            <button *ngIf="selectedDesignations?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Designation Selection"
+              (click)="clearAclDropdownFilter('Desig')">
+              <i class="fa fa-eraser"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <div class="col-md-12 mt-4">
+      <div class="acl-action-bar" [hidden]="paginateData.length == 0">
+        <button type="button" class="acl-toolbar-icon-btn" [title]="isSearchEnabled ? 'Hide Sub-Feature Filter' : 'Show Sub-Feature Filter'" (click)="toggleSearch()">
+          <i class="fa" [ngClass]="isSearchEnabled ? 'fa-xmark' : 'fa-search'"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-primary custom-hover-btn acl-update-btn"
+          [disabled]="disableUpdateButton" (click)="confirmAndUpdateACL(acl_update_confirm_template)">
+          Update
+        </button>
+      </div>
+
+
+      <div class="acl-select-all-hint" *ngIf="paginateData.length > 0">
+        <i class="fa fa-circle-info mr-1"></i> The first checkbox in each row selects all roles for that sub-feature. You can also drag & drop columns and rows to rearrange the ACL view.
+      </div>
+      <div class="acl-table-container">
+      <div class="acl-table-container overflow-auto acl-table-wrap" bassHorizontalScroll>
+        <table class="table table-bordered table-hover table-sticky acl-table" id="aclReportInfo">
+          <thead class="acl-header" id="aclReportInfoTHead">
+            <tr id="aclReportInfoTHeadTr" cdkDropList cdkDropListOrientation="horizontal"
+              [cdkDropListData]="finalColumns" (cdkDragReleased)="release = true"
+              (cdkDropListDropped)="dropCol($event)">
+              <ng-container *ngFor="let column of finalColumns; let i = index">
+                <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true"
+                  [attr.colspan]="column.department ? column.department.length: null">
+                  <ng-container *ngIf="i == 0">
+                    {{ column.header }}
+                  </ng-container>
+                  <ng-container *ngIf="i != 0">
+                    {{ column.header }}<button class="btn" (click)="hideColumn(column.header)"><em
+                        class="fa-regular fa-eye"></em></button>
+                  </ng-container>
+                  <div *cdkDragPreview>
+                    <div [style.width]="pos?.width" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x">
+                      <thead class="acl-header">
+                        <tr>
+                          <th>
+                            {{ column.header }}
+                          </th>
+                        </tr>
+                      </thead>
+                    </div>
+                  </div>
+                  <div class="placeholder" *cdkDragPlaceholder></div>
+                </th>
+              </ng-container>
+            </tr>
+            <tr cdkDropList cdkDropListOrientation="horizontal" [cdkDropListData]="finalColumns"
+              (cdkDragReleased)="release = true" (cdkDropListDropped)="dropInsideCol($event)">
+              <ng-container *ngFor="let column of finalColumns, let i = index">
+                <ng-container *ngIf="!column.department">
+                  <th></th>
+                </ng-container>
+
+                <ng-container *ngFor="let subColumn of column.department">
+                  <th cdkDrag (mousedown)="mouseDown($event)" cdkDragLockAxis="x" (cdkDragReleased)="release = true">
+                    {{subColumn.header}}
+                  </th>
+                </ng-container>
+              </ng-container>
+            </tr>
+          <!-- Advance Search for Sub-Feature -->
+            <tr *ngIf="isSearchEnabled">
+              <ng-container *ngFor="let column of finalColumns; let parentIndex = index">            
+                <ng-container *ngIf="column.department?.length > 0">
+                  <ng-container *ngFor="let sub of column.department; let subIndex = index">
+                    <th *ngIf="parentIndex === 0 && subIndex === 0;else blankInput">
+                    <div class="acl-filter-input-group acl-subfeature-filter-group">
+                    <app-my-select #subFeatureSelect class="form-control department-select acl-subfeature-select" placeholder="Select Sub-Feature" [(ngModel)]="selectedSubFeature"
+                            (dropdownClosed)="onAclAdvSearch(subFeatureSelect,'subFeatureSearch')"
+                            [options]="subFeatureListForDropdown" displayKey="subFeature"  [multiple]="true" [showSelectAll]="false" [wrapOptions]="true">
+                    </app-my-select>
+                    <button type="button" class="acl-filter-icon-btn acl-filter-icon-btn--apply" title="Apply Sub-Feature Filter"
+                      (click)="applyAclDropdownFilter(subFeatureSelect,'subFeatureSearch')">
+                      <i class="fa fa-check"></i>
+                    </button>
+                    <button *ngIf="selectedSubFeature?.length" type="button" class="acl-filter-icon-btn acl-filter-icon-btn--clear" title="Clear Sub-Feature Selection"
+                      (click)="clearAclDropdownFilter('Sub')">
+                      <i class="fa fa-eraser"></i>
+                    </button>
+                    </div>
+                    </th>
+                  <ng-template #blankInput>
+                    <th></th>
+                  </ng-template>
+                  </ng-container>
+                </ng-container>
+              </ng-container>
+            </tr>
+          </thead>
+          <tbody cdkDropList [cdkDropListData]="paginateData" (cdkDropListDropped)="dropRow($event)">
+            <tr #tr cdkDrag cdkDragLockAxis="y" (mousedown)="mouseDown($event, tr)"
+              (cdkDragReleased)="onDragRelease($event)" *ngFor="let element of paginateData">
+
+              <ng-container *ngFor="let cell of finalColumns; let i = index">
+                <ng-container *ngIf="i == 0">
+                  <td  *ngFor="let x of cell.department">
+                   <label>
+                      <input type="checkbox" class="small-checkbox" [(ngModel)]="element.selectAll"
+                                    (change)="selectAllACLSubFeature(element)" />
+                          <span class="primary"></span>
+                        </label>  
+                      {{ element[x.field] }}  
+                      </td>
+                </ng-container>
+                <ng-container *ngIf="i != 0">
+                  <td *ngFor="let x of cell.department">
+                    <label class="cell-checkbox">
+                      <input type="checkbox" [(ngModel)]="element[x.field]"
+                        (change)="selectCellCheckbox(x.field,element[x.field], element.subfeatureId)" />
+                      <span class="primary"></span>
+                    </label>
+                  </td>
+                </ng-container>
+              </ng-container>
+
+              <div *cdkDragPreview class="preview" [style.margin-top]="pos?.y" [style.margin-left]="pos?.x"
+                [style.width]="pos?.width">
+                <table>
+                  <tr>
+                    <td *ngFor="let cell of columns">{{ element[cell.field] }}</td>
+                  </tr>
+                </table>
+              </div>
+              <div class="preview placeholder" *cdkDragPlaceholder></div>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-12" *ngIf="isDefaultFeatureMapping">
+
+    <div class="row">
+      <div class="col-md-12">
+      <div class="d-flex align-items-center justify-content-between mt-2"> 
+        <div class="selector-toggle" (click)="toggleSearch()">
+          <a href="javascript:void(0)" class="text-decoration-none">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+      
+        <div [hidden]="defaultMappingListFilter.length == 0">
+          <button type="button" class="btn btn-sm btn-outline-primary me-2 mb-2"
+                  (click)="updateDefaultFeatureMapping(alert_message)"> Update
+          </button>
+        </div>      
+      </div>
+
+        <div class="table-container" bassHorizontalScroll  style="max-height: 65vh;">
+          <table class="table table-bordered" matSort (matSortChange)="sortData($event)" id="defaultMappInfo">
+            <thead class="thead-light acl-header" id="defaultMappInfoTHead">
+              <tr id="defaultMappInfoTHeadTr">
+                <th scope="col" class="info-label wide-col" mat-sort-header="tabName|string">Tab Name</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="featureName|string">Feature</th>
+                <th scope="col" class="info-label wide-col" mat-sort-header="subFeatureName|string">Sub Feature</th>
+                <th scope="col" class="info-label ">Employee</th>
+                <th scope="col" class="info-label ">Team Lead</th>
+                <th scope="col" class="info-label ">Manager</th>
+                <th scope="col" class="info-label ">RMG</th>
+                <th scope="col" class="info-label ">HoD</th>
+                <th scope="col" class="info-label ">Super Admin</th>
+              </tr>
+          <ng-container *ngIf="isSearchEnabled ">
+            <ng-container *ngFor="let col of aclAdvColumns">
+              <td >
+
+              <ng-container *ngIf="col.column !== 'blank'; else blankInput">
+                <app-my-select #selectBox class="form-control department-select" placeholder="Select {{ col.column }}" 
+                      (dropdownClosed)="onAclAdvSearch(selectBox)" valueKey="item" [(ngModel)]="col.value"
+                      [options]="filteredDistinctValues[col.column]" displayKey="item"  [multiple]="true" [wrapOptions]="true">
+                </app-my-select>    
+                </ng-container> 
+                <ng-template #blankInput>
+                </ng-template>
+              </td>
+            </ng-container>
+            </ng-container> 
+            
+
+            </thead>
+            <tbody>
+              <tr
+                *ngIf="defaultMappingListFilter.length == 0 || (defaultMappingListFilter | colFilter:filters:false).length == 0">
+                <th colspan="16" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let map of defaultMappingListFilter| colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection], let i = index">
+                <td [attr.rowspan]="map.tabSpan" *ngIf="map.tabSpan">{{map.tabName}}</td>
+                <td [attr.rowspan]="map.featureSpan" *ngIf="map.featureSpan">{{map.featureName}}</td>
+                <td>{{map.subFeatureName}}</td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Employee"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Employee, 'Employee', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.TeamLead"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.TeamLead, 'TeamLead', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.Manager"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.Manager, 'Manager', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.RMG"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.RMG, 'RMG', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.HOD"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.HOD, 'HOD', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+                <td>
+                  <label class="cell-checkbox">
+                    <input type="checkbox" [(ngModel)]="map.permissionList.SuperAdmin"
+                      (change)="selectDefaultMapCellCheckbox(map.subFeatureId, map.permissionList.SuperAdmin, 'SuperAdmin', map.subFeatureName)" />
+                    <span class="primary"></span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<ng-template #alert_message>
+  <div class="modal-body text-center">
+    <p>{{alertMessage}}</p>
+    <button type="button" class="btn btn-primary" (click)="cancelRequest()">OK</button>
+  </div>
+</ng-template>
+
+<ng-template #acl_update_confirm_template>
+  <div class="modal-body text-center">
+    <p>Are you sure you want to update Access Control List permissions?</p>
+    <button type="button" class="btn btn-success mr-2 mt-2" (click)="proceedAclUpdate(alert_message)">Yes, Proceed</button>
+    <button type="button" class="btn btn-danger mt-2" (click)="cancelRequest()">No, Cancel</button>
+  </div>
+</ng-template>

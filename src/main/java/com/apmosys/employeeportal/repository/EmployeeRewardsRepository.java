@@ -29,7 +29,6 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 //	 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 
 	 @Query(nativeQuery = true,value = "SELECT \n"
-	 		+ "    er.reward_id,\n"
 	 		+ "    er.is_active,\n"
 	 		+ "    er.id,\n"
 	 		+ "    er.rewarded_to,\n"
@@ -49,6 +48,15 @@ public interface EmployeeRewardsRepository extends JpaRepository <EmployeeReward
 	 		+ "WHERE \n"
 	 		+ "    er.is_active != 0\n"
 	 		+ "    AND er.reward_category_id = :rewardCategoryid\n"
+	 		 + "GROUP BY \n"
+	         + "    er.rewarded_to,\n"
+	         + "    e.name,\n"
+	         + "    er.reward_type,\n"
+	         + "    er.reward_type_name,\n"
+	         + "    d.dept_id,\n"
+	         + "    d.name,\n"
+	         + "    er.ofmonthyear,\n"
+	         + "    rc.category_name"
 	 		+ "")
 		 List<Object[]> fetchEmployeesForHomepage(Long rewardCategoryid);
 	 

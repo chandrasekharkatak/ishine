@@ -11,7 +11,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.apmosys.employeeportal.dto.DateRange;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmpRoleKey;
 import com.apmosys.employeeportal.dto.IshineToPoEmpDetailsSharingDTO;
 import com.apmosys.employeeportal.dto.IshineToPoEmployeeDTO;
 import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
@@ -81,7 +83,7 @@ public void fetchEmployeesWithTimesheets(
         List<Long> empIds,
         LocalDate startDate, LocalDate endDate,
         Long poId, Integer projectId,
-        Map<Long, List<LocalDate>> datesTimesheetFilled, List<IshineToPoEmployeeDTO> employees) {
+        Map<EmpRoleKey, List<LocalDate>> datesTimesheetFilled, List<IshineToPoEmployeeDTO> employees) {
 
     // 1. Fetch all employees in one call
     List<IshineToPoEmployeeDTO> emps = projectPoDetailsRepository.findEmployeesWithTimesheetCount(empIds, startDate, endDate, poId);
@@ -90,15 +92,17 @@ public void fetchEmployeesWithTimesheets(
     }
 
     // 2. Fetch all working dates for all employees in one call
-    List<Object[]> results = employeeTimesheetsNewRepository.findTimesheetDatesByEmpIdsAndDateBetween(empIds, startDate, endDate, projectId);
+    List<Object[]> results = employeeTimesheetsNewRepository.findTimesheetDatesByEmpIdsAndDateBetween(empIds, startDate, endDate, projectId, poId);
 
-    // 3. Group dates by Employee ID into the map
+    // 3. Group dates by Employee ID + Role ID into the map
     if (results != null) {
         for (Object[] row : results) {
             Long empId = ((Number) row[0]).longValue();
             LocalDate date = ((java.sql.Date) row[1]).toLocalDate();
+            Long roleId = ((Number) row[2]).longValue();
             
-            datesTimesheetFilled.computeIfAbsent(empId, k -> new ArrayList<>()).add(date);
+            EmpRoleKey key = new EmpRoleKey(empId, roleId);
+            datesTimesheetFilled.computeIfAbsent(key, k -> new ArrayList<>()).add(date);
         }
     }
 
@@ -106,17 +110,19 @@ public void fetchEmployeesWithTimesheets(
 
 }
 
-public void getTimesheetMinMaxDateMap(List<Long> empIds, LocalDate startDate, LocalDate endDate, Integer projectId, 
-                                     Map<Long, LocalDate> minDateMap, Map<Long, LocalDate> maxDateMap) {
-    List<Object[]> results = employeeTimesheetsNewRepository.findMaxAndMinDateOfTimesheet(empIds, startDate, endDate, projectId);
+public void getTimesheetMinMaxDateMap(List<Long> empIds, LocalDate startDate, LocalDate endDate, Integer projectId, Long poId, 
+                                     Map<EmpRoleKey, LocalDate> minDateMap, Map<EmpRoleKey, LocalDate> maxDateMap) {
+    List<Object[]> results = employeeTimesheetsNewRepository.findMaxAndMinDateOfTimesheet(empIds, startDate, endDate, projectId, poId);
     if (results != null) {
         for (Object[] row : results) {
             Long empId = ((Number) row[0]).longValue();
-            LocalDate maxDate = row[1] != null ? ((java.sql.Date) row[1]).toLocalDate() : null;
-            LocalDate minDate = row[2] != null ? ((java.sql.Date) row[2]).toLocalDate() : null;
+            Long roleId = ((Number) row[1]).longValue();
+            LocalDate maxDate = row[2] != null ? ((java.sql.Date) row[2]).toLocalDate() : null;
+            LocalDate minDate = row[3] != null ? ((java.sql.Date) row[3]).toLocalDate() : null;
 
-            if (minDate != null) minDateMap.put(empId, minDate);
-            if (maxDate != null) maxDateMap.put(empId, maxDate);
+            EmpRoleKey key = new EmpRoleKey(empId, roleId);
+            if (minDate != null) minDateMap.put(key, minDate);
+            if (maxDate != null) maxDateMap.put(key, maxDate);
         }
     }
 }
@@ -124,23 +130,27 @@ public void getTimesheetMinMaxDateMap(List<Long> empIds, LocalDate startDate, Lo
 public List<IshineToPoEmployeeDTO> mergeShadowTimesheets(
         List<IshineToPoEmployeeDTO> employees,
         List<Long> allMappedEmpIds,
-        Map<Long, List<LocalDate>> datesTimesheetFilled,
-        Long poId, LocalDate startDate, LocalDate endDate) {
+        Map<EmpRoleKey, List<LocalDate>> datesTimesheetFilled,
+        Long poId, LocalDate startDate, LocalDate endDate,
+        Map<EmpRoleKey, List<DateRange>> empRoleWindowMap) {
 
     List<Object[]> rawShadowRows = employeeTimesheetsNewRepository
             .findTimesheetShadowDetailsByPoAndEmpIds(poId, allMappedEmpIds, startDate, endDate);
 
     Map<Long, List<ShadowEntryDTO>> shadowMap = buildShadowMap(rawShadowRows);
 
-    Map<Long, IshineToPoEmployeeDTO> empMap = new HashMap<>();
+    Map<EmpRoleKey, IshineToPoEmployeeDTO> empMap = new HashMap<>();
     for (IshineToPoEmployeeDTO emp : employees) {
-        empMap.put(emp.getIshineEmpId(), emp);
+        empMap.put(new EmpRoleKey(emp.getIshineEmpId(), emp.getEtmRoleId()), emp);
     }
 
     for (Map.Entry<Long, List<ShadowEntryDTO>> shadowEntry : shadowMap.entrySet()) {
-
-        Long shadowEmpId             = shadowEntry.getKey();
-        IshineToPoEmployeeDTO shadowEmp = empMap.get(shadowEmpId);
+        // shadowEntry.getKey() is the shadow's empId, but shadow itself might have multiple roles.
+        // We only use the shadowEmp for minimal DTO copying, which might be slightly inaccurate if
+        // the shadow has multiple roles, but it's acceptable for minimal DTO creation.
+        IshineToPoEmployeeDTO shadowEmp = employees.stream()
+                .filter(e -> e.getIshineEmpId().equals(shadowEntry.getKey()))
+                .findFirst().orElse(null);
 
         Map<Long, List<ShadowEntryDTO>> groupedByMainEmp = shadowEntry.getValue().stream()
                 .collect(Collectors.groupingBy(ShadowEntryDTO::getShadowForEmpId));
@@ -148,7 +158,7 @@ public List<IshineToPoEmployeeDTO> mergeShadowTimesheets(
         for (Map.Entry<Long, List<ShadowEntryDTO>> mainEntry : groupedByMainEmp.entrySet()) {
             mergeShadowForMainEmployee(
                     mainEntry.getKey(), mainEntry.getValue(),
-                    shadowEmp, empMap, datesTimesheetFilled);
+                    shadowEmp, empMap, datesTimesheetFilled, empRoleWindowMap);
         }
     }
 
@@ -161,63 +171,66 @@ private void mergeShadowForMainEmployee(
         Long mainEmpId,
         List<ShadowEntryDTO> shadowEntries,
         IshineToPoEmployeeDTO shadowEmp,
-        Map<Long, IshineToPoEmployeeDTO> empMap,
-        Map<Long, List<LocalDate>> datesTimesheetFilled) {
+        Map<EmpRoleKey, IshineToPoEmployeeDTO> empMap,
+        Map<EmpRoleKey, List<LocalDate>> datesTimesheetFilled,
+        Map<EmpRoleKey, List<DateRange>> empRoleWindowMap) {
 
-    List<LocalDate> alreadyCredited = datesTimesheetFilled.get(mainEmpId);
+    for (ShadowEntryDTO shadowEntry : shadowEntries) {
+        LocalDate date = shadowEntry.getDate();
+        if (date == null) continue;
 
-    // Filter out dates the main employee has already been credited for
-    List<ShadowEntryDTO> newDays = (alreadyCredited != null && !alreadyCredited.isEmpty())
-            ? shadowEntries.stream()
-                .filter(f -> !alreadyCredited.contains(f.getDate()))
-                .collect(Collectors.toList())
-            : new ArrayList<>(shadowEntries);
+        EmpRoleKey matchingKey = findKeyForDate(mainEmpId, date, empRoleWindowMap);
+        if (matchingKey == null) continue; // Shadow date doesn't fall in any active role window for main emp
 
-    if (newDays.isEmpty()) return;
+        List<LocalDate> alreadyCredited = datesTimesheetFilled.get(matchingKey);
+        if (alreadyCredited != null && alreadyCredited.contains(date)) {
+            continue; // Main emp already has a timesheet credited for this date
+        }
 
-    List<LocalDate> newDates = newDays.stream()
-            .map(ShadowEntryDTO::getDate)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
+        IshineToPoEmployeeDTO mainEmp = empMap.get(matchingKey);
+        if (mainEmp == null) {
+            mainEmp = buildMinimalEmpDTO(mainEmpId, shadowEmp);
+            if (mainEmp == null) continue;
+            // Since this is a newly built minimal DTO, it doesn't have an etmRoleId yet.
+            // Assign the one we found.
+            mainEmp.setEtmRoleId(matchingKey.getRoleId());
+            empMap.put(matchingKey, mainEmp);
+            datesTimesheetFilled.put(matchingKey, new ArrayList<>());
+        }
 
-    LocalDate shadowMinDate = newDates.stream().min(LocalDate::compareTo).orElse(null);
-    LocalDate shadowMaxDate = newDates.stream().max(LocalDate::compareTo).orElse(null);
+        List<LocalDate> existingShadowDates = mainEmp.getShadowTimeSheetDate();
+        if (existingShadowDates == null) {
+            existingShadowDates = new ArrayList<>();
+            mainEmp.setShadowTimeSheetDate(existingShadowDates);
+        }
+        
+        if (!existingShadowDates.contains(date)) {
+            existingShadowDates.add(date);
+        }
 
-    IshineToPoEmployeeDTO mainEmp = empMap.get(mainEmpId);
+        if (mainEmp.getStartDate() == null || date.isBefore(mainEmp.getStartDate())) {
+            mainEmp.setStartDate(date);
+        }
+        if (mainEmp.getEndDate() == null || date.isAfter(mainEmp.getEndDate())) {
+            mainEmp.setEndDate(date);
+        }
 
-    if (mainEmp == null) {
-        mainEmp = buildMinimalEmpDTO(mainEmpId, shadowEmp);
-        if (mainEmp == null) return;
-        empMap.put(mainEmpId, mainEmp);
-        datesTimesheetFilled.put(mainEmpId, new ArrayList<>());
+        mainEmp.setMsg("Shadow's Timesheet Count Added with the Resource!!");
+        datesTimesheetFilled.computeIfAbsent(matchingKey, k -> new ArrayList<>()).add(date);
     }
+}
 
-    List<LocalDate> existingShadowDates = mainEmp.getShadowTimeSheetDate();
-    if (existingShadowDates == null) {
-        mainEmp.setShadowTimeSheetDate(new ArrayList<>(newDates));
-    } else {
-        // Another shadow already contributed dates — merge without duplicates
-        // (two shadows filling for same main emp on same day should still count once)
-        for (LocalDate d : newDates) {
-            if (!existingShadowDates.contains(d)) {
-                existingShadowDates.add(d);
+private EmpRoleKey findKeyForDate(Long empId, LocalDate date,
+        Map<EmpRoleKey, List<DateRange>> empRoleWindowMap) {
+    for (Map.Entry<EmpRoleKey, List<DateRange>> entry : empRoleWindowMap.entrySet()) {
+        if (!entry.getKey().getEmpId().equals(empId)) continue;
+        for (DateRange range : entry.getValue()) {
+            if (range.contains(date)) {
+                return entry.getKey();
             }
         }
     }
-
-
-    if (shadowMinDate != null &&
-            (mainEmp.getStartDate() == null || shadowMinDate.isBefore(mainEmp.getStartDate())))
-        mainEmp.setStartDate(shadowMinDate);
-
-    if (shadowMaxDate != null &&
-            (mainEmp.getEndDate() == null || shadowMaxDate.isAfter(mainEmp.getEndDate())))
-        mainEmp.setEndDate(shadowMaxDate);
-
-    mainEmp.setMsg("Shadow's Timesheet Count Added with the Resource!!");
-
-    // Update credited dates so the next shadow doesn't double-count
-    datesTimesheetFilled.computeIfAbsent(mainEmpId, k -> new ArrayList<>()).addAll(newDates);
+    return null;
 }
 
 public ServiceResponse buildFailResponse(String message) {
@@ -325,19 +338,7 @@ public void mappingDates(List<Object[]> results,Map<Long,List<LocalDate>>passedM
 }
 
 
-/**
- * Returns a map of empId -> maximum endDate (as LocalDateTime) for the given
- * employees under the specified PO.
- *
- * Key rule: if ANY entry for an employee has a NULL end date, the result for
- * that employee is NULL — because NULL means "currently active / no end",
- * which is the logical maximum.
- *
- * @param empIds  list of employee IDs to check
- * @param poId    the PO ID
- * @return map where value is null if the employee is still active, otherwise
- *         the latest non-null end date
- */
+
 public Map<Long, LocalDate> getMaxEndDatePerEmployee(
         List<Long> empIds, Long poId) {
 
@@ -356,18 +357,17 @@ public Map<Long, LocalDate> getMaxEndDatePerEmployee(
 
     for (Object[] row : rows) {
         Long empId = ((Number) row[0]).longValue();
-        // endDate in entity is LocalDateTime — convert to LocalDate
-        LocalDate endDate = row[1] != null
-                ? ((java.time.LocalDateTime) row[1]).toLocalDate()
+      
+        LocalDate endDate = row[2] != null
+                ? ((java.time.LocalDateTime) row[2]).toLocalDate()
                 : null;
-
-        // If we've already found a null for this employee, keep null (it's the max)
+        
+      
         if (result.containsKey(empId) && result.get(empId) == null) {
             continue;
         }
 
         if (endDate == null) {
-            // null beats any date — employee is still active
             result.put(empId, null);
         } else {
             result.merge(empId, endDate,
