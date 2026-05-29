@@ -322,7 +322,7 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 		+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
 		+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id "
 		+ " and etlm.location_mapping_id = ptsn.location_mapping_id "
-		+ " where etn.day_type_id = 5 "
+		+ " where etn.day_type_id = 5 and etn.status = 2 "
 		+ " and etn.date between :startDate and :endDate "
 		+ " and etn.emp_id in (:empIds) and ptsn.project_id = :projectId ", nativeQuery = true)
 	List<Object[]> findEmployeeLeavesByTimesheet(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,@Param("empIds") List<Long> empIds,@Param("projectId") Integer projectId);

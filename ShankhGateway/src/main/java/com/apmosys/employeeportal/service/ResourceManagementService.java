@@ -17524,7 +17524,10 @@ public class ResourceManagementService {
 					.findPoBasicDetails(ishineToPoRequest.getPoId(), ishineToPoRequest.getProjectId());
 
 			ServiceResponse projectError = ishineToPoHelperMethods.validateProject(dto);
-        	if (projectError != null) return projectError;
+        	if (projectError != null) {
+        		finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+        		return projectError;
+        	}
 
 			LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 			LocalDate endDate = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
@@ -17532,13 +17535,17 @@ public class ResourceManagementService {
 			Project project = projectRepository.findByProjectId(dto.getIshineProjectId());
 
 			ServiceResponse projectStateError = ishineToPoHelperMethods.validateProjectState(project);
-        	if (projectStateError != null) return projectStateError;
+        	if (projectStateError != null) {
+        		finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+        		return projectStateError;
+        	}
 
 
 			List<EmpMappingDTO> etm = employeeTeamMapRepository.getActiveEmpDetails(ishineToPoRequest.getPoId());
 
 			if (etm == null || etm.isEmpty()) {
-				 return ishineToPoHelperMethods.buildFailResponse("No active employee mapping found!!");
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
+				return ishineToPoHelperMethods.buildFailResponse("No active employee mapping found!!");
 			}	    
 			List<Long> allMappedEmpIds = etm.stream()
         		.map(EmpMappingDTO::getEmpId)
@@ -17585,6 +17592,7 @@ public class ResourceManagementService {
                 project.getProjectId(), datesTimesheetFilled,employees);
 
 			if (employees == null || employees.isEmpty()) {
+				finalHttpStatusCode = HttpStatus.NOT_FOUND.value();
 				response.setServiceMessage("No timesheet filled by employee for the given time range!!");
 				apiLogInfo.setApiResponse("No timesheet filled by employee for the given time range!!");
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
@@ -17673,7 +17681,7 @@ public class ResourceManagementService {
 				LocalDate deboarDate = emp.getEmpEndDate();
 				boolean onLeaveWhenDeboarded = deboarDate != null
 				        && leaves.contains(deboarDate)
-				        && leaves.size() > 1;
+				        && leaves.size() >= 1;
 				emp.setIsEmployeeOnLeaveWhenDeboarded(onLeaveWhenDeboarded);
 
 			}
@@ -17687,6 +17695,7 @@ public class ResourceManagementService {
 			dto.setEndDateOfBilling(ishineToPoRequest.getEndDateOfBilling());
 			dto.setEmployees(employees);
 
+			finalHttpStatusCode = HttpStatus.OK.value();
 			response.setServiceResponse(dto);
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			return response;
