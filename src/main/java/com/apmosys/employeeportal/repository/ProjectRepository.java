@@ -8926,6 +8926,9 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
 	List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
 
+	@Query("SELECT p.projectId, p.poProjectType FROM Project p WHERE p.projectId IN (:projectIds)")
+	List<Object[]> findProjectsWithClientPoProjectType(@Param("projectIds") List<Integer> projectIds);
+
 	@Query(value = "WITH rc AS (  \n"
 			+ "SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count  \n"
 			+ "FROM po_requirement_mapping prm2  \n"
