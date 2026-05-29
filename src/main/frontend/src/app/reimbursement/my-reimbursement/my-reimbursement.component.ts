@@ -519,7 +519,7 @@ vehicleTypeList:any[] = [];
       distance: this.reimbursementObj.distance,
       vehicleType: this.reimbursementObj.vehicleType,
       foodAllowanceType: this.reimbursementObj.foodAllowanceType,
-      dateOfFood: this.reimbursementObj.dateOfFood,
+      dateOfFood: null,
       fromDate: this.reimbursementObj.fromDate,
       toDate: this.reimbursementObj.toDate,
       purpose: this.reimbursementObj.purpose.trim(),
@@ -1425,6 +1425,16 @@ vehicleTypeList:any[] = [];
         this.openAlertMod(template, 'Each claim must have a project. Edit any claim missing a project and update it.');
         return;
       }
+      if (c.expenditureType === 'Food') {
+        if (!c.foodAllowanceType) {
+          this.openAlertMod(template, 'Each Food claim must include Food Allowance Type. Edit the incomplete claim.');
+          return;
+        }
+      }
+      if (!c.fromDate || !c.toDate) {
+        this.openAlertMod(template, 'Each claim must have From and To dates. Edit the incomplete claim.');
+        return;
+      }
       if (c.fromDate && c.toDate) {
         if (!this.dateInClaimWindow(c.fromDate) || !this.dateInClaimWindow(c.toDate)) {
           this.openAlertMod(
@@ -1471,7 +1481,7 @@ vehicleTypeList:any[] = [];
         distance: c.distance != null ? c.distance : null,
         vehicleType: c.vehicleType || null,
         foodAllowanceType: c.foodAllowanceType || null,
-        dateOfFood: c.dateOfFood ? new Date(this.toIsoStartOfDay(c.dateOfFood)!).toISOString() : null,
+        dateOfFood: null,
         fromDate: c.fromDate ? new Date(this.toIsoStartOfDay(c.fromDate)!).toISOString() : null,
         toDate: c.toDate ? new Date(this.toIsoEndOfDay(c.toDate)!).toISOString() : null,
         purpose: c.purpose,

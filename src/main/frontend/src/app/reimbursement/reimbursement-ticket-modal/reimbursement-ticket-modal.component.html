@@ -53,6 +53,8 @@
           <th>Project</th>
           <th>Client</th>
           <th class="text-right">Amount (₹)</th>
+          <th class="text-nowrap">From Date</th>
+          <th class="text-nowrap">To Date</th>
           <th>Claim status</th>
           <th>Purpose</th>
           <th>Business Justification</th>
@@ -74,6 +76,8 @@
           <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
           <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
           <td class="text-right">{{ c.amount | number:'1.0-2' }}</td>
+          <td class="small text-nowrap">{{ c.fromDate ? (c.fromDate | date:'dd MMM yyyy') : '—' }}</td>
+          <td class="small text-nowrap">{{ c.toDate ? (c.toDate | date:'dd MMM yyyy') : '—' }}</td>
           <td class="text-nowrap">
             <span class="rmbtm-status"
               [ngClass]="{
@@ -143,7 +147,7 @@
           </td>
         </tr>
         <tr *ngIf="!ticket?.claims?.length">
-          <td [attr.colspan]="isDecisionStage ? 9 : 8" class="text-center text-muted">No claims on this ticket.</td>
+          <td [attr.colspan]="isDecisionStage ? 14 : 13" class="text-center text-muted">No claims on this ticket.</td>
         </tr>
       </tbody>
     </table>
