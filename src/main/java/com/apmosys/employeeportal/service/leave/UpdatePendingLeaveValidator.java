@@ -71,7 +71,7 @@ public class UpdatePendingLeaveValidator {
         double difference = computeDifference(leaveDTO, leaveToBeUpdated);
         validateCompOffAndBalance(leaveDTO, leaveType, employeeLeavesMap, difference);
         leaveApplicationValidator.validateCasualLeaveRulesForUpdate(leaveDTO);
-        leaveApplicationValidator.validatePrivilegeLeaveRulesForUpdate(leaveDTO);
+        // leaveApplicationValidator.validatePrivilegeLeaveRulesForUpdate(leaveDTO);
         return new UpdatePendingLeaveValidationResult(
                 leaveToBeUpdated,
                 leaveType,
