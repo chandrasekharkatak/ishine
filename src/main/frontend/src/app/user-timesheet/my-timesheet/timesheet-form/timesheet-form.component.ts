@@ -1520,7 +1520,16 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.applyNonWorkingDisabledDates();
     } else {
       // Cache miss or invalid: load holidays (will increment requestId, invalidating any in-flight requests)
+      this.timesheetNewService.isEmployeeMappedToFCorTNMProject(this.currentUser.empId)
+  .subscribe((res:any) => {
+
+      if (res.serviceResponse === true) {
+          this.disabledDatesForPicker = [];
+          return;
+      }
+
       this.loadNonWorkingSelectableDates();
+  });
     }
   }
 

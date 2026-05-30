@@ -182,7 +182,13 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
 	
-	
+	@Query(value =
+		"SELECT project_id, po_project_type " +
+		"FROM projects " +
+		"WHERE project_id IN (:projectIds)",
+		nativeQuery = true)
+	List<Object[]> findProjectTypesByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
 	 @Query(value ="select projectId from Project where active = 'true' and poProjectId IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
