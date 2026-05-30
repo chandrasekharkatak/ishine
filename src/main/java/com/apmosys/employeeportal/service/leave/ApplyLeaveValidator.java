@@ -30,7 +30,7 @@ public class ApplyLeaveValidator {
         leaveApplicationValidator.validateCompOffBalanceIfApplicable(dto);
         leaveApplicationValidator.validateSufficientBalanceUnlessLwp(dto, leaveMapAndType.employeeLeavesMap);
         leaveApplicationValidator.validateCasualLeaveRules(dto);
-        leaveApplicationValidator.validatePrivilegeLeaveRules(dto);
+        // leaveApplicationValidator.validatePrivilegeLeaveRules(dto);
         DayTypeMasterNew leaveDayType = leaveApplicationValidator.requireLeaveDayTypeForTimesheet();
         return new ApplyLeaveValidationResult(dates, leaveMapAndType, leaveDayType, logPayload);
     }

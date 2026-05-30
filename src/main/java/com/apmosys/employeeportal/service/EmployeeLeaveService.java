@@ -243,8 +243,8 @@ public class EmployeeLeaveService {
         } catch (Exception e) {
             log.error("applyLeave failed", e);
             response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-            response.setServiceResponse("Something Went Wrong.");
-            response.setServiceError(e.getMessage());
+            response.setServiceResponse("Something went wrong, please try again later or contact Admin/manager.");
+            response.setServiceError("Something went wrong, please try again later or contact Admin/manager.");
 
             apiLogInfo.setApiError(e.getMessage());
             apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
@@ -1298,8 +1298,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		} catch (Exception e) {
 			log.error("Error updating pending leave", e);
 			response.setServiceStatus(ServiceResponse.SOMETHING_WENT_WRONG);
-			response.setServiceResponse("Something Went Wrong.");
-			response.setServiceError(e.getMessage());
+			response.setServiceResponse("Something went wrong, please try again later or contact Admin/manager.");
+			 response.setServiceError("Something went wrong, please try again later or contact Admin/manager.");
 			
 			apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 			apiLogInfo.setLogLevel("ERROR");
@@ -3079,7 +3079,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					dto.setCreatedOn(object[7] != null ? object[7].toString() : null);
 					dto.setReason(object[8] != null ? object[8].toString() : null);
 					dto.setLeaveTypeMasterId(object[9] != null ? Short.parseShort(object[9].toString()) : null);
-					dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+										dto.setEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
+
+					dto.setLeaveEmpId(object[10] != null ? Long.parseLong(object[10].toString()) : null);
 					dto.setRemark(object[11] != null ? object[11].toString() : null);
 					dto.setApproverName(object[12] != null ? object[12].toString() : null);
 					dto.setApproverEmail(object[13] != null ? object[13].toString() : null);
@@ -3097,6 +3099,9 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 					
 					dto.setCurrentApprovalLevel(object[23] != null ? Integer.parseInt(object[23].toString()) : null);
 					dto.setFinalApprovalLevel(object[24] != null ? Integer.parseInt(object[24].toString()) : null);
+					
+					dto.setFromDateDayType(object[25] != null ? Float.parseFloat(object[25].toString()) : null);
+					dto.setToDateDayType(object[26] != null ? Float.parseFloat(object[26].toString()) : null);
 					
 					dtoList.add(dto);
 				});
