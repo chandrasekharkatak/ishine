@@ -81,9 +81,11 @@ import com.apmosys.employeeportal.dto.BenchEmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.BillableInfo;
 import com.apmosys.employeeportal.dto.ClientDetailsSyncDto;
 import com.apmosys.employeeportal.dto.CombinedPOInternalProjectResponse;
+import com.apmosys.employeeportal.dto.DateRange;
 import com.apmosys.employeeportal.dto.DefaultProjectUpdateDTO;
 import com.apmosys.employeeportal.dto.EmpIdAndNameDTO;
 import com.apmosys.employeeportal.dto.EmpMappingDTO;
+import com.apmosys.employeeportal.dto.EmpRoleKey;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsDTO;
 import com.apmosys.employeeportal.dto.EmployeeDetailsForTeamMemberDTO;
@@ -146,6 +148,7 @@ import com.apmosys.employeeportal.dto.RmgResourceRequirementDto;
 import com.apmosys.employeeportal.dto.RmgTeamDto;
 import com.apmosys.employeeportal.dto.RmgTeamMemberDto;
 import com.apmosys.employeeportal.dto.SetProjectMappingAndDefaultProjectDTO;
+import com.apmosys.employeeportal.dto.ShadowEntryDTO;
 import com.apmosys.employeeportal.dto.SkippedEmployeeDTO;
 import com.apmosys.employeeportal.dto.SpocDTO;
 import com.apmosys.employeeportal.dto.SummaryChartDTO;
@@ -223,6 +226,7 @@ import com.apmosys.employeeportal.repository.TimesheetDocumentDetailsNewReposito
 import com.apmosys.employeeportal.repository.TimesheetRejectionDetailsNewRepository;
 import com.apmosys.employeeportal.response.ProjectStructureResponse;
 import com.apmosys.employeeportal.response.ResourceRequirementResponse;
+import com.apmosys.employeeportal.service.helper.IshineToPoHelperMethods;
 import com.apmosys.employeeportal.service.helper.ProjectApprovalMailBuilder;
 import com.apmosys.employeeportal.utility.ApiLogUtility;
 import com.apmosys.employeeportal.utility.EmailTrigger;
@@ -421,6 +425,9 @@ public class ResourceManagementService {
 	
 	@Autowired
 	private EmployeeLeaveRepository employeeLeaveRepository;
+
+	@Autowired
+	private IshineToPoHelperMethods ishineToPoHelperMethods;
 
 	private static final Logger log = LoggerFactory.getLogger(ResourceManagementService.class);
 
@@ -14830,111 +14837,83 @@ public class ResourceManagementService {
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
 					"ishineToPoEmpDetails", "PoPortal", null, httpRequest);
 
-			if (ishineToPoRequest == null) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Request recieved from PO is null!!");
-				apiLogInfo.setApiResponse("Request recieved from PO is null!!");
-				return response;
-			}
+
+			  // 1. Validate request
+       		 ServiceResponse validationError = ishineToPoHelperMethods.validateRequest(ishineToPoRequest);
+       		 if (validationError != null) {
+                finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
+            	return validationError;
+      		  }
+			
 
 			initialLog = apiLogUtility.startLog(poPortalAPIAuthenticationJWTUtility.extractTraceId(httpRequest),
 					"ishineToPoEmpDetails", "PoPortal",
 					ishineToPoRequest.getUserId() != null ? ishineToPoRequest.getUserId() : null, httpRequest);
 
-			if (ishineToPoRequest.getPoId() == null) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("PO Id in request is null!!");
-				apiLogInfo.setApiResponse("PO Id in request is null!!");
-				return response;
-			} else if (ishineToPoRequest.getProjectId() == null) {
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Project Id in request is null!!");
-				apiLogInfo.setApiResponse("Project Id in request is null!!");
-				return response;
-			} else if (ishineToPoRequest.getStartDateOfBilling() == null) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Start Date in request is null!!");
-				apiLogInfo.setApiResponse("Start Date in request is null!!");
-				return response;
-			} else if (ishineToPoRequest.getEndDateOfBilling() == null) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("End Date in request is null!!");
-				apiLogInfo.setApiResponse("End Date in request is null!!");
-				return response;
-			}
-
-			if (ishineToPoRequest.getStartDateOfBilling().after(ishineToPoRequest.getEndDateOfBilling())) {
-				finalHttpStatusCode = HttpStatus.BAD_REQUEST.value();
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				response.setServiceResponse("Start Date cannot be after End Date!!");
-				apiLogInfo.setApiResponse("Start Date cannot be after End Date!!");
-				return response;
-			}
 
 			IshineToPoEmpDetailsSharingDTO dto = projectPoDetailsRepository
 					.findPoBasicDetails(ishineToPoRequest.getPoId(), ishineToPoRequest.getProjectId());
 
+			ServiceResponse projectError = ishineToPoHelperMethods.validateProject(dto);
+        	if (projectError != null) return projectError;
+
 			LocalDate startDate = convertToLocalDate(ishineToPoRequest.getStartDateOfBilling());
 			LocalDate endDate = convertToLocalDate(ishineToPoRequest.getEndDateOfBilling());
 
-			if (dto.getIshineProjectId() == null) {
-				response.setServiceResponse("Project Details for the PO not found!!");
-				apiLogInfo.setApiResponse("Project Details for the PO not found!!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				return response;
-			}
-
 			Project project = projectRepository.findByProjectId(dto.getIshineProjectId());
 
-			if (project == null) {
-				response.setServiceResponse("Project Details for the PO not found!!");
-				apiLogInfo.setApiResponse("Project Details for the PO not found!!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				return response;
-			} else if (project.getIsDraftProject() == null) {
-				response.setServiceResponse("Resource onboarding has not started!!");
-				apiLogInfo.setApiResponse("Resource onboarding has not started!!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				return response;
-			}
-//			 else if(!"true".equalsIgnoreCase(project.getActive())) {
-//				response.setServiceResponse("Selected Project is no more active!!");
-//				apiLogInfo.setApiResponse("Selected Project is no more active!!");
-//				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//				return response;
-//		    }
+			ServiceResponse projectStateError = ishineToPoHelperMethods.validateProjectState(project);
+        	if (projectStateError != null) return projectStateError;
+
 
 			List<EmpMappingDTO> etm = employeeTeamMapRepository.getActiveEmpDetails(ishineToPoRequest.getPoId());
 
 			if (etm == null || etm.isEmpty()) {
-				response.setServiceResponse("No active employee mapping found!!");
-				apiLogInfo.setApiResponse("No active employee mapping found!!");
-				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-				return response;
+				 return ishineToPoHelperMethods.buildFailResponse("No active employee mapping found!!");
+			}	    
+			List<Long> allMappedEmpIds = etm.stream()
+        		.map(EmpMappingDTO::getEmpId)
+        		.filter(Objects::nonNull)
+        		.distinct()
+        		.collect(Collectors.toList());
+
+			// Build the EmpRoleWindowMap to know which dates belong to which role.
+			// If an employee has multiple stints with the same role, we merge them into a single 
+			// overarching min-max window, as requested.
+			Map<EmpRoleKey, List<DateRange>> empRoleWindowMap = new HashMap<>();
+			for (EmpMappingDTO m : etm) {
+				if (m.getEmpId() == null || m.getRoleId() == null) continue;
+				EmpRoleKey key = new EmpRoleKey(m.getEmpId(), m.getRoleId());
+				
+				LocalDate winStart = m.getStartDate() != null ? m.getStartDate().toLocalDate() : null;
+				LocalDate winEnd   = m.getEndDate() != null ? m.getEndDate().toLocalDate() : null;
+				
+				if (!empRoleWindowMap.containsKey(key)) {
+					empRoleWindowMap.put(key, new ArrayList<>());
+				}
+				empRoleWindowMap.get(key).add(new DateRange(winStart, winEnd));
 			}
 
-//		    if (etm.stream().allMatch(e -> Integer.valueOf(1).equals(e.getIsShadow()))) {
-//		        response.setServiceResponse("Only shadow employee mappings found!!");
-//		        apiLogInfo.setApiResponse("Only shadow employee mappings found!!");
-//		        response.setServiceStatus(ServiceResponse.STATUS_FAIL);
-//		        return response;
-//		    }		    
-
-			List<IshineToPoEmployeeDTO> employees = new ArrayList<>();
-
-			for (EmpMappingDTO e : etm) {
-
-				IshineToPoEmployeeDTO emp = projectPoDetailsRepository.findEmployeesWithTimesheetCount(e.getEmpId(),
-						startDate, endDate, ishineToPoRequest.getPoId());
-
-				if (emp != null && (emp.getPoId() != null && emp.getPoId().equals(ishineToPoRequest.getPoId()))) {
-					employees.add(emp);
+			// After finding the actual disjoint stints for each role, intersect with the billing period
+			for (List<DateRange> list : empRoleWindowMap.values()) {
+				for (int i = 0; i < list.size(); i++) {
+					DateRange stint = list.get(i);
+					LocalDate s = stint.getFrom();
+					LocalDate e = stint.getTo();
+					
+					if (s != null && s.isBefore(startDate)) s = startDate;
+					if (e == null || e.isAfter(endDate)) e = endDate;
+					
+					list.set(i, new DateRange(s, e));
 				}
 			}
+
+			List<IshineToPoEmployeeDTO> employees = new ArrayList<>();
+			Map<EmpRoleKey, List<LocalDate>> datesTimesheetFilled = new HashMap<>();
+
+			ishineToPoHelperMethods.fetchEmployeesWithTimesheets(
+                allMappedEmpIds, startDate, endDate, ishineToPoRequest.getPoId(),
+                project.getProjectId(), datesTimesheetFilled,employees);
 
 			if (employees == null || employees.isEmpty()) {
 				response.setServiceMessage("No timesheet filled by employee for the given time range!!");
@@ -14942,97 +14921,95 @@ public class ResourceManagementService {
 				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
 				return response;
 			}
+			Map<EmpRoleKey , LocalDate> minDateMap = new HashMap<>();
+			Map<EmpRoleKey , LocalDate> maxDateMap = new HashMap<>();
+			Map<Long, LocalDate> empEndDateMap = new HashMap<>();
 
-			// Handling shadow logic
-			Map<Long, IshineToPoEmployeeDTO> empMap = new HashMap<>();
+			ishineToPoHelperMethods.getTimesheetMinMaxDateMap(allMappedEmpIds, startDate, endDate, dto.getIshineProjectId(), ishineToPoRequest.getPoId(), minDateMap, maxDateMap);
+			empEndDateMap = ishineToPoHelperMethods.getMaxEndDatePerEmployee(allMappedEmpIds,dto.getPoId());
 
 			for (IshineToPoEmployeeDTO emp : employees) {
-				empMap.put(emp.getIshineEmpId(), emp);
+				EmpRoleKey key = new EmpRoleKey(emp.getIshineEmpId(), emp.getEtmRoleId());
+				emp.setStartDate(minDateMap.get(key));
+				emp.setEndDate(maxDateMap.get(key));
+				emp.setEmpEndDate(empEndDateMap.get(emp.getIshineEmpId()));
 			}
-
-			for (IshineToPoEmployeeDTO emp : new ArrayList<>(empMap.values())) {
-
-				if (emp.getIsShadow() != null && emp.getIsShadow() == 1 && emp.getShadowEmpId() != null) {
-
-					Long shadowEmpId = emp.getIshineEmpId(); // Shadow resource
-					Long mainEmpId = emp.getShadowEmpId(); // Main resource
-
-					IshineToPoEmployeeDTO mainEmp = empMap.get(mainEmpId);
-
-					// Main resource missing then fetch minimal info
-					if (mainEmp == null) {
-
-						Employee mainEmpData = employeeRepository.findByEmpId(mainEmpId);
-						if (mainEmpData == null) {
-							continue;
-						}
-
-						mainEmp = new IshineToPoEmployeeDTO();
-
-						mainEmp.setEmpId("true".equalsIgnoreCase(mainEmpData.getIsApmosysProduct())
-								? "AP-" + mainEmpData.getEmployeementId()
-								: "A-" + mainEmpData.getEmployeementId());
-
-						mainEmp.setEmpName(mainEmpData.getName());
-						mainEmp.setRoleName(emp.getRoleName());
-						mainEmp.setExp(emp.getExp());
-						mainEmp.setDepartmentName(emp.getDepartmentName());
-						mainEmp.setRoleId(emp.getRoleId());
-						mainEmp.setClientSideId(emp.getClientSideId());
-						mainEmp.setIsApmosysProduct(emp.getIsApmosysProduct());
-
-						mainEmp.setNoOfWorkingDays(0L);
-						mainEmp.setBillableDays(0L);
-						mainEmp.setStartDate(emp.getStartDate());
-						mainEmp.setEndDate(emp.getEndDate());
-						mainEmp.setPoId(emp.getPoId());
-						mainEmp.setIshineEmpId(mainEmpData.getEmpId());
-
-						empMap.put(mainEmpId, mainEmp);
-					}
-
-					mainEmp.setNoOfWorkingDays(mainEmp.getNoOfWorkingDays() + emp.getNoOfWorkingDays());
-					mainEmp.setBillableDays(mainEmp.getNoOfWorkingDays());
-
-					if (mainEmp.getStartDate() == null || emp.getStartDate().isBefore(mainEmp.getStartDate())) {
-						mainEmp.setStartDate(emp.getStartDate());
-					}
-
-					if (mainEmp.getEndDate() == null || emp.getEndDate().isAfter(mainEmp.getEndDate())) {
-						mainEmp.setEndDate(emp.getEndDate());
-					}
-
-					mainEmp.setMsg("Shadow's Timesheet Count Added with the Resource!!");
-					empMap.remove(shadowEmpId);
-				}
-			}
-
-			employees = new ArrayList<>(empMap.values());
 			
-			//Main employee's leave count
+
+			employees = ishineToPoHelperMethods.mergeShadowTimesheets(
+            employees, allMappedEmpIds, datesTimesheetFilled,
+            ishineToPoRequest.getPoId(), startDate, endDate, empRoleWindowMap);
+
 			List<Long> empIds = employees.stream().map(IshineToPoEmployeeDTO::getIshineEmpId)
 			        .filter(Objects::nonNull)
 			        .distinct()
 			        .collect(Collectors.toList());
 
-			Map<Long, Long> leaveCountMap = new HashMap<>();
+			// Map<Long, Long> leaveCountMap = new HashMap<>();
+			Map<Long , List<LocalDate>> employeeLeavesMap = new HashMap<>();
+			Map<Long , List<LocalDate>> weekOffMap = new HashMap<>();
+			Map<Long , List<LocalDate>> workingOnANonWorkingMap = new HashMap<>();
+			Map<Long , List<LocalDate>> clientHolidayMap = new HashMap<>();
+			Map<Long , List<LocalDate>> compOffMap = new HashMap<>();
 
+			
+			// Setting leave count for 
 			if (!empIds.isEmpty()) {
 
 			    List<Object[]> results = employeeLeaveRepository
-			            .findLeaveCountByEmpIdsAndDateRange(empIds, startDate, endDate);
+			            .findEmployeeLeavesByTimesheet(startDate, endDate,empIds, dto.getIshineProjectId());
 
 			    for (Object[] row : results) {
 			        Long empId = ((Number) row[0]).longValue();
-			        Long leaveDays = ((Number) row[1]).longValue();
-			        leaveCountMap.put(empId, leaveDays);
+					LocalDate leaveDate = ((java.sql.Date) row[1]).toLocalDate();
+					employeeLeavesMap.computeIfAbsent(empId, e -> new ArrayList<>() ).add(leaveDate);
+
 			    }
 			}
-
+			ishineToPoHelperMethods.getWeekOffCount(startDate, endDate,empIds, dto.getIshineProjectId(),weekOffMap);
+			ishineToPoHelperMethods.getWorkingOnANonWorkingMapCount(startDate, endDate,empIds, dto.getIshineProjectId(),workingOnANonWorkingMap);
+			ishineToPoHelperMethods.getClientHolidayMapCount(startDate, endDate,empIds, dto.getIshineProjectId(),clientHolidayMap);
+			ishineToPoHelperMethods.getCompOffMapCount(startDate, endDate,empIds, dto.getIshineProjectId(),compOffMap);
+			
 			// Set leave count in DTO
 			for (IshineToPoEmployeeDTO emp : employees) {
-			    emp.setEmpLeaveCount(leaveCountMap.getOrDefault(emp.getIshineEmpId(), 0L));
+				EmpRoleKey key = new EmpRoleKey(emp.getIshineEmpId(), emp.getEtmRoleId());
+				List<DateRange> windows = empRoleWindowMap.getOrDefault(key, new ArrayList<>());
+
+				// Helper to filter dates to only those inside this role's windows
+				java.util.function.Function<List<LocalDate>, List<LocalDate>> filterByWindow = (rawDates) -> {
+					if (rawDates == null) return new ArrayList<>();
+					return rawDates.stream().filter(d -> {
+						for (DateRange dr : windows) {
+							if (dr.contains(d)) return true;
+						}
+						return false;
+					}).collect(Collectors.toList());
+				};
+
+				List<LocalDate> leaves = filterByWindow.apply(employeeLeavesMap.get(emp.getIshineEmpId()));
+			    emp.setEmpLeaveCount((long)leaves.size());
+				emp.setEmpLeaveDates(leaves);
+
+				emp.setWeekoffDate(filterByWindow.apply(weekOffMap.get(emp.getIshineEmpId())));
+
+				emp.setWorkingOnANonWorkingDay(filterByWindow.apply(workingOnANonWorkingMap.get(emp.getIshineEmpId())));
+
+				emp.setClientHoliday(filterByWindow.apply(clientHolidayMap.get(emp.getIshineEmpId())));
+
+				emp.setCompoffleave(filterByWindow.apply(compOffMap.get(emp.getIshineEmpId())));
+
+				// Flag: was the employee on leave on the day they were deboarded?
+				// Condition: endDate is non-null (deboarded), endDate falls in leave dates, and leave count > 1
+				LocalDate deboarDate = emp.getEmpEndDate();
+				boolean onLeaveWhenDeboarded = deboarDate != null
+				        && leaves.contains(deboarDate)
+				        && leaves.size() > 1;
+				emp.setIsEmployeeOnLeaveWhenDeboarded(onLeaveWhenDeboarded);
+
 			}
+
+			
 			
 			dto.setProjectName(ishineToPoRequest.getProjectName());
 			dto.setProjectId(ishineToPoRequest.getProjectId());

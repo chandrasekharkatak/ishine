@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
 import com.apmosys.employeeportal.dto.IshineLinkProjectDto;
+import com.apmosys.employeeportal.dto.IshineToPoRequestDTO;
 import com.apmosys.employeeportal.dto.PoClientAddressUpdateDTO;
 import com.apmosys.employeeportal.dto.ProjectPoMappingWithResourceDTO;
 import com.apmosys.employeeportal.dto.ProjectViewResolveBulkItemDTO;
@@ -163,5 +164,11 @@ public class ResourceManagementController {
 	@GetMapping("/test")
 	public String test(HttpServletRequest httpRequest) {
 		return "IShine is online...";
+	}
+
+	@PostMapping("/ishineToPoEmpDetails")
+	public ServiceResponse ishineToPoEmpDetails(HttpServletRequest httpRequest, @RequestBody IshineToPoRequestDTO ishineToPoRequest) {
+//		poPortalAPIAuthenticationJWTUtility.extractAndValidateToken(httpRequest);
+		return resourceManagementService.ishineToPoEmpDetails(ishineToPoRequest);
 	}
 }

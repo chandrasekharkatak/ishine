@@ -80,7 +80,8 @@ public class EmployeePortalInterceptor implements HandlerInterceptor {
 				"/api/getDocumentDataByDocIdForPO",
 				"/api/getResourceCountListByPoprojectName",
 				"/api/healthCheck",
-				"/api/test"
+				"/api/test",
+				"/api/ishineToPoEmpDetails"
 		};
 		whitelistedApis = new ArrayList<>();
 		for (String suffix : apiSuffixes) {
