@@ -3722,7 +3722,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			int page = requestDTO.getPage() != null && requestDTO.getPage() > 0 ? requestDTO.getPage() : 1;
 			int size = requestDTO.getSize() != null && requestDTO.getSize() > 0 ? requestDTO.getSize() : 10;
-			size = Math.min(size, 500);
+			size = Math.min(size, 5000);
 			int offset = (page - 1) * size;
 
 			String selectedCols = requestDTO.getSelectedColumns();
