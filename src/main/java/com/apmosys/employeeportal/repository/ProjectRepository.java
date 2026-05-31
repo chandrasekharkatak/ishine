@@ -4589,7 +4589,7 @@ boolean existsByProjectName(String projectName);
     		value="SELECT\n"
     				+ "COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
     				+ "    CASE\n"
-    				+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    				+ "        WHEN :countTarget = 'Employee' AND UPPER(e.billable_type) NOT LIKE 'NONE' AND e.billable_type IS NOT NULL THEN COUNT(DISTINCT e.emp_id)\n"
     				+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
     				+ "        ELSE NULL \n"
     				+ "    END AS total_count,\n"
@@ -8927,6 +8927,9 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
 	List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+	@Query("SELECT p.projectId, p.poProjectType FROM Project p WHERE p.projectId IN (:projectIds)")
+	List<Object[]> findProjectsWithClientPoProjectType(@Param("projectIds") List<Integer> projectIds);
 
 	@Query(value = "WITH rc AS (  \n"
 			+ "SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count  \n"

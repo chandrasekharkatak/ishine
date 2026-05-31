@@ -103,8 +103,10 @@ export class TrainingService {
     return this.http.post(`${this.baseUrl}api/training/getAllQuizResponsesByTrainingId`, { trainingId: trainingId });
   }
 
-  getTrainingResponses(trainingId: number){
-    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`);
+  getTrainingResponses(trainingId: number, type: 'usersAttended' | 'usersNotAttended' = 'usersAttended'){
+    return this.http.get(`${this.baseUrl}api/training/getTrainingResponses/${trainingId}`, {
+      params: {type: type}
+    });
   }
 
   addTrainingType(trainingType: string, createdBy: number) {
@@ -116,6 +118,11 @@ export class TrainingService {
   getAllTrainingTypes(): Observable<any> {
     return this.http.get(`${this.baseUrl}api/training/getAllTrainingTypes`);
   }
+
+  getCountOfResponses(trainingId: number){
+    return this.http.get(`${this.baseUrl}api/training/getCountOfResponses/${trainingId}`);
+  }
+
 getAssignableEmployees(trainingId: number, deptId?: number): Observable<any> {
   let url = `${this.baseUrl}api/training/${trainingId}/excludable-employees`;
   if (deptId) {url += `?deptId=${deptId}`; }
@@ -124,6 +131,5 @@ getAssignableEmployees(trainingId: number, deptId?: number): Observable<any> {
 assignEmployees(trainingId: number, payload: any): Observable<any> {
   return this.http.post(`${this.baseUrl}api/training/${trainingId}/exclude`, payload);
 }
-
 
 }

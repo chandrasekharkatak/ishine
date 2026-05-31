@@ -6784,7 +6784,15 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "\n"
 			+ "    Base_Project_Employees AS (\n"
 			+ "        SELECT DISTINCT\n"
-			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, e.billable_type,\n"
+			+ "            etm.team_id, t.team_name, etm.emp_id, e.name, etm.employee_role, "
+			+ "            CASE\n"
+			+ "                WHEN p.po_project_type = 'TNM' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) THEN 'TNM'\n"
+			+ "                WHEN p.po_project_type = 'Fixed Cost' AND (etm.is_shadow = 0 OR etm.is_shadow IS NULL) THEN 'Fixed Cost'\n"
+			+ "                WHEN p.po_project_type = 'TNM' AND etm.is_shadow = 1 THEN 'TNM(Shadow)'\n"
+			+ "                WHEN p.po_project_type = 'Fixed Cost' AND etm.is_shadow = 1 THEN 'Fixed Cost(Shadow)'\n"
+			+ "                WHEN p.po_project_type = 'Monitoring' THEN 'Fixed Cost'\n"
+			+ "                WHEN p.po_project_type IS NULL THEN internal_project_type\n"
+			+ "            END AS billable_type,\n "
 			+ "            DATE(etm.start_date) AS start_date, DATE(etm.end_date) AS end_date, etm.employee_team_map_id,\n"
 			+ "            etm.active, p.project_id, p.project_name,\n"
 			+ "            c.client_id, c.client_name, ecsm.client_side_id, GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no,\n"
@@ -6948,7 +6956,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 			+ "        FROM timesheet_document_details_new tdd\n"
 			+ "        INNER JOIN Timesheet_Base_Data tbd\n"
 			+ "                ON tdd.timesheet_id = tbd.timesheet_id\n"
-			+ "               AND tdd.project_id   = tbd.project_id\n"
+			// + "               AND tdd.project_id   = tbd.project_id\n"
 			+ "        LEFT JOIN client_status_master_new csm\n"
 			+ "               ON csm.status_id = tdd.client_approval_status_id\n"
 			+ "        WHERE tdd.active = TRUE\n"
@@ -8067,7 +8075,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	      + "            et.emp_id,\n"
 	      + "            et.date,\n"
 	      + "            dtm.day_type AS day_type,\n"
-	      + "            et.status,\n"
+	      + "            sm.status,\n"
 	      + "            et.work_in_time  AS office_in_time,\n"
 	      + "            et.work_out_time AS office_out_time,\n"
 	      + "            a.team_id AS activity_team_id\n"
@@ -8077,6 +8085,7 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	      + "        LEFT JOIN employee_timesheet_activities_mapping_new etam\n"
 	      + "               ON et.timesheet_id = etam.timesheet_id\n"
 	      + "        LEFT JOIN activities a ON a.activity_id = etam.activity_id\n"
+	      + "        LEFT JOIN status_master_new sm on et.status = sm.status_id"
 	      + "    ),\n"
 
 	      + "    Base_Report_Details AS (\n"
@@ -8144,6 +8153,13 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	      + "            brd.emp_id, brd.project_id, brd.team_id, adir.dt AS timesheet_date,\n"
 	      + "            etwa_team.office_in_time, etwa_team.office_out_time, brd.employee_team_map_id,\n"
 	      + "            CASE\n"
+	      + "                WHEN etwa_team.emp_id IS NOT NULL AND etwa_team.activity_team_id = brd.team_id THEN\n"
+	      + "                    CASE\n"
+	      + "                        WHEN UPPER(etwa_team.day_type) IN( 'WORKING' , 'HALF-DAY WORKING') AND etwa_team.status = 'Approved' THEN 'AP'\n"
+	      + "                        WHEN UPPER(etwa_team.day_type) IN( 'WORKING' , 'HALF-DAY WORKING') AND etwa_team.status = 'Pending' THEN 'PE'\n"
+	      + "                        WHEN UPPER(etwa_team.day_type) = 'NON-WORKING' THEN 'NW'\n"
+	      + "                        ELSE 'NA'\n"
+	      + "                    END\n"
 	      + "                WHEN etwa_general.emp_id IS NOT NULL AND etwa_general.activity_team_id IS NULL THEN\n"
 	      + "                    CASE\n"
 	      + "                        WHEN UPPER(etwa_general.day_type) LIKE '%LEAVE%' THEN 'L'\n"
@@ -8156,13 +8172,6 @@ boolean isEligibleForCompOff(Long empId, LocalDate date);
 	      + "                    END\n"
 	      + "                WHEN adir.dt < brd.start_date THEN 'O'\n"
 	      + "                WHEN (brd.end_date IS NOT NULL AND adir.dt > brd.end_date) THEN 'NA'\n"
-	      + "                WHEN etwa_team.emp_id IS NOT NULL AND etwa_team.activity_team_id = brd.team_id THEN\n"
-	      + "                    CASE\n"
-	      + "                        WHEN UPPER(etwa_team.day_type) IN( 'WORKING' , 'HALF-DAY WORKING') AND etwa_team.status = 'Approved' THEN 'AP'\n"
-	      + "                        WHEN UPPER(etwa_team.day_type) IN( 'WORKING' , 'HALF-DAY WORKING') AND etwa_team.status = 'Pending' THEN 'PE'\n"
-	      + "                        WHEN UPPER(etwa_team.day_type) = 'NON-WORKING' THEN 'NW'\n"
-	      + "                        ELSE 'NA'\n"
-	      + "                    END\n"
 	      + "                WHEN EXISTS (\n"
 	      + "                    SELECT 1\n"
 	      + "                    FROM Employee_Timesheets_With_Activities o\n"
@@ -16035,10 +16044,10 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 			 		+ "      AND (:projectStatus IS NULL OR LOWER(bpe.active) LIKE CONCAT('%', :projectStatus, '%'))\n"
 			 		+ "    GROUP BY\n"
 			 		+ "        bpe.emp_id, bpe.project_id, bpe.employee_team_map_id,\n"
-			 		+ "        name, bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name,\n"
+			 		+ "        bpe.name, bpe.spoc, bpe.billable_type, bpe.employee_role, bpe.dept_name,\n"
 			 		+ "        bpe.project_name, pm.project_manager_name, bpe.po_no, bpe.client_name,\n"
 			 		+ "        bpe.reporting_manager_id, bpe.client_side_id, bpe.start_date, bpe.end_date,\n"
-			 		+ "        bpe.team_name, bpe.team_id, bpe.employmentstatus, month_name,\n"
+			 		+ "        bpe.team_name, bpe.team_id, bpe.employmentstatus, dp.from_date,\n"
 			 		+ "        ecs.expectedTimesheetFillCount, ecs.client_side_not_filled_count,\n"
 			 		+ "        ecs.clientSidePendingCount, ecs.clientSideApprovedCount\n"
 			 		+ "    ORDER BY\n"
@@ -17303,7 +17312,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "    bpe.emp_id,\n"
 		    			+ "    bpe.project_id,\n"
 		    			+ "    bpe.employee_team_map_id,\n"
-		    			+ "    name,\n"
+		    			+ "    bpe.name,\n"
 		    			+ "    bpe.spoc,\n"
 		    			+ "    bpe.billable_type,\n"
 		    			+ "    bpe.employee_role,\n"
@@ -17319,7 +17328,7 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 		    			+ "    bpe.team_name,\n"
 		    			+ "    bpe.team_id,\n"
 		    			+ "    bpe.employmentstatus,\n"
-		    			+ "    month_name,\n"
+		    			+ "    dp.from_date,\n"
 		    			+ "    ecs.expectedTimesheetFillCount,\n"
 		    			+ "    ecs.client_side_not_filled_count,\n"
 		    			+ "    ecs.clientSidePendingCount,\n"
@@ -19245,10 +19254,86 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 				+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
 		List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
 
+
+
+					//  @Query("SELECT DISTINCT new com.apmosys.employeeportal.dto.ProjectNameAndPrjoectIdDTO(p.projectId, p.projectName, p.clientFlag, p.hasClientSideId,p.poProjectType, etm.isShadow)\n"
+					// 			+ "FROM EmployeeTeamMap etm\n"
+					// 			+ "inner join Team t on t.teamId = etm.teamId \n"
+					// 			+ "inner join Project p on p.projectId = t.projectId\n"
+					// 			+ "WHERE FUNCTION('DATE', etm.startDate) <= :selectedDate\n"
+					// 			+ "  AND (etm.endDate IS NULL OR FUNCTION('DATE', etm.endDate) >= :selectedDate) and etm.active != 2 and etm.empId = :emp_id")
+					// 		List<ProjectNameAndPrjoectIdDTO> getProjectListForDateAndEmpId2( @Param("emp_id") Long empId,  @Param("selectedDate") Date selectedDate	);	
+
+												// In EmployeeTimesheetsNewRepository (or ProjectTimesheetStatusNewRepository)
+				@Query(value = 
+				"SELECT et.emp_id, ptsn.shadow_emp_id, et.date, et.timesheet_id " +
+				"FROM employee_timesheets_new et " +
+				"INNER JOIN employee_timesheet_location_mapping etlm ON etlm.timesheet_id = et.timesheet_id " +
+				"INNER JOIN project_timesheet_status_new ptsn " +
+				"    ON ptsn.timesheet_id = etlm.timesheet_id " +
+				"    AND ptsn.location_mapping_id = etlm.location_mapping_id " +
+				"INNER JOIN employee_timesheet_activities_mapping_new etam " +
+				"    ON etam.timesheet_id = et.timesheet_id " +
+				"    AND etlm.location_mapping_id = etam.location_mapping_id " +
+				"    AND ptsn.project_id = etam.project_id " +
+				"INNER JOIN activities a ON a.activity_id = etam.activity_id " +
+				"INNER JOIN teams t ON t.team_id = a.team_id " +
+				"INNER JOIN project_po_details ppo ON ppo.project_id = t.project_id " +
+				"    AND ppo.active = 1 AND ppo.client_address_id IS NOT NULL " +
+				"WHERE ppo.po_id = :poId " +
+				"  AND et.status = 2 " +
+				"  AND et.day_type_id  IN (1,3,8) " +
+				"  AND et.emp_id IN (:empIds) " +
+				"  AND et.date BETWEEN :startDate AND :endDate and ptsn.shadow_emp_id is not null " ,
+			nativeQuery = true)
+			List<Object[]> findTimesheetShadowDetailsByPoAndEmpIds(
+			@Param("poId") Long poId,
+			@Param("empIds") List<Long> empIds,
+			@Param("startDate") LocalDate startDate,
+			@Param("endDate") LocalDate endDate
+				);
+
+		
+				@Query(value="select etn.date from employee_timesheets_new etn "
+				+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
+				+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id and ptsn.location_mapping_id = etlm.location_mapping_id "
+				+ " where etn.emp_id = :empId and etn.date between :startDate and :endDate and ptsn.shadow_emp_id is null "
+				+ "and ptsn.project_id = :projectId and  etn.day_type_id in (1,3,8) and etn.status = 2 ",nativeQuery = true )
+				List<java.sql.Date> findTimesheetDatesByEmpIdAndDateBetween(@Param("empId") Long empId, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId);
+
+				@Query(value="select etn.emp_id, etn.date, etm.role_id from employee_timesheets_new etn "
+				+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
+				+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id and ptsn.location_mapping_id = etlm.location_mapping_id "
+				+ " inner join employee_team_mapping etm on etm.emp_id = etn.emp_id"
+				+ "   and etm.po_id = :poId"
+				+ "   and DATE(etn.date) >= DATE(etm.start_date)"
+				+ "   and (etm.end_date is null or DATE(etn.date) <= DATE(etm.end_date))"
+				+ "   and etm.active != 2"
+				+ " where etn.emp_id IN (:empIds) and etn.date between :startDate and :endDate and ptsn.shadow_emp_id is null "
+				+ "and ptsn.project_id = :projectId and  etn.day_type_id in (1,3,8) and etn.status = 2 ",nativeQuery = true )
+				List<Object[]> findTimesheetDatesByEmpIdsAndDateBetween(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("poId") Long poId);
+
+
+				@Query(value=" select etn.emp_id, etm.role_id, Max(etn.date), Min(etn.date) from employee_timesheets_new etn "
+				+ " inner join employee_timesheet_location_mapping etlm on etn.timesheet_id = etlm.timesheet_id "
+				+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id "
+				+ " and ptsn.location_mapping_id = etlm.location_mapping_id"
+				+ " inner join employee_team_mapping etm on etm.emp_id = etn.emp_id"
+				+ "   and etm.po_id = :poId"
+				+ "   and DATE(etn.date) >= DATE(etm.start_date)"
+				+ "   and (etm.end_date is null or DATE(etn.date) <= DATE(etm.end_date))"
+				+ "   and etm.active != 2"
+				+ " where etn.emp_id in (:empIds) "
+				+ " and etn.date between :startDate and :endDate and ptsn.project_id = :projectId and ptsn.shadow_emp_id is null and etn.status = 2 "
+				+ " group by etn.emp_id, etm.role_id ", nativeQuery = true)
+				List<Object[]> findMaxAndMinDateOfTimesheet(@Param("empIds") List<Long> empIds, @Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate, @Param("projectId") Integer projectId, @Param("poId") Long poId);
+
+				
+
 		@Query(value = "Select DISTINCT et.timesheetId \n"
 				+ "FROM EmployeeTimesheetsNew et \n"
 				+ "WHERE et.empId =:empId AND DATE(et.date) >= DATE(:startDate) AND DATE(et.date) <= DATE(:endDate) \n"
 				+ "AND et.isSystemGenerated = true \n")
 		public List<Long> findWeekOffTimesheetIdByEmpIdAndDateRange(Long empId, LocalDate startDate, LocalDate endDate);
-			
+
 }

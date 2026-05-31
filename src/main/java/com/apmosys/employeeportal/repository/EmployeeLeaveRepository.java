@@ -352,6 +352,25 @@ public List<Object[]> getAllTeamCompOffHistoryViewHirarchy(List<Long> empIds, Lo
 				+ "	 GROUP BY el.emp_id", nativeQuery = true)
 	List<Object[]> findLeaveCountByEmpIdsAndDateRange(List<Long> empIds,LocalDate startDate,LocalDate endDate);
 
+		@Query(value ="Select distinct etn.emp_id,etn.date from employee_timesheets_new etn "
+		+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
+		+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id "
+		+ " and etlm.location_mapping_id = ptsn.location_mapping_id "
+		+ " where etn.day_type_id = 5 "
+		+ " and etn.date between :startDate and :endDate "
+		+ " and etn.emp_id in (:empIds) and ptsn.project_id = :projectId ", nativeQuery = true)
+	List<Object[]> findEmployeeLeavesByTimesheet(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,@Param("empIds") List<Long> empIds,@Param("projectId") Integer projectId);
+
+
+	@Query(value ="Select distinct etn.emp_id,etn.date from employee_timesheets_new etn "
+		+ " inner join employee_timesheet_location_mapping etlm on etlm.timesheet_id = etn.timesheet_id "
+		+ " inner join project_timesheet_status_new ptsn on ptsn.timesheet_id = etn.timesheet_id "
+		+ " and etlm.location_mapping_id = ptsn.location_mapping_id "
+		+ " where etn.day_type_id = :dayType "
+		+ " and etn.date between :startDate and :endDate "
+		+ " and etn.emp_id in (:empIds) and ptsn.project_id = :projectId and etn.status = 2 ", nativeQuery = true)
+	List<Object[]> getDatesBasedOnDayType(@Param("startDate") LocalDate startDate,@Param("endDate") LocalDate endDate,@Param("empIds") List<Long> empIds,@Param("projectId") Integer projectId,@Param("dayType") Integer dayType);
+
 }
 
 

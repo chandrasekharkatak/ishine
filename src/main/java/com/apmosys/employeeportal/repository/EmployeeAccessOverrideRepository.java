@@ -13,11 +13,13 @@ public interface EmployeeAccessOverrideRepository  extends JpaRepository<Employe
 
     @Query(value = " select sub.sub_feature_master_id,sub.sub_feature_name, \n"
             + " fm.feature_id,fm.feature_name, \n"
-            + " tab.tab_name,tab.tab_icon,tab.tab_route_name, tab.tab_sequence \n"
+            + " tab.tab_name,tab.tab_icon,tab.tab_route_name, tab.tab_sequence, \n"
+            + " grp.group_name, grp.group_sequence, grp.group_icon \n"
             + " From employee_access_override eao \n"
             + " INNER JOIN sub_feature_master sub ON eao.sub_feature_master_id = sub.sub_feature_master_id \n"
             + " INNER JOIN feature_master fm ON fm.feature_id = sub.feature_id \n"
             + " INNER JOIN tab_master tab ON tab.tab_id = fm.tab_id \n"
+            + " INNER JOIN tab_group_master grp ON grp.group_id = tab.group_id \n"
             + " WHERE eao.emp_id = :empId and eao.is_active = true \n"
             + " order by tab.tab_sequence \n", nativeQuery = true)
     public List<Object[]> findActiveTabRowsByEmpId(Long empId);

@@ -38,4 +38,5 @@ public class SurveyDTO {
 	private Integer cutOffQuestions;
 	private Boolean isQuizResponse;
 	private Boolean isAttendingQuiz;
+	private Integer totalQuestions;
 }

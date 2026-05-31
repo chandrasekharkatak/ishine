@@ -1400,17 +1400,17 @@ public class RewardsService {
 
 	            
 	            EmployeeRewardForHomeDTO dto = new EmployeeRewardForHomeDTO();
-	            dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
-	            dto.setIsActive(object[1] != null ? Integer.parseInt(object[1].toString()) : null);
-	            dto.setId(object[2] != null ? Long.parseLong(object[2].toString()) : null);
-	            dto.setRewardedTo(object[3] != null ? Long.parseLong(object[3].toString()) : null);
-	            dto.setRewardedToByName(object[4] != null ? object[4].toString() : null);
-	            dto.setRewardTypeID(object[5] != null ? Integer.parseInt(object[5].toString()) : null);
-	            dto.setRewardTypeName(object[6] != null ? object[6].toString() : null);
-	            dto.setDepartmentId(object[7] != null ? Long.parseLong(object[7].toString()) : null);
-	            dto.setDepartment(object[8] != null ? object[8].toString() : null);
-	            dto.setOfMonthYear(object[9] != null ? object[9].toString() : null);
-	            dto.setCategoryName(object[10] != null ? object[10].toString() : null);
+//	            dto.setRewardId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+	            dto.setIsActive(object[0] != null ? Integer.parseInt(object[0].toString()) : null);
+	            dto.setId(object[1] != null ? Long.parseLong(object[1].toString()) : null);
+	            dto.setRewardedTo(object[2] != null ? Long.parseLong(object[2].toString()) : null);
+	            dto.setRewardedToByName(object[3] != null ? object[3].toString() : null);
+	            dto.setRewardTypeID(object[4] != null ? Integer.parseInt(object[4].toString()) : null);
+	            dto.setRewardTypeName(object[5] != null ? object[5].toString() : null);
+	            dto.setDepartmentId(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+	            dto.setDepartment(object[7] != null ? object[7].toString() : null);
+	            dto.setOfMonthYear(object[8] != null ? object[8].toString() : null);
+	            dto.setCategoryName(object[9] != null ? object[9].toString() : null);
 	            
 	            dtos.add(dto);
 	        }
@@ -2069,6 +2069,7 @@ public class RewardsService {
 	    
 	    return serviceResponse;
 	}
+	
 	@Transactional
 	public ServiceResponse isQuarterEnable(EmployeeRewardForHomeDTO dto) {
 	    ServiceResponse serviceResponse = new ServiceResponse();

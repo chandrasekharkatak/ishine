@@ -2211,16 +2211,16 @@ public class TimesheetValidationHelper {
 
 
 
-    private Map<Integer, Boolean> getClientSideMap(List<Integer> projectIds) {
+    private Map<Integer, String> getClientSideMap(List<Integer> projectIds) {
 
-        List<Object[]> result = projectRepository.findClientSideFlagByProjectIds(projectIds);
+        List<Object[]> result = projectRepository.findProjectsWithClientPoProjectType(projectIds);
     
-        Map<Integer, Boolean> clientSideMap = new HashMap<>();
+        Map<Integer, String> clientSideMap = new HashMap<>();
     
         for (Object[] row : result) {
             Integer projectId = (Integer) row[0];
-            Boolean hasClientSideId = (Boolean) row[1];
-            clientSideMap.put(projectId, hasClientSideId);
+            String poProjectType = (String) row[1];
+            clientSideMap.put(projectId, poProjectType);
         }
     
         return clientSideMap;
@@ -2247,7 +2247,7 @@ public class TimesheetValidationHelper {
         // =========================
         // Fetch projectId → clientSide flag
         // =========================
-        Map<Integer, Boolean> clientSideMap = getClientSideMap(projectIds);
+        Map<Integer, String> clientSideMap = getClientSideMap(projectIds);
     
         // =========================
         // Validation
@@ -2261,17 +2261,19 @@ public class TimesheetValidationHelper {
                 Integer projectId = project.getProjectId();
                 if (projectId == null) continue;
     
-                Boolean hasClientSideId = clientSideMap.get(projectId);
+                String poProjectType = clientSideMap.get(projectId);
     
                 // Apmosys Holiday
-                if (dayTypeId == 6 && Boolean.TRUE.equals(hasClientSideId)) {
+                if (dayTypeId == 6 && poProjectType != null &&
+                	    "TNM".equalsIgnoreCase(poProjectType)) {
                     throw new TimesheetValidationFailedException(
                             "Apmosys Holiday cannot be applied for client-side projects."
                     );
                 }
     
                 // Client Holiday
-                if (dayTypeId == 7 && !Boolean.TRUE.equals(hasClientSideId)) {
+                if (dayTypeId == 7 && (poProjectType == null ||
+                	    (!"Fixed Cost".equalsIgnoreCase(poProjectType) && !"TNM".equalsIgnoreCase(poProjectType)))) {
                     throw new TimesheetValidationFailedException(
                             "Client Holiday requires all projects to be client-side projects."
                     );

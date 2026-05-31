@@ -76,11 +76,11 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 	
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
 		   "AND tc.trainingMaster.trainingId = :trainingId " +
-		   "AND((:quizId IS NULL AND tc.quizId IS NULL) OR " +
-       "(:quizId IS NOT NULL AND tc.quizId = :quizId)) " +
+	// 	   "AND((:quizId IS NULL AND tc.quizId IS NULL) OR " +
+    //    "(:quizId IS NOT NULL AND tc.quizId = :quizId)) " +
 		   "ORDER BY tc.consentTimestamp DESC")	
 	List<TrainingConsent> findByEmpIdAndTrainingIdAndQuizId(@Param("empId") Long empId, 
-																	@Param("trainingId") Integer trainingId, @Param("quizId") Long quizId);
+																	@Param("trainingId") Integer trainingId);
 
 	
 	@Query("SELECT tc FROM TrainingConsent tc WHERE tc.empId = :empId " +
@@ -92,15 +92,23 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 				"where tc.trainingContent.activeStatus = 'true' and tc.trainingMaster.trainingId IN :trainingIds and tc.empId = :empId")
 	List<TrainingConsent> findByEmpIdAndTrainingIdsIn(@Param("empId") Long empId, @Param("trainingIds") List<Integer> trainingId);
 
-	@Query("select new com.apmosys.employeeportal.dto.TrainingResponseDTO("+
-	"CONCAT( \n"+
-	" (case when e.isApmosysProduct = 'true' then 'AP-' \n"+	
-	" else 'A-' end)"+
-	" , e.employeementId\n"+	
-	") as empName,tc.trainingMaster.trainingId,tc.trainingMaster.trainingName, tc.completionCycleNumber, e.name, tc.trainingMaster.consentRequired, MAX(tc.consentTimestamp)) from TrainingConsent tc \n"+ 
-    "INNER JOIN Employee e on e.empId = tc.empId "+
-    "where tc.trainingMaster.trainingId = :trainingId group by tc.empId")
-    List<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer trainingId);
+	@Query("select new com.apmosys.employeeportal.dto.TrainingResponseDTO(" +
+    "CONCAT((case when e.isApmosysProduct = 'true' then 'AP-' when e.isConsultant = 'true' then 'CS-' else 'A-' end), e.employeementId), " +
+	"tm.trainingId, " +
+	"tm.trainingName, " +
+    "MAX(tc.completionCycleNumber), " +
+    "e.name, " +
+    "tm.consentRequired, " +
+    "MAX(tc.consentTimestamp)) " +
+    "from TrainingMaster tm, Employee e " +
+    "LEFT JOIN TrainingConsent tc ON e.empId = tc.empId AND tc.trainingMaster.trainingId = tm.trainingId " +
+    "WHERE tm.trainingId = :trainingId " +
+    "AND e.empId NOT IN (1,2,3,4,5,6) AND UPPER(e.employmentstatus) != 'INACTIVE' " +
+    "AND ((:type = 'usersAttended' AND tc.empId IS NOT NULL) " +
+    "OR (:type = 'usersNotAttended' AND tc.empId IS NULL)) " +
+    "GROUP BY e.empId, e.isApmosysProduct, e.isConsultant, e.employeementId, tm.trainingId, tm.trainingName, tm.consentRequired, e.name")
+List<TrainingResponseDTO> findByTrainingId(@Param("trainingId") Integer trainingId, 
+                                           @Param("type") String type);
 	
 	@Query(value = "with \n" +
 				"CURRENT_CYCLE as (\n" +
@@ -163,5 +171,15 @@ public interface TrainingConsentRepository extends JpaRepository<TrainingConsent
 				"select na.email, cc.training_name, na.name from CURRENT_CYCLE cc\n" +
 				"INNER join NOT_ATTENDED na on na.training_id = cc.training_id",nativeQuery=true)
 	List<Object[]> findEmpForUnattendedQuiz();
+
+    @Query("SELECT " +
+    "COUNT(DISTINCT CASE WHEN tc.empId IS NOT NULL THEN e.empId END) as completedCount, " +
+    "COUNT(DISTINCT CASE WHEN tc.empId IS NULL THEN e.empId END) as notCompletedCount, " +
+    "COUNT(DISTINCT e.empId) as totalCount " +
+    "FROM Employee e " +
+    "LEFT JOIN TrainingConsent tc ON e.empId = tc.empId " +
+    "AND tc.trainingMaster.trainingId = :trainingId " +
+	"WHERE e.empId not in (1,2,3,4,5,6) and UPPER(e.employmentstatus) != 'INACTIVE'")
+	List<Object[]> getTrainingCounts(@Param("trainingId") Integer trainingId);
 	
 }
