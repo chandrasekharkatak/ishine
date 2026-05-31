@@ -24,11 +24,13 @@ import com.apmosys.employeeportal.dto.ReimbursementDTO;
 import com.apmosys.employeeportal.dto.ReimbursementFinanceTicketActionDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketActorDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketStageActionDTO;
+import com.apmosys.employeeportal.dto.ReimbursementRolePolicySaveRequestDTO;
 import com.apmosys.employeeportal.dto.ReimbursementSubmissionSettingsDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.dto.TravelBasedReimbursementRequestDTO;
 import com.apmosys.employeeportal.dto.TravelModeDTO;
 import com.apmosys.employeeportal.service.ReimbursementApprovalMatrixService;
+import com.apmosys.employeeportal.service.ReimbursementRolePolicyService;
 import com.apmosys.employeeportal.service.ReimbursementService;
 import com.apmosys.employeeportal.service.ReimbursementSubmissionSettingsService;
 import com.apmosys.employeeportal.service.ReimbursementTicketService;
@@ -49,6 +51,9 @@ public class ReimbursementController {
 
 	@Autowired
 	private ReimbursementSubmissionSettingsService reimbursementSubmissionSettingsService;
+
+	@Autowired
+	private ReimbursementRolePolicyService reimbursementRolePolicyService;
 
 	@PostMapping("/fetchReimbursementData")
 	public ServiceResponse fetchReimbursementData(@RequestBody ReimbursementDTO reimbursementObj) {
@@ -302,6 +307,48 @@ public class ReimbursementController {
 	@PostMapping("/deleteReimbursementApprovalMatrix")
 	public ServiceResponse deleteReimbursementApprovalMatrix(@RequestBody ReimbursementApprovalMatrixDTO dto) {
 		return reimbursementApprovalMatrixService.deleteApprovalMatrix(dto != null ? dto.getMatrixId() : null);
+	}
+
+	@PostMapping("/listAllReimbursementRolePolicies")
+	public ServiceResponse listAllReimbursementRolePolicies() {
+		return reimbursementRolePolicyService.listAllPolicySummaries();
+	}
+
+	@PostMapping("/fetchReimbursementRolePolicy")
+	public ServiceResponse fetchReimbursementRolePolicy(@RequestBody java.util.Map<String, Object> body) {
+		Long expensePolicyId = body != null && body.get("expensePolicyId") != null
+				? Long.valueOf(body.get("expensePolicyId").toString())
+				: null;
+		if (expensePolicyId != null) {
+			return reimbursementRolePolicyService.fetchPoliciesForExpensePolicy(expensePolicyId);
+		}
+		Long jobRoleId = body != null && body.get("jobRoleId") != null ? Long.valueOf(body.get("jobRoleId").toString())
+				: null;
+		return reimbursementRolePolicyService.fetchPoliciesForJobRole(jobRoleId);
+	}
+
+	@PostMapping("/deleteReimbursementRolePolicy")
+	public ServiceResponse deleteReimbursementRolePolicy(@RequestBody java.util.Map<String, Object> body) {
+		Long expensePolicyId = body != null && body.get("expensePolicyId") != null
+				? Long.valueOf(body.get("expensePolicyId").toString())
+				: null;
+		if (expensePolicyId != null) {
+			return reimbursementRolePolicyService.deletePoliciesForExpensePolicy(expensePolicyId);
+		}
+		Long jobRoleId = body != null && body.get("jobRoleId") != null ? Long.valueOf(body.get("jobRoleId").toString())
+				: null;
+		return reimbursementRolePolicyService.deletePoliciesForJobRole(jobRoleId);
+	}
+
+	@PostMapping("/saveReimbursementRolePolicy")
+	public ServiceResponse saveReimbursementRolePolicy(@RequestBody ReimbursementRolePolicySaveRequestDTO body) {
+		return reimbursementRolePolicyService.savePoliciesForJobRole(body);
+	}
+
+	@PostMapping("/resolveReimbursementRolePolicyForEmployee")
+	public ServiceResponse resolveReimbursementRolePolicyForEmployee(@RequestBody ReimbursementTicketActorDTO body) {
+		Long empId = body != null && body.getEmpId() != null ? body.getEmpId().longValue() : null;
+		return reimbursementRolePolicyService.resolveForEmployee(empId);
 	}
 
 }

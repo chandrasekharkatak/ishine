@@ -166,6 +166,7 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
+import { ReimbursementRolePolicyConfigComponent } from './configuration/reimbursement-role-policy-config/reimbursement-role-policy-config.component';
 import { TravelApprovalMatrixConfigComponent } from './configuration/travel-approval-matrix-config/travel-approval-matrix-config.component';
 import { TravelTicketModalComponent } from './travel-allowance/travel-ticket-modal/travel-ticket-modal.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
@@ -399,6 +400,7 @@ registerLocaleData(localeGb);
     TravelConfigComponent,
     ReimbursmentConfigComponent,
     ReimbursementRuleSetConfigComponent,
+    ReimbursementRolePolicyConfigComponent,
     TravelApprovalMatrixConfigComponent,
     TravelTicketModalComponent,
     HrDashboardComponent,

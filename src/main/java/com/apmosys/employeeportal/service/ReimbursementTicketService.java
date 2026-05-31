@@ -60,6 +60,7 @@ import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ExpenditureType;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
 import com.apmosys.employeeportal.model.Project;
+import com.apmosys.employeeportal.model.ProjectPoDetails;
 import com.apmosys.employeeportal.model.ReimbursementTicket;
 import com.apmosys.employeeportal.model.ReimbursementTicketAuditLog;
 import com.apmosys.employeeportal.model.ReimbursementClient;
@@ -72,6 +73,7 @@ import com.apmosys.employeeportal.repository.EmployeeRepository;
 import com.apmosys.employeeportal.repository.EmployeeTeamMapRepository;
 import com.apmosys.employeeportal.repository.ExpenditureTypeRepository;
 import com.apmosys.employeeportal.repository.ProjectRepository;
+import com.apmosys.employeeportal.repository.ProjectPoDetailsRepository;
 import com.apmosys.employeeportal.repository.ReimbursementClientRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTicketAuditLogRepository;
 import com.apmosys.employeeportal.repository.ReimbursementTicketDaySeqRepository;
@@ -106,6 +108,9 @@ public class ReimbursementTicketService {
 	private ProjectRepository projectRepository;
 
 	@Autowired
+	private ProjectPoDetailsRepository projectPoDetailsRepository;
+
+	@Autowired
 	private EmpPrimaryProjectMappingRepository empPrimaryProjectMappingRepository;
 
 	@Autowired
@@ -125,6 +130,9 @@ public class ReimbursementTicketService {
 
 	@Autowired
 	private ReimbursementSubmissionSettingsService reimbursementSubmissionSettingsService;
+
+	@Autowired
+	private ReimbursementRolePolicyService reimbursementRolePolicyService;
 
 	@Value("${reimbursement.workflow.hr.mail:hrm2@apmosys.com}")
 	private String workflowHrMail;
@@ -787,6 +795,7 @@ public class ReimbursementTicketService {
 			} else {
 				row.put("clientId", null);
 			}
+			row.put("poNo", resolvePoNoForProject(p.getProjectId()));
 			projects.add(0, row);
 			return;
 		}
@@ -817,7 +826,29 @@ public class ReimbursementTicketService {
 		row.put("projectName", "Others");
 		row.put("clientName", "");
 		row.put("clientId", null);
+		row.put("poNo", "");
 		projects.add(0, row);
+	}
+
+	private String resolvePoNoForProject(Integer projectId) {
+		if (projectId == null) {
+			return "";
+		}
+		List<ProjectPoDetails> pos = projectPoDetailsRepository.findByProjectIdAndActiveTrue(projectId);
+		if (pos != null && !pos.isEmpty()) {
+			String joined = pos.stream()
+					.map(ProjectPoDetails::getPoNo)
+					.filter(StringUtils::hasText)
+					.map(String::trim)
+					.distinct()
+					.sorted()
+					.collect(Collectors.joining(", "));
+			if (StringUtils.hasText(joined)) {
+				return joined;
+			}
+		}
+		Project p = projectRepository.findByProjectId(projectId);
+		return p != null && p.getPoNo() != null ? p.getPoNo().trim() : "";
 	}
 
 	private boolean isProjectAllowedForReimbursement(Long empId, Long projectId) {
@@ -856,6 +887,7 @@ public class ReimbursementTicketService {
 					} else {
 						m.put("clientId", null);
 					}
+					m.put("poNo", o.length > 4 && o[4] != null ? o[4].toString() : "");
 					projects.add(m);
 				}
 			} else {
@@ -878,6 +910,7 @@ public class ReimbursementTicketService {
 					} else {
 						m.put("clientId", null);
 					}
+					m.put("poNo", o.length > 12 && o[12] != null ? o[12].toString() : "");
 					projects.add(m);
 				}
 			}
@@ -1029,6 +1062,7 @@ public class ReimbursementTicketService {
 			}
 			cl.setProjectId(null);
 			cl.setProjectName(in.getOthersProjectName().trim());
+			cl.setPoNo(null);
 			applyManualProjectClient(cl, in, submitterEmpId, index);
 			return;
 		}
@@ -1043,6 +1077,7 @@ public class ReimbursementTicketService {
 			}
 			cl.setProjectId(null);
 			cl.setProjectName(pocName);
+			cl.setPoNo(null);
 			applyManualProjectClient(cl, in, submitterEmpId, index);
 			return;
 		}
@@ -1055,6 +1090,11 @@ public class ReimbursementTicketService {
 			if (p != null) {
 				cl.setClientId(p.getClientId());
 				cl.setClientName(p.getClientName());
+			}
+			if (StringUtils.hasText(in.getPoNo())) {
+				cl.setPoNo(in.getPoNo().trim());
+			} else {
+				cl.setPoNo(resolvePoNoForProject(in.getProjectId().intValue()));
 			}
 		}
 	}
@@ -1139,7 +1179,7 @@ public class ReimbursementTicketService {
 			if (!StringUtils.hasText(c.getTravelMode())) {
 				throw new IllegalArgumentException("Claim " + index + ": travel mode is required.");
 			}
-			if ("Personal Vehicle".equalsIgnoreCase(c.getTravelMode())) {
+			if (reimbursementRolePolicyService.isPersonalVehicleTravelMode(c.getTravelMode())) {
 				if (!StringUtils.hasText(c.getVehicleType())) {
 					throw new IllegalArgumentException("Claim " + index + ": vehicle type is required.");
 				}
@@ -1148,6 +1188,9 @@ public class ReimbursementTicketService {
 				}
 			}
 		}
+		Employee submitter = employeeRepository.findByEmpId(empId.longValue());
+		Long jobRoleId = submitter != null ? submitter.getJobRoleId() : null;
+		reimbursementRolePolicyService.validateClaimAgainstRolePolicy(c, index, jobRoleId);
 	}
 
 	/**
@@ -1219,6 +1262,9 @@ public class ReimbursementTicketService {
 			for (ReimbursementTicketClaimInputDTO c : req.getClaims()) {
 				validateClaimInput(c, idx++, req.getEmpId());
 			}
+			Employee submitter = employeeRepository.findByEmpId(req.getEmpId().longValue());
+			Long jobRoleId = submitter != null ? submitter.getJobRoleId() : null;
+			reimbursementRolePolicyService.validateTicketSharedFoodDailyLimits(req.getClaims(), jobRoleId);
 
 			ReimbursementTicket ticket = new ReimbursementTicket();
 			ticket.setEmpId(req.getEmpId());
@@ -1250,6 +1296,7 @@ public class ReimbursementTicketService {
 				cl.setDistance(in.getDistance());
 				cl.setVehicleType(in.getVehicleType());
 				cl.setFoodAllowanceType(in.getFoodAllowanceType());
+				cl.setTeamMemberCount(in.getTeamMemberCount());
 				cl.setDateOfFood(in.getDateOfFood() != null ? new Timestamp(in.getDateOfFood().getTime()) : null);
 				cl.setFromDate(in.getFromDate() != null ? new Timestamp(in.getFromDate().getTime()) : null);
 				cl.setToDate(in.getToDate() != null ? new Timestamp(in.getToDate().getTime()) : null);
@@ -3790,6 +3837,7 @@ public class ReimbursementTicketService {
 								.map(ReimbursementClient::getClientName).orElse(resolvedClientName);
 					}
 					cm.put("clientName", resolvedClientName);
+					cm.put("poNo", c.getPoNo());
 					cm.put("docIds", parseDocIds(c.getDocIds()));
 					cm.put("claimStatus", c.getClaimStatus());
 					cm.put("hodRemarks", c.getHodRemarks());
