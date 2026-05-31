@@ -53,6 +53,11 @@ public interface JobRoleRepository extends JpaRepository<JobRole, Long> {
 
 	@Query("SELECT j.deptId FROM JobRole j WHERE j.jobRoleId = :jobRoleId")
 	Long findDeptIdByJobRoleId(@Param("jobRoleId") Long jobRoleId);
+
+	/** All job roles sharing the same title (case-insensitive), including other departments. */
+	@Query("SELECT jr2 FROM JobRole jr1, JobRole jr2 WHERE jr1.jobRoleId = :jobRoleId "
+			+ "AND LOWER(TRIM(jr2.name)) = LOWER(TRIM(jr1.name))")
+	List<JobRole> findAllWithSameTitleAs(@Param("jobRoleId") Long jobRoleId);
 	
 	@Query(nativeQuery = true, value = "select employee_role from job_role where  job_role_id = roleId;")
 	public String getEmployeeRole(Long roleId);

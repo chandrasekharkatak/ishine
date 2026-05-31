@@ -1,0 +1,308 @@
+<div class="rmb-page rmb-role-policy-root rmb-config-master">
+  <!-- Table list -->
+  <ng-container *ngIf="!showFormView">
+    <section class="rmb-role-policy-hero mb-3">
+      <h3 class="rmb-role-policy-hero__title">Expense policy by job role</h3>
+      <p class="text-muted small mb-0">
+        Configure expense policy per job role — spend caps, per-day limits, and eligible categories.
+        Amount limits are <strong>per day</strong> (From–To dates inclusive). Claims exceeding policy are rejected at submit.
+      </p>
+    </section>
+
+    <div *ngIf="listLoading" class="text-muted small mb-3">
+      <i class="fa-solid fa-spinner fa-spin mr-2" aria-hidden="true"></i> Loading expense policies…
+    </div>
+
+    <div class="col-md-2 px-0 mb-2">
+      <div class="form-inline">
+        <small>View</small>
+        <select class="form-select-sm align-items-center mx-1" [(ngModel)]="items" (change)="page = 1">
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+        <small>entries</small>
+      </div>
+    </div>
+
+    <div class="row mb-2">
+      <div class="col-md-12 d-flex justify-content-end">
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="openAddForm()">
+          <em class="fa-solid fa-plus"></em> Add expense policy
+        </button>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="selector-toggle">
+          <a href="javascript:void(0)" (click)="toggleSearch()">
+            <i *ngIf="!isSearchEnabled" class="fa fa-search"></i>
+            <i *ngIf="isSearchEnabled" class="fa-solid fa-xmark"></i>
+          </a>
+        </div>
+        <div class="overflow-auto">
+          <table class="table" matSort (matSortChange)="sortData($event)" id="rmbRolePolicyTable">
+            <thead class="thead-light">
+              <tr>
+                <th scope="col" class="info-label">Sr No.</th>
+                <th scope="col" class="info-label" mat-sort-header="policyNo|string">Policy ID</th>
+                <th scope="col" class="info-label" mat-sort-header="jobRoleName|string">Job role(s)</th>
+                <th scope="col" class="info-label" mat-sort-header="policySummary|string">Policy summary</th>
+                <th scope="col" class="info-label" mat-sort-header="policyCount|number">Rules</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedByName|string">Updated by</th>
+                <th scope="col" class="info-label" mat-sort-header="updatedOn|datetime">Updated on</th>
+                <th scope="col" class="info-label text-nowrap">Actions</th>
+              </tr>
+              <tr app-column-filter-bar *ngIf="isPolicyTable && isSearchEnabled" [columnList]="policyColumns" (onSearch)="onSearch($event)"></tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="!listLoading && (policyList.length === 0 || (policyList | colFilter:filters:false).length === 0)">
+                <th colspan="8" class="text-center info-label">No details to display...</th>
+              </tr>
+              <tr
+                *ngFor="let row of policyList | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: items, currentPage: page }; let i = index"
+              >
+                <th scope="col" class="info-label">{{ items * (page - 1) + i + 1 }}</th>
+                <td>{{ row.policyNo }}</td>
+                <td>{{ row.jobRoleName }}</td>
+                <td>{{ row.policySummary }}</td>
+                <td>{{ row.policyCount }}</td>
+                <td>{{ row.updatedByName || '—' }}</td>
+                <td>{{ row.updatedOn ? (row.updatedOn | date: 'dd-MM-yyyy HH:mm:ss') : '—' }}</td>
+                <td class="text-nowrap rmb-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary rmb-action-btn mr-1" (click)="openEditForm(row)" title="Edit" aria-label="Edit">
+                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger rmb-action-btn" (click)="deletePolicy(row)" title="Delete" aria-label="Delete">
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pagination-controls class="my-pagination" [hidden]="policyList.length === 0" (pageChange)="handlePageChange($event)"></pagination-controls>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Add / edit form -->
+  <ng-container *ngIf="showFormView">
+    <div class="rmb-role-policy-form-header mb-3">
+      <button type="button" class="btn btn-link btn-sm pl-0 rmb-role-policy-back-btn" (click)="cancelForm()">
+        <i class="fa-solid fa-arrow-left mr-1" aria-hidden="true"></i> Back to list
+      </button>
+      <h4 class="rmb-role-policy-form-title mb-0">{{ isEditMode ? 'Edit expense policy' : 'Add expense policy' }}</h4>
+    </div>
+
+    <div class="card p-4 rmb-role-policy">
+      <div *ngIf="mastersLoading" class="alert alert-light border mb-3 small">
+        <i class="fa-solid fa-spinner fa-spin mr-2" aria-hidden="true"></i> Loading expenditure types, travel modes, and vehicle types…
+      </div>
+      <div *ngIf="mastersError && !mastersLoading" class="alert alert-warning small mb-3" role="alert">{{ mastersError }}</div>
+
+      <p class="text-muted small mb-3" *ngIf="!isEditMode">
+        Employees only see allowed travel modes, vehicle types, and food allowance types.
+        Saving applies limits to all matching role records across departments.
+      </p>
+
+      <div class="form-group rmb-role-policy__role-field" *ngIf="isEditMode">
+        <label class="info-label d-block mb-2">Policy ID</label>
+        <span class="rmb-role-policy__chip">{{ editPolicyNo || ('#' + editExpensePolicyId) }}</span>
+        <label class="info-label d-block mb-2 mt-3"><span class="text-danger">*</span> Job role(s)</label>
+        <app-my-select
+          *ngIf="jobRoleOptions.length"
+          class="skill-matrix-master-config__search-select rmb-role-policy__my-select"
+          [multiple]="true"
+          [options]="jobRoleOptions"
+          displayKey="name"
+          valueKey="jobRoleId"
+          placeholder="Search or select job role(s)"
+          [(ngModel)]="selectedJobRoleIds"
+          (ngModelChange)="onJobRoleSelectionChange()"
+          name="rmbRolePolicyJobRolesEdit">
+        </app-my-select>
+        <small class="form-text text-muted d-block mt-1">
+          Add or remove role titles under this policy. Saving applies limits to all matching role records across departments.
+        </small>
+        <div class="rmb-role-policy__selected-hint" *ngIf="selectedJobRoleLabels().length">Selected job roles</div>
+        <div class="rmb-role-policy__chip-row" *ngIf="selectedJobRoleLabels().length">
+          <span class="rmb-role-policy__chip" *ngFor="let label of selectedJobRoleLabels()">{{ label }}</span>
+        </div>
+      </div>
+
+      <div class="form-group rmb-role-policy__role-field" *ngIf="!isEditMode">
+        <label class="info-label d-block mb-2"><span class="text-danger">*</span> Job role(s)</label>
+        <app-my-select
+          *ngIf="jobRoleOptions.length"
+          class="skill-matrix-master-config__search-select rmb-role-policy__my-select"
+          [multiple]="true"
+          [options]="jobRoleOptions"
+          displayKey="name"
+          valueKey="jobRoleId"
+          placeholder="Search or select job role(s)"
+          [(ngModel)]="selectedJobRoleIds"
+          (ngModelChange)="onJobRoleSelectionChange()"
+          name="rmbRolePolicyJobRoles">
+        </app-my-select>
+        <p class="small text-danger mb-2" *ngIf="!jobRoleOptions.length">No job roles returned from the server.</p>
+        <small class="form-text text-muted d-block mt-1">
+          Each role title appears once (even if used in multiple departments). Saving applies limits to all matching role records.
+        </small>
+        <div class="rmb-role-policy__selected-hint" *ngIf="selectedJobRoleLabels().length">Selected job roles</div>
+        <div class="rmb-role-policy__chip-row" *ngIf="selectedJobRoleLabels().length">
+          <span class="rmb-role-policy__chip" *ngFor="let label of selectedJobRoleLabels()">{{ label }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="loading" class="text-muted small my-3">Loading policy…</div>
+
+      <p class="small text-info mb-0" *ngIf="hasSelectedRoles() && isMultipleRolesSelected && !loading">
+        One expense policy applies to all {{ selectedRoleCount }} selected role title(s). Rules are stored once under {{ editPolicyNo || 'the new policy ID' }}.
+      </p>
+
+      <ng-container *ngIf="hasSelectedRoles() && !loading">
+        <hr />
+        <h5 class="mb-2">Amount limits (per day)</h5>
+        <p class="text-muted small">
+          Leave blank for no cap. Amounts must be positive numbers only (up to 2 decimal places). For most types, eligible total = per day limit × number of days (From to To, inclusive).
+          <strong>Food:</strong> the per day limit is shared across Breakfast, Lunch and Dinner combined (e.g. ₹500/day total for all three).
+          <strong>Travel</strong> limits are set separately per travel mode below (not here).
+        </p>
+        <p class="text-muted small mb-2" *ngIf="!mastersLoading && !nonTravelExpenditureTypes().length">
+          No expenditure types found. Add them under the <strong>Expenditure Type</strong> tab first.
+        </p>
+        <div class="row mb-3" *ngIf="nonTravelExpenditureTypes().length">
+          <div class="col-md-4 mb-2" *ngFor="let e of nonTravelExpenditureTypes()">
+            <label class="small">{{ expenditureTypeName(e) }} max per day (₹)</label>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm rmb-amount-input"
+              [ngModel]="amountLimits[expenditureTypeName(e)]"
+              (ngModelChange)="onPositiveAmountFieldChange(amountLimits, expenditureTypeName(e), $event)"
+              (keydown)="onPositiveAmountKeyDown($event)"
+              (keypress)="onPositiveAmountKeyPress($event)"
+              (paste)="onPositiveAmountPaste($event, amountLimits, expenditureTypeName(e))"
+              placeholder="No limit" />
+          </div>
+        </div>
+
+        <hr />
+        <h5 class="mb-2">Travel mode — per-day limits &amp; eligibility</h5>
+        <p class="text-muted small mb-2">
+          Set a max per day (₹) for Cab, Train, Flight, and other modes (limit × days, From–To inclusive).
+          <strong>Own / Personal Vehicle</strong> uses the <strong>₹ per km rate</strong> section below — only eligibility is configured here.
+        </p>
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="rmbRestrictTravel" [(ngModel)]="restrictTravelModes" />
+          <label class="form-check-label" for="rmbRestrictTravel">Restrict travel modes (only checked modes visible to employees)</label>
+        </div>
+        <p class="text-muted small mb-2" *ngIf="!masterTravelModes.length">
+          No travel modes found. Add them under the <strong>Travel Mode</strong> tab first.
+        </p>
+        <div class="table-responsive mb-2" *ngIf="travelModeNames().length">
+          <table class="table table-sm table-bordered mb-0 rmb-role-policy-travel-table">
+            <thead class="thead-light">
+              <tr>
+                <th>Travel mode</th>
+                <th class="text-nowrap">Max per day (₹)</th>
+                <th class="text-nowrap" *ngIf="restrictTravelModes">Eligible</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let name of travelModeNames()">
+                <td>{{ name }}</td>
+                <td *ngIf="!isPersonalVehicleTravelMode(name); else ownVehicleNoDailyLimit">
+                  <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm rmb-amount-input"
+                    [ngModel]="travelModeDailyLimits[name]"
+                    (ngModelChange)="onPositiveAmountFieldChange(travelModeDailyLimits, name, $event)"
+                    (keydown)="onPositiveAmountKeyDown($event)"
+                    (keypress)="onPositiveAmountKeyPress($event)"
+                    (paste)="onPositiveAmountPaste($event, travelModeDailyLimits, name)"
+                    placeholder="No limit" />
+                </td>
+                <ng-template #ownVehicleNoDailyLimit>
+                  <span class="text-muted small d-block py-1">₹/km rate below</span>
+                </ng-template>
+                <td *ngIf="restrictTravelModes">
+                  <div class="form-check mb-0">
+                    <input type="checkbox" class="form-check-input" [id]="'tm_' + name" [(ngModel)]="allowedTravelModes[name]" />
+                    <label class="form-check-label" [class.sr-only]="!isPersonalVehicleTravelMode(name)" [for]="'tm_' + name">
+                      {{ isPersonalVehicleTravelMode(name) ? 'Allow' : ('Allow ' + name) }}
+                    </label>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr />
+        <h5 class="mb-2">Vehicle type eligibility</h5>
+        <div class="form-check mb-2">
+          <input type="checkbox" class="form-check-input" id="rmbRestrictVehicle" [(ngModel)]="restrictVehicleTypes" />
+          <label class="form-check-label" for="rmbRestrictVehicle">Restrict vehicle types (Personal Vehicle claims)</label>
+        </div>
+        <p class="text-muted small mb-2" *ngIf="restrictVehicleTypes && !vehicleTypeNames().length">
+          No vehicle types found. Add them under the <strong>Vehicle Type</strong> tab first.
+        </p>
+        <div class="row mb-3" *ngIf="restrictVehicleTypes && vehicleTypeNames().length">
+          <div class="col-md-4 mb-1" *ngFor="let name of vehicleTypeNames()">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" [id]="'vt_' + name" [(ngModel)]="allowedVehicleTypes[name]" />
+              <label class="form-check-label" [for]="'vt_' + name">{{ name }}</label>
+            </div>
+          </div>
+        </div>
+
+        <hr />
+        <h5 class="mb-2">Personal vehicle rates (₹ per km)</h5>
+        <p class="text-muted small">
+          Required for Own/Personal Vehicle claims. Set the per km rate for each vehicle type.
+          Employees cannot submit travel claims until the rate is configured for their job role.
+        </p>
+        <p class="text-muted small mb-2" *ngIf="!vehicleTypeNames().length">
+          No vehicle types found. Add them under the <strong>Vehicle Type</strong> tab first (e.g. Two Wheeler, Four Wheeler).
+        </p>
+        <div class="row mb-3" *ngIf="vehicleTypeNames().length">
+          <div class="col-md-4 mb-2" *ngFor="let name of vehicleTypeNames()">
+            <label class="small">{{ name }} (₹/km)</label>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm rmb-amount-input"
+              [ngModel]="vehicleRatesPerKm[name]"
+              (ngModelChange)="onPositiveAmountFieldChange(vehicleRatesPerKm, name, $event)"
+              (keydown)="onPositiveAmountKeyDown($event)"
+              (keypress)="onPositiveAmountKeyPress($event)"
+              (paste)="onPositiveAmountPaste($event, vehicleRatesPerKm, name)"
+              placeholder="Enter rate" />
+          </div>
+        </div>
+
+        <hr />
+        <h5 class="mb-2">Food allowance type eligibility</h5>
+        <div class="form-check mb-2">
+          <input type="checkbox" class="form-check-input" id="rmbRestrictFood" [(ngModel)]="restrictFoodTypes" />
+          <label class="form-check-label" for="rmbRestrictFood">Restrict food allowance types</label>
+        </div>
+        <p class="text-muted small mb-2" *ngIf="restrictFoodTypes && !foodTypeNames().length">
+          No food allowance types found. Add them under the <strong>Food Allowance Type</strong> tab first.
+        </p>
+        <div class="row mb-3" *ngIf="restrictFoodTypes && foodTypeNames().length">
+          <div class="col-md-4 mb-1" *ngFor="let name of foodTypeNames()">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" [id]="'ft_' + name" [(ngModel)]="allowedFoodTypes[name]" />
+              <label class="form-check-label" [for]="'ft_' + name">{{ name }}</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="rmb-role-policy__form-actions">
+          <button type="button" class="btn btn-primary btn-sm" (click)="save()" [disabled]="saving">
+            <i class="fa-solid fa-spinner fa-spin mr-1" *ngIf="saving" aria-hidden="true"></i>
+            <i class="fa-solid fa-floppy-disk mr-1" *ngIf="!saving" aria-hidden="true"></i>
+            {{ saving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </ng-container>
+</div>

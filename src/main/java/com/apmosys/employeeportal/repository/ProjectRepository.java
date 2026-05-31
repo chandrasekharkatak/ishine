@@ -38,7 +38,9 @@ import com.apmosys.employeeportal.model.Project;
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	/** Active projects linked to any of the given departments (reimbursement picker for HOD / VP). */
-	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id "
+	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id, "
+			+ "COALESCE((SELECT GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_no SEPARATOR ', ') "
+			+ "FROM project_po_details ppd WHERE ppd.project_id = p.project_id AND ppd.active = 1), p.po_no) AS po_no "
 			+ "FROM projects p "
 			+ "INNER JOIN clients c ON c.client_id = p.client_id "
 			+ "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id "

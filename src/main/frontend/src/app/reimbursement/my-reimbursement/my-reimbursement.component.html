@@ -105,10 +105,10 @@
                                                 <span class="rmb-chip" *ngIf="c.hodApproval || c.preApprovalDate" title="HOD pre-approval {{ c.preApprovalDate || '' }}">HOD</span>
                                             </td>
                                             <td class="text-center rmb-draft-col-docs">
-                                                <span class="rmb-draft-doc-count">{{ docCountForClaim(c) }}</span>
+                                                <span class="rmb-draft-doc-count" [title]="docCountTitleForClaim(c)">{{ docCountForClaim(c) }}</span>
                                                 <button *ngIf="docCountForClaim(c) > 0" type="button" class="btn btn-sm rmb-btn-doc-view"
                                                     (click)="openDraftDocumentsModal(draftClaimDocumentsModal, ti)"
-                                                    title="View or remove uploaded files">
+                                                    title="View expense bills and HOD pre-approval files">
                                                     <i class="fa fa-eye" aria-hidden="true"></i><span class="sr-only">View documents</span>
                                                 </button>
                                             </td>
@@ -206,34 +206,48 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Travel'">
-                            <label class="rmb-label" for="travelModeSel"><span class="rmb-req">*</span>Travel Mode</label>
-                            <select class="form-control rmb-control" id="travelModeSel" [(ngModel)]="reimbursementObj.travelMode" required>
-                                <option value="" disabled selected>Select</option>
-                                <option *ngFor="let mode of travelModeList" [value]="mode.modeType">{{ mode.modeType }}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.travelMode === 'Personal Vehicle' && isTravel">
-                            <label class="rmb-label" for="vehType"><span class="rmb-req">*</span>Vehicle Type</label>
-                            <select class="form-control rmb-control" id="vehType" [(ngModel)]="reimbursementObj.vehicleType" required>
-                                <option value="" disabled selected>Select vehicle</option>
-                                <option *ngFor="let vehicle of vehicleTypeList" [value]="vehicle.vehicleTypeName">{{ vehicle.vehicleTypeName }}</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="isTravel && reimbursementObj.travelMode === 'Personal Vehicle'">
-                            <label class="rmb-label" for="distKm"><span class="rmb-req">*</span>Distance (km)</label>
-                            <input type="number" class="form-control rmb-control" id="distKm" [(ngModel)]="reimbursementObj.distance"
-                                (ngModelChange)="onKilometersChange()" name="distance" min="1" [disabled]="!reimbursementObj.vehicleType" />
+                        <div class="col-12 mb-0" *ngIf="isTravel">
+                            <div class="row rmb-travel-fields-row align-items-end">
+                                <div class="col-lg-3 col-md-6 mb-3">
+                                    <label class="rmb-label" for="travelModeSel"><span class="rmb-req">*</span>Travel Mode</label>
+                                    <select class="form-control rmb-control" id="travelModeSel" [(ngModel)]="reimbursementObj.travelMode" (ngModelChange)="onTravelModeChange()" required>
+                                        <option value="" disabled selected>Select</option>
+                                        <option *ngFor="let mode of travelModeList" [value]="mode.modeType">{{ mode.modeType }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-3 col-md-6 mb-3" *ngIf="isPersonalVehicleTravelMode()">
+                                    <label class="rmb-label" for="vehType"><span class="rmb-req">*</span>Vehicle Type</label>
+                                    <select class="form-control rmb-control" id="vehType" [(ngModel)]="reimbursementObj.vehicleType"
+                                        (ngModelChange)="onVehicleTypeChange()" required>
+                                        <option value="" disabled selected>Select vehicle</option>
+                                        <option *ngFor="let vehicle of vehicleTypeList" [value]="vehicle.vehicleTypeName">{{ vehicle.vehicleTypeName }}</option>
+                                    </select>
+                                </div>
+                                <div class="col-lg-6 col-md-12 mb-3" *ngIf="isPersonalVehicleTravelMode()">
+                                    <label class="rmb-label rmb-label--distance-day" for="distKm" title="Total Distance Covered Per Day (KM)">
+                                        <span class="rmb-req">*</span>Total Distance Covered Per Day (KM)
+                                    </label>
+                                    <input type="number" class="form-control rmb-control" id="distKm" [(ngModel)]="reimbursementObj.distance"
+                                        (ngModelChange)="onKilometersChange()" name="distance" min="1" [disabled]="!reimbursementObj.vehicleType" />
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food'">
                             <label class="rmb-label" for="foodType"><span class="rmb-req">*</span>Food Allowance Type</label>
-                            <select class="form-control rmb-control" id="foodType" [(ngModel)]="reimbursementObj.foodAllowanceType" name="foodAllowanceType" required>
+                            <select class="form-control rmb-control" id="foodType" [(ngModel)]="reimbursementObj.foodAllowanceType"
+                                (ngModelChange)="onFoodAllowanceTypeChange()" name="foodAllowanceType" required>
                                 <option value="" disabled selected>Select type</option>
                                 <option *ngFor="let type of foodTypeList" [value]="type.foodTypeName">{{ type.foodTypeName }}</option>
                             </select>
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="reimbursementObj.expenditureType === 'Food' && isTeamMealFoodAllowanceType()">
+                            <label class="rmb-label" for="teamMemberCount"><span class="rmb-req">*</span>Team member count</label>
+                            <input type="number" class="form-control rmb-control" id="teamMemberCount" name="teamMemberCount"
+                                [ngModel]="reimbursementObj.teamMemberCount"
+                                (ngModelChange)="onTeamMemberCountChange($event)"
+                                min="2" step="1" inputmode="numeric" placeholder="e.g. 5" />
+                            <p class="small text-muted mb-0 mt-1">Include all attendees. Minimum 2 for a team meal.</p>
                         </div>
                         </div>
                     </div>
@@ -349,10 +363,15 @@
                             </div>
                         </div>
 
-                        <div class="col-md-6 col-lg-6 mb-3" *ngIf="showReadonlyClientForProject()">
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyClientForProject() && !isManualProjectSelected()">
                             <label class="rmb-label" for="rmbReadonlyClient">Client</label>
                             <input id="rmbReadonlyClient" type="text" class="form-control rmb-control rmb-control--readonly"
                                 [value]="reimbursementObj.displayClientName || '—'" disabled readonly />
+                        </div>
+                        <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyPoNoForProject()">
+                            <label class="rmb-label" for="rmbReadonlyPoNo">PO No.</label>
+                            <input id="rmbReadonlyPoNo" type="text" class="form-control rmb-control rmb-control--readonly"
+                                [value]="reimbursementObj.displayPoNo || '—'" disabled readonly />
                         </div>
                         </div>
                     </div>
@@ -379,8 +398,13 @@
                                     (keydown)="onClaimAmountKeydown($event)"
                                     (paste)="onClaimAmountPaste($event)"
                                     required
-                                    [disabled]="reimbursementObj.travelMode === 'Personal Vehicle'" />
+                                    [class.is-invalid]="isRoleAmountLimitExceeded()"
+                                    [disabled]="isPersonalVehicleTravelMode()" />
                             </div>
+                            <p class="small text-info mb-0 mt-1" *ngIf="roleAmountLimitHint() && !isRoleAmountLimitExceeded()">{{ roleAmountLimitHint() }}</p>
+                            <div class="rmb-field-error mt-1" *ngIf="roleAmountLimitExceededMessage()">{{ roleAmountLimitExceededMessage() }}</div>
+                            <p class="small text-info mb-0 mt-1" *ngIf="vehicleRateHint()">{{ vehicleRateHint() }}</p>
+                            <p class="small text-danger mb-0 mt-1" *ngIf="vehicleRateMissingHint()">{{ vehicleRateMissingHint() }}</p>
                         </div>
 
                         <div class="col-md-6 col-lg-3 mb-3">
@@ -466,8 +490,13 @@
                                     <div *ngFor="let d of documentsForEditingClaimPreApproval(); let pi = index" class="rmb-edit-doc-row">
                                         <span class="rmb-edit-doc-name" [title]="d.fileName">{{ d.fileName }}</span>
                                         <span class="text-nowrap">
-                                            <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="previewDraftDocument(d.docId)">
+                                            <button *ngIf="canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                                (click)="previewDraftDocument(d.docId, d.fileName)">
                                                 <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                                            </button>
+                                            <button *ngIf="!canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                                (click)="downloadDraftDocument(d.docId, d.fileName)">
+                                                <i class="fa fa-download mr-1" aria-hidden="true"></i>Download
                                             </button>
                                         </span>
                                     </div>
@@ -512,8 +541,13 @@
                                 <div *ngFor="let d of documentsForEditingClaim(); let di = index" class="rmb-edit-doc-row">
                                     <span class="rmb-edit-doc-name" [title]="d.fileName">{{ d.fileName }}</span>
                                     <span class="text-nowrap">
-                                        <button type="button" class="btn btn-sm btn-outline-primary mr-1" (click)="previewDraftDocument(d.docId)">
+                                        <button *ngIf="canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                            (click)="previewDraftDocument(d.docId, d.fileName)">
                                             <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                                        </button>
+                                        <button *ngIf="!canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                            (click)="downloadDraftDocument(d.docId, d.fileName)">
+                                            <i class="fa fa-download mr-1" aria-hidden="true"></i>Download
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger"
                                             (click)="removeDocumentFromEditingClaim(di, alert_messagevalidation)">
@@ -527,12 +561,7 @@
                                     <span class="font-weight-bold text-dark">Preview</span>
                                     <button type="button" class="btn btn-sm btn-link p-0" (click)="clearDraftDocPreview()">Close preview</button>
                                 </div>
-                                <ng-container *ngIf="isDraftPdfPreview(); else editInlinePreviewImg">
-                                    <iframe [src]="draftDocPreview" class="rmb-doc-preview-frame" title="Document preview"></iframe>
-                                </ng-container>
-                                <ng-template #editInlinePreviewImg>
-                                    <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid rmb-doc-preview-img" alt="Document preview" />
-                                </ng-template>
+                                <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid rmb-doc-preview-img" alt="Document preview" />
                             </div>
                         </div>
 
@@ -570,7 +599,9 @@
                         <button *ngIf="editingClaimIndex !== null" type="button" class="btn rmb-btn rmb-btn--ghost" (click)="cancelEditDraftClaim()">
                             <i class="fa fa-times" aria-hidden="true"></i><span>Cancel Edit</span>
                         </button>
-                        <button type="button" class="btn rmb-btn rmb-btn--secondary" (click)="addClaimToTicket(alert_messagevalidation)">
+                        <button type="button" class="btn rmb-btn rmb-btn--secondary"
+                            [disabled]="isRoleAmountLimitExceeded()"
+                            (click)="addClaimToTicket(alert_messagevalidation)">
                             <i class="fa" [ngClass]="editingClaimIndex === null ? 'fa-list-ul' : 'fa-check'" aria-hidden="true"></i>
                             <span *ngIf="editingClaimIndex === null">Add Claim to Ticket</span>
                             <span *ngIf="editingClaimIndex !== null">Update Claim in Ticket</span>
@@ -609,7 +640,7 @@
 
 <ng-template #draftClaimDocumentsModal>
     <div class="modal-header rmb-docs-modal-header">
-        <h4 class="modal-title">Supporting documents</h4>
+        <h4 class="modal-title">Claim documents</h4>
         <button type="button" class="close" aria-label="Close" (click)="closeDraftDocumentsModal()">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -619,6 +650,7 @@
             Claim <strong>{{ draftDocsClaimIndex + 1 }}</strong> — preview a file or remove it from this claim.
             If you remove every file, the whole claim is removed from the ticket.
         </p>
+        <h6 class="font-weight-bold mb-2">Mandatory expense bills</h6>
         <div class="table-responsive rmb-docs-list-wrap mb-3">
             <table class="table table-sm rmb-docs-list-table mb-0">
                 <thead>
@@ -631,15 +663,55 @@
                     <tr *ngFor="let d of ticketClaims[draftDocsClaimIndex].documents; let di = index">
                         <td class="align-middle">{{ d.fileName }}</td>
                         <td class="text-right align-middle text-nowrap">
-                            <button type="button" class="btn btn-sm btn-outline-primary mr-1"
-                                (click)="previewDraftDocument(d.docId)">
+                            <button *ngIf="canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                (click)="previewDraftDocument(d.docId, d.fileName)">
                                 <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                            </button>
+                            <button *ngIf="!canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                (click)="downloadDraftDocument(d.docId, d.fileName)">
+                                <i class="fa fa-download mr-1" aria-hidden="true"></i>Download
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-danger"
                                 (click)="removeDocumentFromDraftClaim(di, alert_messagevalidation)">
                                 <i class="fa fa-trash mr-1" aria-hidden="true"></i>Remove
                             </button>
                         </td>
+                    </tr>
+                    <tr *ngIf="!ticketClaims[draftDocsClaimIndex].documents?.length">
+                        <td colspan="2" class="text-muted small">No expense bills attached.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <h6 class="font-weight-bold mb-2">HOD pre-approval emails</h6>
+        <div class="table-responsive rmb-docs-list-wrap mb-3">
+            <table class="table table-sm rmb-docs-list-table mb-0">
+                <thead>
+                    <tr>
+                        <th>File Name</th>
+                        <th class="text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let d of ticketClaims[draftDocsClaimIndex].preApprovalDocuments; let pi = index">
+                        <td class="align-middle">{{ d.fileName }}</td>
+                        <td class="text-right align-middle text-nowrap">
+                            <button *ngIf="canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                (click)="previewDraftDocument(d.docId, d.fileName)">
+                                <i class="fa fa-eye mr-1" aria-hidden="true"></i>View
+                            </button>
+                            <button *ngIf="!canViewDraftFile(d.fileName)" type="button" class="btn btn-sm btn-outline-primary mr-1"
+                                (click)="downloadDraftDocument(d.docId, d.fileName)">
+                                <i class="fa fa-download mr-1" aria-hidden="true"></i>Download
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                (click)="removePreApprovalDocumentFromDraftClaim(pi, alert_messagevalidation)">
+                                <i class="fa fa-trash mr-1" aria-hidden="true"></i>Remove
+                            </button>
+                        </td>
+                    </tr>
+                    <tr *ngIf="!ticketClaims[draftDocsClaimIndex].preApprovalDocuments?.length">
+                        <td colspan="2" class="text-muted small">No HOD pre-approval emails attached.</td>
                     </tr>
                 </tbody>
             </table>
@@ -649,12 +721,7 @@
                 <span class="font-weight-bold text-dark">Preview</span>
                 <button type="button" class="btn btn-sm btn-link p-0" (click)="clearDraftDocPreview()">Close preview</button>
             </div>
-            <ng-container *ngIf="isDraftPdfPreview(); else draftPreviewImg">
-                <iframe [src]="draftDocPreview" class="rmb-doc-preview-frame" title="Document preview"></iframe>
-            </ng-container>
-            <ng-template #draftPreviewImg>
-                <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid rmb-doc-preview-img" alt="Document preview" />
-            </ng-template>
+            <img *ngIf="draftDocPreview" [src]="draftDocPreview" class="img-fluid rmb-doc-preview-img" alt="Document preview" />
         </div>
     </div>
     <div class="modal-footer">

@@ -8,6 +8,7 @@
             (click)="showReviewTable()">Review-Type</button>
     </div>
 </div> -->
+<div class="rmb-config-master">
 <div class="row mb-3">
     <div class="col-md-12 px-0">
         
@@ -20,6 +21,8 @@
             (click)="foodTypeTable()">Food Allowance Type</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isSubmissionWindowTab}"
             (click)="showSubmissionWindowPanel()">Submission Window</button>
+        <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isRolePolicyTab}"
+            (click)="showRolePolicyPanel()">Expense Policy</button>
         <button type="button" class="btn btn-outline-primary btn-sm mx-2" [ngClass]="{'active' : isRuleSetTab}"
             (click)="showRuleSetPanel()">Approval Matrix</button>
         <!-- <button type=" button" class="btn btn-outline-primary btn-sm mx-1">Reimbursment-config</button> -->
@@ -27,7 +30,7 @@
 </div>
 
 <div class="row"
-    *ngIf="isCategoryTable && !isClass && !istravelMode && !isRuleSetTab && !isSubmissionWindowTab">
+    *ngIf="isCategoryTable && !isClass && !istravelMode && !isRuleSetTab && !isSubmissionWindowTab && !isRolePolicyTab">
 
     <div class="col-md-12">
 
@@ -123,7 +126,7 @@
 
 
 <div class="row"
-    *ngIf="istravelMode && !isClass && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
+    *ngIf="istravelMode && !isClass && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab && !isRolePolicyTab">
 
     <div class="col-md-12">
 
@@ -219,7 +222,7 @@
 
 
 <div class="row"
-    *ngIf="isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
+    *ngIf="isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab && !isRolePolicyTab">
 
     <div class="col-md-12">
 
@@ -310,7 +313,7 @@
 
 
 <div class="row"
-    *ngIf="foodCategoryTable && !isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab">
+    *ngIf="foodCategoryTable && !isClass && !istravelMode && !isCategoryTable && !isRuleSetTab && !isSubmissionWindowTab && !isRolePolicyTab">
 
     <div class="col-md-12">
 
@@ -432,6 +435,17 @@
   </div>
 </div>
 
+<div class="row" *ngIf="isRolePolicyTab">
+  <div class="col-md-12">
+    <app-reimbursement-role-policy-config
+      [expenditureTypeList]="expenditureTypeList"
+      [travelModeList]="travelModeList"
+      [vehicleTypeList]="vehicleTypeList"
+      [foodTypeList]="foodTypeList">
+    </app-reimbursement-role-policy-config>
+  </div>
+</div>
+
 <div class="row" *ngIf="isRuleSetTab">
   <div class="col-md-12">
     <div class="row">
@@ -441,6 +455,7 @@
     </div>
     <app-reimbursement-rule-set-config></app-reimbursement-rule-set-config>
   </div>
+</div>
 </div>
 <!-- Add / Edit forms (ng-bootstrap modal) -->
 <ng-template #expenditureTypeModal let-modal>
