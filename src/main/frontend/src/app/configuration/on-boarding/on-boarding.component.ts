@@ -41,7 +41,7 @@ export class OnBoardingComponent implements OnInit {
     private validationService:ValidationService,
     private modalService: NgbModal,
     private utilityService: UtilityService,
-    private employeeIdUtil: EmployeeIdUtilService,
+    public employeeIdUtil: EmployeeIdUtilService,
     private router : Router
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
