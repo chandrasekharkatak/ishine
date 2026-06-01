@@ -43,7 +43,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	@Query("SELECT DISTINCT t.projectId FROM EmployeeTeamMap etm " +
 		       "JOIN Team t ON etm.teamId = t.teamId " +
 		       "WHERE etm.empId = :empId " +
-//		       "AND etm.active = 1 " + 
+		       "AND etm.active != 2 " + 
 		       "AND (:date >= etm.startDate OR etm.startDate IS NULL) " +
 		       "AND (:date <= etm.endDate OR etm.endDate IS NULL)")
 		List<Integer> findActiveProjectIdsByEmpIdAndDate(@Param("empId") Long empId, @Param("date") LocalDateTime date);
@@ -152,7 +152,7 @@ public interface EmployeeTeamMapRepository extends JpaRepository<EmployeeTeamMap
 	 
 	 @Query("SELECT etm FROM EmployeeTeamMap etm \n"
 	 		+ "INNER JOIN Team t ON t.teamId = etm.teamId \n"
-	 		+ "WHERE t.projectId = :projectId AND etm.active = :active")
+	 		+ "WHERE t.projectId = :projectId AND etm.active != :active")
 	 List<EmployeeTeamMap> findByProjectIdAndActive(Integer projectId,Long active);
 	 
 	 
