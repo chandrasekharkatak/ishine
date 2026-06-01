@@ -464,7 +464,8 @@ exportExceptionToExcel1(): void {
     if (employee.rmgProjects?.length) {
       employee.rmgProjects.forEach((project: any) => {
         dataForTable.push({
-          "Employment Id": "A-" + employee.employmentId,
+          "Employment Id": employee.employeementIdAccToET || employee.employmentIdAcToET
+            || this.utilityService.getFormattedEmployeeId(employee),
           "Employee Name": employee.employeeName,
           "Department": employee.department,
           "Billable Type": employee.billableType,
@@ -481,7 +482,8 @@ exportExceptionToExcel1(): void {
     } else {
       // Optional: Handle employees with no rmgProjects
       dataForTable.push({
-        "Employment Id": "A-" + employee.employmentId,
+        "Employment Id": employee.employeementIdAccToET || employee.employmentIdAcToET
+          || this.utilityService.getFormattedEmployeeId(employee),
         "Employee Name": employee.employeeName,
         "Department": employee.department,
         "Billable Type": employee.billableType,
@@ -524,7 +526,8 @@ exportWithoutBillabilityToExcel(): void {
   const dataForTable = this.allEmployeeData.map((employee: any, index: number) => {
     return {
       "Sr No.": index + 1,
-      "Employment Id": "A-" + employee.employeementId,
+      "Employment Id": employee.employeementIdAccToET || employee.employmentIdAcToET
+        || this.utilityService.getFormattedEmployeeId(employee),
       "Employee Name": employee.name,
       "Department": employee.departmentName,
       "Manager Name": employee.managerName,

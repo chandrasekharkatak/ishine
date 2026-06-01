@@ -157,4 +157,44 @@ public final class EmployeeEmploymentIdUtil {
 		return email.trim().toLowerCase().endsWith("@ap2l.ai");
 	}
 
+	/** Strip A-/CS-/AP-/APCS- prefix; returns numeric id or trimmed input if no known prefix. */
+	public static String extractNumericIdFromPrefixed(String prefixedId) {
+		if (prefixedId == null || prefixedId.isBlank()) {
+			return null;
+		}
+		String trimmed = prefixedId.trim();
+		String upper = trimmed.toUpperCase();
+		if (upper.startsWith("APCS-")) {
+			return trimmed.substring(5).trim();
+		}
+		if (upper.startsWith("AP-")) {
+			return trimmed.substring(3).trim();
+		}
+		if (upper.startsWith("CS-")) {
+			return trimmed.substring(3).trim();
+		}
+		if (upper.startsWith("A-")) {
+			return trimmed.substring(2).trim();
+		}
+		return trimmed;
+	}
+
+	/** Employee type for repository lookup routing (matches checkEmployeementId). */
+	public static String resolveEmployeeTypeFromPrefixedId(String prefixedId) {
+		if (prefixedId == null || prefixedId.isBlank()) {
+			return EMPLOYEE_TYPE_REGULAR;
+		}
+		String upper = prefixedId.trim().toUpperCase();
+		if (upper.startsWith("APCS-")) {
+			return EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT;
+		}
+		if (upper.startsWith("CS-")) {
+			return EMPLOYEE_TYPE_CONSULTANT;
+		}
+		if (upper.startsWith("AP-")) {
+			return EMPLOYEE_TYPE_APMOSYS_PRODUCT;
+		}
+		return EMPLOYEE_TYPE_REGULAR;
+	}
+
 }

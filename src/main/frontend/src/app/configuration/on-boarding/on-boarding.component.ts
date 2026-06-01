@@ -261,7 +261,7 @@ getEmpIdPrefixFromFlags(employee: any): string {
       return { numericId, employeeType: 'Consultant' };
     }
     if (trimmed.startsWith('A-')) {
-      return { numericId, employeeType: 'Other' };
+      return { numericId, employeeType: 'Regular' };
     }
     return null;
   }

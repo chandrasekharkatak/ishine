@@ -1818,13 +1818,19 @@ public class RewardsService {
 	                }
 					String numericPart = "";
 
-					if (employeeCode.startsWith("APR")) {
+					if (employeeCode.startsWith("APCS-")) {
+						prefix = "APCS-";
+						numericPart = employeeCode.substring(5);
+					} else if (employeeCode.startsWith("APR")) {
 						prefix = "APR-";
 						numericPart = employeeCode.substring(4);
-					} else if (employeeCode.startsWith("AP")) {
+					} else if (employeeCode.startsWith("AP-")) {
 						prefix = "AP-";
 						numericPart = employeeCode.substring(3);
-					} else if (employeeCode.startsWith("A")) {
+					} else if (employeeCode.startsWith("CS-")) {
+						prefix = "CS-";
+						numericPart = employeeCode.substring(3);
+					} else if (employeeCode.startsWith("A-")) {
 						prefix = "A-";
 						numericPart = employeeCode.substring(2);
 					} else {

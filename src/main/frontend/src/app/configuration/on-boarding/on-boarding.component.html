@@ -41,6 +41,12 @@
                                 {{ getEmpIdPrefixFromFlags(employee) }}{{ employee.employeementId }}
                             </span>
                         </h6>
+                        <h6 class="mr-5 mt-2 info-label">
+                            Employment Type :
+                            <span style="color: #193d8a;">
+                                {{ employeeIdUtil.formatEmployeeTypeLabel(employee) }}
+                            </span>
+                        </h6>
                         <h6 class="mr-5 mt-2 info-label">Email : <span
                                 style=" color: #193d8a;">{{employee.email}}</span></h6>
                         <h6 class="mr-5 mt-2 info-label">Employment Status : <span

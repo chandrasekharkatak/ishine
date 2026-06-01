@@ -18,6 +18,7 @@ import { Employee360Service } from 'src/app/services/employee360.service';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 import { TimesheetService } from 'src/app/services/timesheet.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 import { SortPipe } from 'src/app/sort.pipe';
 import * as XLSX from 'xlsx';
 
@@ -90,6 +91,7 @@ export class Employee360TimesheetComponent implements OnInit {
   constructor(
     private employeeService: EmployeeService,
     private utilityService: UtilityService,
+    private employeeIdUtil: EmployeeIdUtilService,
     private employee360Service : Employee360Service,
     private timesheetService : TimesheetService,
     private datePipe: DatePipe,
@@ -714,6 +716,15 @@ let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
       || '—';
 
     const empId = originalData[0]?.employmentId;
+    const empFlags = {
+      employeementId: empId,
+      isApmosysProduct: originalData[0]?.isApmosysProduct ?? this.Employee360?.isApmosysProduct,
+      isConsultant: originalData[0]?.isConsultant ?? this.Employee360?.isConsultant,
+      isApprenticeship: originalData[0]?.isApprenticeship ?? this.Employee360?.isApprenticeship,
+    };
+    const formattedEmploymentId = empId
+      ? (this.utilityService.getFormattedEmployeeId(empFlags) || empId)
+      : '—';
     originalData.forEach((timesheet: any) => {
       if (this.managerId == timesheet.currentManagerId) {
         this.actionButton = true;
@@ -744,7 +755,7 @@ let encryptedEmployeeData = sessionStorage.getItem('employee360Data');
 
       transformedData.push({
         name: empName,
-        employmentId: empId ? "A-" + empId : '—',
+        employmentId: formattedEmploymentId,
         empId: empId,
         date: timesheet.date,
         officeInTime: timesheet.workCheckIn,

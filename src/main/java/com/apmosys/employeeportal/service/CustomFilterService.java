@@ -5952,12 +5952,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			if (upper.startsWith("APCS-")) {
 				query.append(prefix).append("e.employeement_id = '").append(value.substring(5))
 						.append("' AND e.is_apmosys_product = 'true' AND e.is_consultant = 'true' ");
-			} else if (upper.startsWith("AP-")) {
-				query.append(prefix).append("e.employeement_id = '").append(value.substring(3))
-						.append("' AND e.is_apmosys_product = 'true' AND COALESCE(e.is_consultant, 'false') != 'true' ");
 			} else if (upper.startsWith("CS-")) {
 				query.append(prefix).append("e.employeement_id = '").append(value.substring(3))
 						.append("' AND e.is_consultant = 'true' AND COALESCE(e.is_apmosys_product, 'false') != 'true' ");
+			} else if (upper.startsWith("AP-")) {
+				query.append(prefix).append("e.employeement_id = '").append(value.substring(3))
+						.append("' AND e.is_apmosys_product = 'true' AND COALESCE(e.is_consultant, 'false') != 'true' ");
 			} else if (upper.startsWith("A-")) {
 				query.append(prefix).append("e.employeement_id = '").append(value.substring(2))
 						.append("' AND COALESCE(e.is_consultant, 'false') != 'true' ")

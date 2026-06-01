@@ -1282,7 +1282,7 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			" SELECT T2.emp_id,T2.gap_start,T2.gap_end, T2.unmapped_count + 1 FROM T2 WHERE (T2.unmapped_count + 1) > 0 \n" +
 			" ) \n" +
 			" SELECT distinct e.emp_id, e.employeement_id  \n" +
-			" , CASE WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-',e.employeement_id) ELSE CONCAT('A-',e.employeement_id) END as employeement_id_str  \n" +
+			" , CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END as employeement_id_str  \n" +
 			" , e.name emp_name, e.email emp_mail, d.dept_id, d.name dept_name, hod.email hod_mail, hod.name hod_name, rm.email rm_mail, rm.name rm_name  \n" +
 			" , t.gap_start, t.gap_end, t.unmapped_count  \n" +
 			" FROM employee e   \n" +

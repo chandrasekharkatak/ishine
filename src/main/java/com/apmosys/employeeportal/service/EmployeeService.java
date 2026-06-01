@@ -12240,16 +12240,26 @@ private LocalDate parseDate(String dateStr, int rowNum, List<String> errorMessag
 
 
 private Long resolveEmployeeId(String empIdentifier) {
-    if (empIdentifier.startsWith("A-")) {
-        String idNum = empIdentifier.substring(2);
-        Employee emp = employeeRepository.findByEmployeementIdForOthers(Long.valueOf(idNum));
-        return emp != null ? emp.getEmpId() : null;
-    } else if (empIdentifier.startsWith("AP-")) {
-        String idNum = empIdentifier.substring(3);
-        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
-        return emp != null ? emp.getEmpId() : null;
+    if (empIdentifier == null || empIdentifier.isBlank()) {
+        return null;
     }
-    return null;
+    String numericId = EmployeeEmploymentIdUtil.extractNumericIdFromPrefixed(empIdentifier);
+    if (numericId == null || numericId.isBlank()) {
+        return null;
+    }
+    Long employmentId = Long.valueOf(numericId);
+    String employeeType = EmployeeEmploymentIdUtil.resolveEmployeeTypeFromPrefixedId(empIdentifier);
+    Employee emp;
+    if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForApmosysProductConsultant(employmentId);
+    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForApmosysProduct(employmentId);
+    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForConsultant(employmentId);
+    } else {
+        emp = employeeRepository.findByEmployeementIdForOthers(employmentId);
+    }
+    return emp != null ? emp.getEmpId() : null;
 }
 
 private String normalizeName(String name) {
