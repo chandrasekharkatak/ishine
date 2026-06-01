@@ -998,7 +998,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                 <tr *ngIf="eIndex === 0 || expandedTeams.has(pIndex + '-' + tIndex)">
                   <td class="sticky-col" [class.no-border]="!(team.mappedEmployeeDetails.length > 1 && eIndex === 0)">
                     <ng-container *ngIf="team.mappedEmployeeDetails.length > 1 && eIndex === 0; else emptyCell">
-                      <button (click)="extendEmployees(pIndex,eIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
+                      <button (click)="extendEmployees(pIndex, tIndex)" [title]="expandedTeams.has(pIndex + '-' + tIndex) ? 'Collapse' : 'Expand'" class="btn-expand">
                         <i class="fas"
                         [class.fa-chevron-down]="!expandedTeams.has(pIndex + '-' + tIndex)"
                         [class.fa-chevron-up]="expandedTeams.has(pIndex + '-' + tIndex)"></i>
@@ -1030,10 +1030,10 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.clientRM || '—' }}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.projectStartDate | date:'dd-MM-yyyy'}}
                   </td>
-                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getRowspanForProject(project)">
+                  <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">
                     {{ project.projectEndDate | date:'dd-MM-yyyy'}}
                   </td>
                   <td *ngIf="tIndex === 0 && eIndex === 0" [attr.rowspan]="getVisibleRowspanForProject(project, pIndex)">

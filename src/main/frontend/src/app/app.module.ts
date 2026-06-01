@@ -166,6 +166,7 @@ import { BiomaxApprovalComponent } from './user-timesheet/biomax-approval/biomax
 import { TravelConfigComponent } from './configuration/travel-config/travel-config.component';
 import { ReimbursmentConfigComponent } from './configuration/reimbursment-config/reimbursment-config.component';
 import { ReimbursementRuleSetConfigComponent } from './configuration/reimbursement-rule-set-config/reimbursement-rule-set-config.component';
+import { ReimbursementRolePolicyConfigComponent } from './configuration/reimbursement-role-policy-config/reimbursement-role-policy-config.component';
 import { TravelApprovalMatrixConfigComponent } from './configuration/travel-approval-matrix-config/travel-approval-matrix-config.component';
 import { TravelTicketModalComponent } from './travel-allowance/travel-ticket-modal/travel-ticket-modal.component';
 import { HrDashboardComponent } from './user-timesheet/hr-dashboard/hr-dashboard.component';
@@ -256,6 +257,7 @@ import { InterviewTrackerComponent } from './interview-tracker/interview-tracker
 import { InterviewListComponent } from './interview-tracker/interview-list/interview-list.component';
 import { ScheduleInterviewComponent } from './interview-tracker/schedule-interview/schedule-interview.component';
 import { ReimbursementTicketModalComponent } from './reimbursement/reimbursement-ticket-modal/reimbursement-ticket-modal.component';
+import { ConfirmLeaveTicketModalComponent } from './reimbursement/confirm-leave-ticket-modal.component';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { PortalModule } from '@angular/cdk/portal';
 import { RmgModalHostComponent } from './user-team/resource-management/rmg-modal-host/rmg-modal-host.component';
@@ -397,10 +399,12 @@ registerLocaleData(localeGb);
     TotalReimbursementrequestComponent,
     ReimbursementDashboardComponent,
     ReimbursementTicketModalComponent,
+    ConfirmLeaveTicketModalComponent,
     SafePipe,
     TravelConfigComponent,
     ReimbursmentConfigComponent,
     ReimbursementRuleSetConfigComponent,
+    ReimbursementRolePolicyConfigComponent,
     TravelApprovalMatrixConfigComponent,
     TravelTicketModalComponent,
     HrDashboardComponent,

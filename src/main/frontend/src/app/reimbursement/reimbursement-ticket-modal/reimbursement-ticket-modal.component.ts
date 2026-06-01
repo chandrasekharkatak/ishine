@@ -44,6 +44,20 @@ export class ReimbursementTicketModalComponent {
   selectedClaim: any | null = null;
   selectedClaimDocIds: number[] = [];
   selectedDocument: SafeResourceUrl | string | null = null;
+  selectedDocView: {
+    docId: number;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    previewKind: 'image' | 'download';
+  } | null = null;
+  private docCache = new Map<number, {
+    docId: number;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    previewKind: 'image' | 'download';
+  }>();
   docError: string | null = null;
 
   rejectModalRef: NgbModalRef | null = null;
@@ -462,10 +476,26 @@ export class ReimbursementTicketModalComponent {
   }
 
   private getMimeTypeFromBase64(base64: string): string {
-    const header = atob(base64.slice(0, 20));
-    if (header.startsWith('%PDF')) return 'application/pdf';
-    if (header.startsWith('\x89PNG')) return 'image/png';
-    if (header.startsWith('\xFF\xD8\xFF')) return 'image/jpeg';
+    try {
+      const header = atob(base64.slice(0, 24));
+      if (header.startsWith('%PDF')) {
+        return 'application/pdf';
+      }
+      if (header.startsWith('\x89PNG')) {
+        return 'image/png';
+      }
+      if (header.startsWith('\xFF\xD8\xFF')) {
+        return 'image/jpeg';
+      }
+      if (header.startsWith('GIF8')) {
+        return 'image/gif';
+      }
+      if (header.startsWith('PK')) {
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      }
+    } catch {
+      // fall through
+    }
     return 'application/octet-stream';
   }
 
@@ -483,6 +513,7 @@ export class ReimbursementTicketModalComponent {
       ? raw.map((x: any) => Number(x)).filter((n: number) => Number.isFinite(n))
       : [];
     this.selectedDocument = null;
+    this.selectedDocView = null;
     this.docError = null;
     this.proofsModalRef = this.modalService.open(this.proofsModalTpl, {
       size: 'xl',
@@ -498,38 +529,199 @@ export class ReimbursementTicketModalComponent {
     this.proofsModalRef?.close();
     this.proofsModalRef = null;
     this.selectedDocument = null;
+    this.selectedDocView = null;
     this.selectedClaim = null;
     this.selectedClaimDocIds = [];
+    this.docCache.clear();
     this.docError = null;
+  }
+
+  docLabel(docId: number, index: number): string {
+    const cached = this.docCache.get(docId);
+    if (cached?.fileName) {
+      return cached.fileName;
+    }
+    return `Document ${index + 1}`;
+  }
+
+  showDownloadForDoc(view: { previewKind: string; fileName: string } | null): boolean {
+    if (!view) {
+      return false;
+    }
+    return view.previewKind === 'download';
+  }
+
+  downloadIconClass(view: { fileName: string; mimeType: string } | null): string {
+    const name = String(view?.fileName || '').toLowerCase();
+    const mime = String(view?.mimeType || '').toLowerCase();
+    if (name.endsWith('.pdf') || mime.includes('pdf')) {
+      return 'fa fa-file-pdf-o';
+    }
+    if (name.endsWith('.csv') || mime.includes('csv')) {
+      return 'fa fa-file-text-o';
+    }
+    if (/\.xlsx?$|\.xlsm$/.test(name) || mime.includes('spreadsheet') || mime.includes('excel')) {
+      return 'fa fa-file-excel-o';
+    }
+    return 'fa fa-file-o';
+  }
+
+  private normalizeStoredFileName(ticketFileName: string | null | undefined, docId: number): string {
+    const raw = String(ticketFileName || '').trim();
+    if (!raw) {
+      return `document-${docId}`;
+    }
+    const idx = raw.indexOf('_');
+    return idx >= 0 ? raw.substring(idx + 1) : raw;
+  }
+
+  private mimeFromFileName(fileName: string): string | null {
+    const n = fileName.toLowerCase();
+    if (n.endsWith('.pdf')) {
+      return 'application/pdf';
+    }
+    if (n.endsWith('.csv')) {
+      return 'text/csv';
+    }
+    if (n.endsWith('.xlsx')) {
+      return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    }
+    if (n.endsWith('.xls') || n.endsWith('.xlsm')) {
+      return 'application/vnd.ms-excel';
+    }
+    if (n.endsWith('.docx')) {
+      return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    }
+    if (n.endsWith('.doc')) {
+      return 'application/msword';
+    }
+    if (n.endsWith('.png')) {
+      return 'image/png';
+    }
+    if (n.endsWith('.jpg') || n.endsWith('.jpeg')) {
+      return 'image/jpeg';
+    }
+    if (n.endsWith('.gif')) {
+      return 'image/gif';
+    }
+    if (n.endsWith('.webp')) {
+      return 'image/webp';
+    }
+    return null;
+  }
+
+  private resolveMimeType(base64: string, fileName: string): string {
+    const fromBytes = this.getMimeTypeFromBase64(base64);
+    if (fromBytes !== 'application/octet-stream') {
+      return fromBytes;
+    }
+    return this.mimeFromFileName(fileName) || fromBytes;
+  }
+
+  private resolvePreviewKind(mimeType: string, fileName: string): 'image' | 'download' {
+    const name = fileName.toLowerCase();
+    if (mimeType.startsWith('image/') || /\.(png|jpe?g|gif|webp|bmp)$/i.test(name)) {
+      return 'image';
+    }
+    return 'download';
+  }
+
+  private applySelectedDocView(view: {
+    docId: number;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    previewKind: 'image' | 'download';
+  }): void {
+    this.selectedDocView = view;
+    this.selectedDocument = null;
+    if (view.previewKind === 'image') {
+      this.selectedDocument = `data:${view.mimeType};base64,${view.base64}`;
+    }
+  }
+
+  private triggerBrowserDownload(view: {
+    docId: number;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+  }): void {
+    const byteCharacters = atob(view.base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const blob = new Blob([new Uint8Array(byteNumbers)], { type: view.mimeType || 'application/octet-stream' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = view.fileName || `document-${view.docId}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  }
+
+  private async ensureDocLoaded(docId: number): Promise<{
+    docId: number;
+    fileName: string;
+    mimeType: string;
+    base64: string;
+    previewKind: 'image' | 'download';
+  } | null> {
+    const cached = this.docCache.get(docId);
+    if (cached) {
+      return cached;
+    }
+    const response: any = await this.reimbursementService
+      .previewDocumentReimbursment({ docId })
+      .pipe(first())
+      .toPromise();
+    if (response?.serviceStatus !== 'Success' || !response?.serviceResponse?.documentBytes) {
+      this.docError = response?.serviceError || response?.serviceMessage || 'Document not available.';
+      return null;
+    }
+    const base64Data = response.serviceResponse.documentBytes;
+    const fileName = this.normalizeStoredFileName(response.serviceResponse.ticketFileName, docId);
+    const mimeType = this.resolveMimeType(base64Data, fileName);
+    const view = {
+      docId,
+      fileName,
+      mimeType,
+      base64: base64Data,
+      previewKind: this.resolvePreviewKind(mimeType, fileName)
+    };
+    this.docCache.set(docId, view);
+    return view;
+  }
+
+  async downloadDocument(docId?: number): Promise<void> {
+    const id = docId != null ? Number(docId) : this.selectedDocView?.docId;
+    if (!Number.isFinite(id)) {
+      return;
+    }
+    this.docError = null;
+    try {
+      const view = await this.ensureDocLoaded(id as number);
+      if (!view) {
+        return;
+      }
+      this.triggerBrowserDownload(view);
+    } catch (e: any) {
+      this.docError = e?.message || 'Download failed.';
+    }
   }
 
   async previewDoc(docId: number) {
     this.selectedDocument = null;
+    this.selectedDocView = null;
     this.docError = null;
     try {
-      const response: any = await this.reimbursementService
-        .previewDocumentReimbursment({ docId })
-        .pipe(first())
-        .toPromise();
-      if (response?.serviceStatus !== 'Success' || !response?.serviceResponse?.documentBytes) {
-        this.docError = response?.serviceError || response?.serviceMessage || 'Document not available.';
+      const view = await this.ensureDocLoaded(docId);
+      if (!view) {
         return;
       }
-      const base64Data = response.serviceResponse.documentBytes;
-      const mimeType = this.getMimeTypeFromBase64(base64Data);
-      if (mimeType === 'application/pdf') {
-        const pdfUrl = `data:application/pdf;base64,${base64Data}`;
-        this.selectedDocument = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-        return;
-      }
-      if (mimeType.startsWith('image/')) {
-        this.selectedDocument = `data:${mimeType};base64,${base64Data}`;
-        return;
-      }
-      const link = document.createElement('a');
-      link.href = `data:application/octet-stream;base64,${base64Data}`;
-      link.download = 'document';
-      link.click();
+      this.applySelectedDocView(view);
     } catch (e: any) {
       this.docError = e?.message || 'Failed to load document.';
     }

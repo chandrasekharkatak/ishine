@@ -35,6 +35,7 @@ export class MyTeamComponent implements OnInit {
   userMapping: any = {};
   dateToday: any = new Date();
 
+  leaveRejectionReasonList: any[] = [];
   sortDirection = 'asc';
   sortColumn: any;
   sortColumnType:any;
@@ -120,6 +121,7 @@ export class MyTeamComponent implements OnInit {
 
   isActionEnabled:boolean = false;
 
+showOtherRemarks = false;
   filters:any = {};
   isSearchEnabled:boolean = false;
   isSearchLeaveHistoryEnabled : boolean = false;
@@ -160,6 +162,8 @@ export class MyTeamComponent implements OnInit {
   isApprover: boolean = false;
   allEmployeeList360: any[] = [];
   // employeesFor360: any[] = [];
+
+selectedRejectionIds: number[] = [];
   tableName: String;
 
   selectedNode: HierarchyUser | null = null;
@@ -223,6 +227,7 @@ export class MyTeamComponent implements OnInit {
 
     this.preventBackButton();
 
+    this.getLeaveRejectionReasons();
     this.sectionViewInit();
   }
 
@@ -983,6 +988,54 @@ ngOnDestroy(): void {
    onSingleReject(template: TemplateRef<any> , ){
     this.onUpdateLeaveStatus(template, this.leaveObj,3);
   }
+  onSingleRejectNew(template: TemplateRef<any>,) {
+      this.leaveObj.rejectReason = this.leaveObj.rejectReason?.trim();
+      if (!this.validationService.validateActivityTimesheetDiscription(this.leaveObj.rejectReason)) {
+        this.alertMessage = "Please enter valid reason !!"
+        this.openAlertMod(template, this.alertMessage);
+        return false;
+      }
+      this.onUpdateLeaveStatusNew(template, this.leaveObj, 3);
+    }
+
+     onUpdateLeaveStatusNew(
+      template: TemplateRef<any>,
+      leaveApplication: any,
+      updatedLeaveStatusId: number
+    ) {
+      this.cancelRequest();
+    
+      // 1 = Pending, 2 = Approved, 3 = Rejected
+      leaveApplication.leaveStatusId = updatedLeaveStatusId;
+      leaveApplication.leaveStatusUpdatedBy = this.currentUser.empId;
+      leaveApplication.rejectReason = leaveApplication.rejectReason?.trim();
+    
+      // New fields for rejection flow
+      leaveApplication.rejectionIds = this.selectedRejectionIds || [];
+    
+      this.leaveService.updateLeaveStatusNew(leaveApplication)
+        .pipe(first())
+        .subscribe({
+          next: (response: any) => {
+            if (response.serviceStatus === "Success") {
+              this.getAllMyTeamsPendingLeaveApplicationsByManagerId();
+            }
+    
+            this.openAlertMod(template, response.serviceResponse);
+            this.resetRejectModalData();
+          },
+          error: (error: any) => {
+            console.error(error);
+            this.openAlertMod(template, "Something went wrong.");
+          }
+        });
+    }
+
+    resetRejectModalData() {
+      this.selectedRejectionIds = [];
+      this.showOtherRemarks = false;
+      this.leaveObj.rejectReason = '';
+    }
 
   // openLeaveRejectModal
   openLeaveRejectModal(template: TemplateRef<any>, leave: any){
@@ -2816,7 +2869,42 @@ setPipExtendsDays(template:TemplateRef<any>){
 
 // Balkan OrgChart removed (license expired). Custom hierarchy chart is rendered in the template.
 
+  onRejectionReasonChange() {
+    const other = this.leaveRejectionReasonList.find(
+      x => x.reason.toLowerCase() === 'other'
+    );
 
+    this.showOtherRemarks =
+      other && this.selectedRejectionIds.includes(other.rejectionReasonId);
+
+    if (!this.showOtherRemarks) {
+      this.leaveObj.rejectReason = '';
+    }
+  }
+  isRejectDisabled(): boolean {
+    if (this.selectedRejectionIds.length === 0) {
+      return true;
+    }
+
+    if (!this.leaveObj.rejectReason ||
+      !this.leaveObj.rejectReason.trim()) {
+      return true;
+    }
+
+    return false;
+  }
+  getLeaveRejectionReasons() {
+  this.leaveService.getLeaveRejectionReasons()
+    .subscribe({
+      next: (response: any) => {
+        this.leaveRejectionReasonList = response;
+        console.log('Rejection Reasons:', this.leaveRejectionReasonList);
+      },
+      error: (error: any) => {
+        console.error(error);
+      }
+    });
+}
 
 }
 

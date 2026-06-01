@@ -195,6 +195,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		public Page<EmployeeDTO> getAllEmployeesByDepartmentIdsForLeaveExclusion(List<Long> deptIds, String empId,
 			    String name,String jobRoleId,String deptName,String projectName,String billableType,Pageable pageable);
 	
+		@Query(value =
+			"SELECT COUNT(*) " +
+			"FROM employee_team_mapping etm " +
+			"JOIN teams t ON t.team_id = etm.team_id " +
+			"JOIN projects p ON p.project_id = t.project_id " +
+			"WHERE etm.emp_id = :empId " +
+			"AND etm.active = 1 " +
+			"AND p.po_project_type IN ('TNM', 'Fixed Cost')",
+			nativeQuery = true)
+		Long isEmployeeMappedToFCorTNMProject(@Param("empId") Integer empId);
+	
 	@Query(value="SELECT new com.apmosys.employeeportal.dto.EmployeeDTO(e.empId,e.name,jr.name,d.deptId,d.name,jr.jobRoleId,"
 			+ "e.billableType, \n" +
 			"CASE \n" +

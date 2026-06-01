@@ -1992,7 +1992,7 @@ public class TimesheetValidationHelper {
 	 * 2. Non-Working: ONLY allowed on dates that are announced as Holiday / Week Off.
 	 *    Non-working day type can only be selected for dates that exist in the holiday table.
 	 */
-	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId , Boolean hasClient) {
+	public void validateDayTypeAgainstHoliday(LocalDate timesheetDate, Integer dayTypeId , Boolean hasClient,Long empId,EmployeeTimesheetDTO dto) {
 		
 		if (timesheetDate == null || dayTypeId == null) {
 			return;
@@ -2007,12 +2007,17 @@ public class TimesheetValidationHelper {
 		// Check if this date is configured as a holiday/week-off for any location ('All' or specific)
 		// We pass null for location so repository returns all holidays (state = 'All' or any state)
 		boolean isHolidayDate = false;
+        boolean hasOnlyFCorTNMProjects=false;
 		if (holidayRepository != null) {
 			isHolidayDate = !holidayRepository.findHolidaysWithinBuffer(timesheetDate, timesheetDate, null).isEmpty();
 		}
+        Set<Integer> projectIds = new HashSet<>(); for (LocationSessionDTO session : dto.getLocationSessions()) { if (session.getProjects() != null) { projectIds.addAll( session.getProjects().stream() .map(ProjectTimesheetDTO::getProjectId) .filter(Objects::nonNull) .collect(Collectors.toList()) ); } } 
+        if (!projectIds.isEmpty()) {
+             hasOnlyFCorTNMProjects = hasOnlyFCorTNMProjects(projectIds);
+        }
 		
 		// Rule 1: Working / Half-day Working NOT allowed on holiday dates
-		if ((incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING ) && !hasClient) {
+		if (!hasOnlyFCorTNMProjects && (incomingDayType == DayTypeCode.WORKING || incomingDayType == DayTypeCode.HALF_DAY_WORKING ) && !hasClient) {
 			if (isHolidayDate) {
 				throw new TimesheetValidationFailedException(
 						"Date is configured as Holiday/Week Off. Only Non-working timesheet is allowed on this date.");
@@ -2020,13 +2025,34 @@ public class TimesheetValidationHelper {
 		}
 		
 		// Rule 2: Non-Working ONLY allowed on announced holiday dates
-		if (incomingDayType == DayTypeCode.NON_WORKING) {
+		if (!hasOnlyFCorTNMProjects && incomingDayType == DayTypeCode.NON_WORKING) {
 			if (!isHolidayDate) {
 				throw new TimesheetValidationFailedException(
 						"Non-working day type is only allowed on dates announced as Holiday or Week Off.");
 			}
 		}
 	}
+
+    private boolean hasOnlyFCorTNMProjects(Set<Integer> projectIds) {
+
+    List<Object[]> result =
+            projectRepository.findProjectTypesByProjectIds(
+                    new ArrayList<>(projectIds));
+
+    for (Object[] row : result) {
+
+        String projectType =
+                row[1] != null ? row[1].toString() : null;
+
+        if (!"TNM".equalsIgnoreCase(projectType)
+                && !"Fixed Cost".equalsIgnoreCase(projectType)) {
+
+            return false;
+        }
+    }
+
+    return true;
+}
 	
 	
 	private void validateSingleLeaveForDate(
@@ -2211,16 +2237,16 @@ public class TimesheetValidationHelper {
 
 
 
-    private Map<Integer, Boolean> getClientSideMap(List<Integer> projectIds) {
+    private Map<Integer, String> getClientSideMap(List<Integer> projectIds) {
 
-        List<Object[]> result = projectRepository.findClientSideFlagByProjectIds(projectIds);
+        List<Object[]> result = projectRepository.findProjectsWithClientPoProjectType(projectIds);
     
-        Map<Integer, Boolean> clientSideMap = new HashMap<>();
+        Map<Integer, String> clientSideMap = new HashMap<>();
     
         for (Object[] row : result) {
             Integer projectId = (Integer) row[0];
-            Boolean hasClientSideId = (Boolean) row[1];
-            clientSideMap.put(projectId, hasClientSideId);
+            String poProjectType = (String) row[1];
+            clientSideMap.put(projectId, poProjectType);
         }
     
         return clientSideMap;
@@ -2247,7 +2273,7 @@ public class TimesheetValidationHelper {
         // =========================
         // Fetch projectId → clientSide flag
         // =========================
-        Map<Integer, Boolean> clientSideMap = getClientSideMap(projectIds);
+        Map<Integer, String> clientSideMap = getClientSideMap(projectIds);
     
         // =========================
         // Validation
@@ -2261,17 +2287,19 @@ public class TimesheetValidationHelper {
                 Integer projectId = project.getProjectId();
                 if (projectId == null) continue;
     
-                Boolean hasClientSideId = clientSideMap.get(projectId);
+                String poProjectType = clientSideMap.get(projectId);
     
                 // Apmosys Holiday
-                if (dayTypeId == 6 && Boolean.TRUE.equals(hasClientSideId)) {
+                if (dayTypeId == 6 && poProjectType != null &&
+                	    "TNM".equalsIgnoreCase(poProjectType)) {
                     throw new TimesheetValidationFailedException(
                             "Apmosys Holiday cannot be applied for client-side projects."
                     );
                 }
     
                 // Client Holiday
-                if (dayTypeId == 7 && !Boolean.TRUE.equals(hasClientSideId)) {
+                if (dayTypeId == 7 && (poProjectType == null ||
+                	    (!"Fixed Cost".equalsIgnoreCase(poProjectType) && !"TNM".equalsIgnoreCase(poProjectType)))) {
                     throw new TimesheetValidationFailedException(
                             "Client Holiday requires all projects to be client-side projects."
                     );

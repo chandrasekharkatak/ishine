@@ -1,0 +1,117 @@
+.rmb-role-policy-hero__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #193d8a;
+  margin-bottom: 0.35rem;
+}
+
+.rmb-role-policy-form-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.rmb-role-policy-back-btn {
+  color: #193d8a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.rmb-role-policy-back-btn:hover {
+  text-decoration: underline;
+}
+
+.rmb-role-policy-form-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #193d8a;
+}
+
+.rmb-role-policy-travel-table th,
+.rmb-role-policy-travel-table td {
+  vertical-align: middle;
+}
+
+.rmb-role-policy-travel-table input.form-control-sm {
+  min-width: 7rem;
+}
+
+.rmb-role-policy .form-check-label {
+  font-size: 0.9rem;
+}
+
+.rmb-role-policy__role-field {
+  max-width: 36rem;
+}
+
+.rmb-role-policy__selected-hint {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #64748b;
+  margin-top: 0.65rem;
+  margin-bottom: 0.35rem;
+}
+
+.rmb-role-policy__chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.15rem;
+}
+
+.rmb-role-policy__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(25, 61, 138, 0.1);
+  border: 1px solid rgba(25, 61, 138, 0.22);
+  color: #193d8a;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+.rmb-role-policy__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.rmb-role-policy__form-actions .btn {
+  min-width: auto;
+  width: auto;
+}
+
+/* app-my-select — match Approval Matrix / Skill Matrix search select */
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background: #fff;
+  min-height: calc(1.5em + 0.75rem + 2px);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select:focus-within {
+  border-color: rgba(25, 61, 138, 0.55);
+  box-shadow: 0 0 0 0.15rem rgba(25, 61, 138, 0.12);
+}
+
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select mat-select,
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select .mat-mdc-select {
+  width: 100%;
+}
+
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select .mat-select-trigger,
+.rmb-role-policy-root ::ng-deep .rmb-role-policy__my-select.skill-matrix-master-config__search-select .mat-mdc-select-trigger {
+  min-height: calc(1.5em + 0.65rem);
+  padding-top: 4px;
+  padding-bottom: 4px;
+  align-items: center;
+}

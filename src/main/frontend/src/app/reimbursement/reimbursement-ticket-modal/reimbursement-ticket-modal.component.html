@@ -52,7 +52,10 @@
           <th>Claim Mode</th>
           <th>Project</th>
           <th>Client</th>
+          <th>PO No.</th>
           <th class="text-right">Amount (₹)</th>
+          <th class="text-nowrap">From Date</th>
+          <th class="text-nowrap">To Date</th>
           <th>Claim status</th>
           <th>Purpose</th>
           <th>Business Justification</th>
@@ -73,7 +76,10 @@
           </td>
           <td class="small">{{ c.projectName ? (c.projectName | rmbCamelDisplay) : ('#' + c.projectId) }}</td>
           <td class="small">{{ (c.clientName || '—') | rmbCamelDisplay }}</td>
+          <td class="small">{{ c.poNo || '—' }}</td>
           <td class="text-right">{{ c.amount | number:'1.0-2' }}</td>
+          <td class="small text-nowrap">{{ c.fromDate ? (c.fromDate | date:'dd MMM yyyy') : '—' }}</td>
+          <td class="small text-nowrap">{{ c.toDate ? (c.toDate | date:'dd MMM yyyy') : '—' }}</td>
           <td class="text-nowrap">
             <span class="rmbtm-status"
               [ngClass]="{
@@ -143,7 +149,7 @@
           </td>
         </tr>
         <tr *ngIf="!ticket?.claims?.length">
-          <td [attr.colspan]="isDecisionStage ? 9 : 8" class="text-center text-muted">No claims on this ticket.</td>
+          <td [attr.colspan]="isDecisionStage ? 15 : 14" class="text-center text-muted">No claims on this ticket.</td>
         </tr>
       </tbody>
     </table>
@@ -332,14 +338,25 @@
             <div class="rmbtm-card__hint">{{ selectedClaimDocIds?.length || 0 }} file(s)</div>
           </div>
           <div *ngIf="selectedClaimDocIds?.length; else noProofsList" class="rmbtm-proof-list">
-            <button
+            <div
               *ngFor="let docId of selectedClaimDocIds; let di = index"
-              type="button"
-              class="btn btn-sm rmbtm-doc-pill w-100 text-left mb-2"
-              (click)="previewDoc(docId)">
-              <i class="fa fa-file-o mr-2" aria-hidden="true"></i>
-              document{{ di + 1 }}
-            </button>
+              class="rmbtm-doc-row mb-2">
+              <button
+                type="button"
+                class="btn btn-sm rmbtm-doc-pill rmbtm-doc-pill--main text-left"
+                (click)="previewDoc(docId)">
+                <i class="fa fa-file-o mr-2" aria-hidden="true"></i>
+                <span class="rmbtm-doc-pill__name">{{ docLabel(docId, di) }}</span>
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm rmbtm-doc-download-btn"
+                title="Download file"
+                aria-label="Download file"
+                (click)="downloadDocument(docId)">
+                <i class="fa fa-download" aria-hidden="true"></i>
+              </button>
+            </div>
           </div>
           <ng-template #noProofsList>
             <div class="rmbtm-empty">
@@ -352,24 +369,42 @@
 
       <div class="col-md-8 mt-3 mt-md-0">
         <div class="rmbtm-card">
-          <div class="rmbtm-card__head">
-            <div class="rmbtm-card__title">preview</div>
-            <div class="rmbtm-card__hint">pdfImage</div>
-          </div>
-          <div *ngIf="selectedDocument; else noProofSelected">
-            <ng-container *ngIf="selectedDocument?.toString().includes('application/pdf'); else proofImageBlock">
-              <iframe [src]="selectedDocument" width="100%" height="520px"></iframe>
-            </ng-container>
-            <ng-template #proofImageBlock>
-              <img [src]="selectedDocument" class="img-fluid" alt="documentPreview" />
-            </ng-template>
-          </div>
-          <ng-template #noProofSelected>
-            <div class="rmbtm-empty">
-              <div class="rmbtm-empty__title">selectADocument</div>
-              <div class="rmbtm-empty__hint">pickOneFromTheListToPreviewHere</div>
+          <div class="rmbtm-card__head rmbtm-card__head--split">
+            <div>
+              <div class="rmbtm-card__title">Preview</div>
+              <div class="rmbtm-card__hint">
+                <ng-container *ngIf="selectedDocView?.previewKind === 'image'">Image</ng-container>
+                <ng-container *ngIf="selectedDocView?.previewKind === 'download'">Download only</ng-container>
+                <ng-container *ngIf="!selectedDocView">Images can be previewed; other files download only</ng-container>
+              </div>
             </div>
-          </ng-template>
+            <button
+              *ngIf="showDownloadForDoc(selectedDocView)"
+              type="button"
+              class="btn btn-sm btn-outline-primary rmbtm-preview-download-btn"
+              (click)="downloadDocument()">
+              <i class="fa fa-download mr-1" aria-hidden="true"></i>Download
+            </button>
+          </div>
+          <div *ngIf="selectedDocView?.previewKind === 'image' && selectedDocument">
+            <img [src]="selectedDocument" class="img-fluid" alt="documentPreview" />
+          </div>
+          <div *ngIf="selectedDocView?.previewKind === 'download'" class="rmbtm-download-panel">
+            <i [class]="downloadIconClass(selectedDocView) + ' rmbtm-download-panel__icon'" aria-hidden="true"></i>
+            <div class="rmbtm-download-panel__name">{{ selectedDocView?.fileName }}</div>
+            <p class="rmbtm-download-panel__hint text-muted mb-3">
+              This file cannot be previewed in the browser. Use Download to open it in Excel, a PDF reader, or another app.
+            </p>
+            <button type="button" class="btn btn-primary" (click)="downloadDocument()">
+              <i class="fa fa-download mr-1" aria-hidden="true"></i>Download file
+            </button>
+          </div>
+          <ng-container *ngIf="!selectedDocView">
+            <div class="rmbtm-empty">
+              <div class="rmbtm-empty__title">Select a document</div>
+              <div class="rmbtm-empty__hint">Pick one from the list to preview or download.</div>
+            </div>
+          </ng-container>
           <div class="text-danger small mt-2" *ngIf="docError">{{ docError | rmbCamelDisplay }}</div>
         </div>
       </div>

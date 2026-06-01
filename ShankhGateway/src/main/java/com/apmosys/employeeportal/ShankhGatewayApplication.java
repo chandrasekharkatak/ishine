@@ -12,7 +12,15 @@ import org.springframework.web.client.RestTemplate;
 public class ShankhGatewayApplication {
 
 	public static void main(String[] args) {
+		System.out.println("========================================");
+	    System.out.println("  Starting ShankhGateway Application...");
+	    System.out.println("========================================");
+
 		SpringApplication.run(ShankhGatewayApplication.class, args);
+		
+		System.out.println("========================================");
+        System.out.println("  ShankhGateway Application is RUNNING!");
+        System.out.println("========================================");
 	}
 
 	@Bean

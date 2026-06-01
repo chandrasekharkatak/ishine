@@ -1520,7 +1520,16 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       this.applyNonWorkingDisabledDates();
     } else {
       // Cache miss or invalid: load holidays (will increment requestId, invalidating any in-flight requests)
+      this.timesheetNewService.isEmployeeMappedToFCorTNMProject(this.currentUser.empId)
+  .subscribe((res:any) => {
+
+      if (res.serviceResponse === true) {
+          this.disabledDatesForPicker = [];
+          return;
+      }
+
       this.loadNonWorkingSelectableDates();
+  });
     }
   }
 
@@ -4181,9 +4190,10 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         {
           projectId: p.projectId,
           projectName: p.projectName,
+          poProjectType: p.poProjectType,
           hasClientSideId: p.hasClientSideId || false,
           hasClientFlag: p.hasClientFlag || false,
-          isShadow: p.isShadow
+          isShadow: p.isShadow 
         }
       ])
     ).values()
@@ -4209,6 +4219,7 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
         const project = this.createProject(null, null);
         project.projectId = p.projectId;
         project.projectName = p.projectName;
+        project.poProjectType = p.poProjectType;
         project.hasClientSideId = p.hasClientSideId;
         project.hasClientFlag = p.hasClientFlag;
 
@@ -4255,9 +4266,9 @@ async prepareDataForNonWorkingDay(): Promise<boolean> {
       loc.projects = results.map((r:any)=> r.project);
       loc.projects = loc.projects?.filter(p => (p.clientId !== null && p.clientId !== undefined) && (p.clientLocationId !== null && p.clientLocationId !== undefined));
       if(this.dayType == 7){
-        loc.projects = loc.projects?.filter(p => p.hasClientSideId == true)
+        loc.projects = loc.projects?.filter(p => p.poProjectType?.toLowerCase().trim() == 'fixed cost' || p.poProjectType?.toLowerCase().trim()  == 'tnm')
       }else if (this.dayType == 6){
-        loc.projects = loc.projects?.filter(p => p.hasClientSideId != true)
+        loc.projects = loc.projects?.filter(p => p.poProjectType?.toLowerCase().trim() != 'fixed cost' && p.poProjectType?.toLowerCase().trim()  != 'tnm')
       }
     })
   );

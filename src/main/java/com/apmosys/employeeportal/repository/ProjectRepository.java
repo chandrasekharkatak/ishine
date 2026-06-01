@@ -38,7 +38,9 @@ import com.apmosys.employeeportal.model.Project;
 public interface ProjectRepository extends JpaRepository<Project, Integer> {
 
 	/** Active projects linked to any of the given departments (reimbursement picker for HOD / VP). */
-	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id "
+	@Query(value = "SELECT DISTINCT p.project_id, p.project_name, c.client_name, p.client_id, "
+			+ "COALESCE((SELECT GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_no SEPARATOR ', ') "
+			+ "FROM project_po_details ppd WHERE ppd.project_id = p.project_id AND ppd.active = 1), p.po_no) AS po_no "
 			+ "FROM projects p "
 			+ "INNER JOIN clients c ON c.client_id = p.client_id "
 			+ "INNER JOIN project_department_map pdm ON pdm.project_id = p.project_id "
@@ -182,7 +184,13 @@ public interface ProjectRepository extends JpaRepository<Project, Integer> {
 	@Query(nativeQuery = true)
 	public List<Object[]> getEmployeesByPoProjectId(String poProjectId);
 	
-	
+	@Query(value =
+		"SELECT project_id, po_project_type " +
+		"FROM projects " +
+		"WHERE project_id IN (:projectIds)",
+		nativeQuery = true)
+	List<Object[]> findProjectTypesByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
 	 @Query(value ="select projectId from Project where active = 'true' and poProjectId IS NULL")
 	 Set<Integer> findAllActiveInternalProjectIds();
 	 
@@ -4587,7 +4595,7 @@ boolean existsByProjectName(String projectName);
     		value="SELECT\n"
     				+ "COALESCE(p.po_project_type, 'Internal') AS po_project_category,\n"
     				+ "    CASE\n"
-    				+ "        WHEN :countTarget = 'Employee' THEN COUNT(DISTINCT e.emp_id)\n"
+    				+ "        WHEN :countTarget = 'Employee' AND UPPER(e.billable_type) NOT LIKE 'NONE' AND e.billable_type IS NOT NULL THEN COUNT(DISTINCT e.emp_id)\n"
     				+ "        WHEN :countTarget = 'Project' THEN COUNT(DISTINCT p.project_id)\n"
     				+ "        ELSE NULL \n"
     				+ "    END AS total_count,\n"
@@ -8925,6 +8933,9 @@ List<Object[]> getResourceListByProjectType(@Param("poNos") List<String> poNos);
 
 	@Query("SELECT p.projectId, p.hasClientSideId FROM Project p WHERE p.projectId IN (:projectIds)")
 	List<Object[]> findClientSideFlagByProjectIds(@Param("projectIds") List<Integer> projectIds);
+
+	@Query("SELECT p.projectId, p.poProjectType FROM Project p WHERE p.projectId IN (:projectIds)")
+	List<Object[]> findProjectsWithClientPoProjectType(@Param("projectIds") List<Integer> projectIds);
 
 	@Query(value = "WITH rc AS (  \n"
 			+ "SELECT p2.project_id, prm2.po_id, prm2.role_id, prm2.count required_count  \n"

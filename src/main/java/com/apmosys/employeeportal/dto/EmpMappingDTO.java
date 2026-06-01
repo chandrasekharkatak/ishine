@@ -16,6 +16,8 @@ public class EmpMappingDTO {
 	private LocalDateTime endDate;
     private Integer isShadow;
     private Long poId;
+    /** role_id from employee_team_mapping — used to build the EmpRoleKey composite key. */
+    private Long roleId;
     
 
 

@@ -71,7 +71,7 @@ public class UpdatePendingLeaveValidator {
         double difference = computeDifference(leaveDTO, leaveToBeUpdated);
         validateCompOffAndBalance(leaveDTO, leaveType, employeeLeavesMap, difference);
         leaveApplicationValidator.validateCasualLeaveRulesForUpdate(leaveDTO);
-        leaveApplicationValidator.validatePrivilegeLeaveRulesForUpdate(leaveDTO);
+        // leaveApplicationValidator.validatePrivilegeLeaveRulesForUpdate(leaveDTO);
         return new UpdatePendingLeaveValidationResult(
                 leaveToBeUpdated,
                 leaveType,
@@ -178,9 +178,9 @@ public class UpdatePendingLeaveValidator {
         }
 
         if (!"LWP".equalsIgnoreCase(leaveType.getLeaveTypeCode())
-                && (employeeLeavesMap.getBalance() == null
-                || employeeLeavesMap.getBalance() == 0
-                || employeeLeavesMap.getBalance() < difference)) {
+                 && difference > 0
+        && (employeeLeavesMap.getBalance() == null
+        || employeeLeavesMap.getBalance() < difference)) {
             throw new LeaveApplicationException("Your available balance of " + employeeLeavesMap.getBalance()
                     + " day(s) is not sufficient for this Leave Application.");
         }

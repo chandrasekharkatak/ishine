@@ -371,4 +371,10 @@ getLastThreeMonthsWorkingDates(date: any, empId: number): Observable<any> {
       { params }
     );
   }
+  isEmployeeMappedToFCorTNMProject(empId: number) {
+  return this.http.get(
+    `${this.baseUrl}api/isEmployeeMappedToFCorTNMProject/${empId}`
+  );
 }
+}
+

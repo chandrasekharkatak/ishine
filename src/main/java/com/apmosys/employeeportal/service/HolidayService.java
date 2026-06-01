@@ -319,6 +319,12 @@ public class HolidayService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
+	public boolean isEmployeeMappedToFCorTNMProject(Integer empId) {
+		Long count = employeeRepository
+            .isEmployeeMappedToFCorTNMProject(empId);
+
+    return count != null && count > 0;
+	}
 	
 	// getAllHoliday
 	public ServiceResponse getAllHoliday() {

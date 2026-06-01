@@ -953,11 +953,12 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			@Param("toDate") LocalDate toDate);
 	
 	@Query(value = "SELECT DISTINCT new com.apmosys.employeeportal.dto.EmpMappingDTO"
-			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId) " +
+			+ "(etm.empId,etm.startDate,etm.endDate,etm.isShadow,etm.poId,etm.roleId) " +
 			"FROM EmployeeTeamMap etm " +
-			"LEFT JOIN PoRequirementMapping prm "+
-			"on prm.roleId = etm.roleId and prm.poId = etm.poId and prm.active = true "+	
-			"WHERE etm.active!=2  AND prm.poId = :poId ")
+			"Inner join ProjectPoDetails ppd on ppd.poId = etm.poId and ppd.active = true " + 
+			"Inner JOIN PoRequirementMapping prm "+
+			"on prm.poId = ppd.poId and prm.roleId = etm.roleId and prm.active = true "+	
+			"WHERE etm.active!=2  AND ppd.poId = :poId ")
 	List<EmpMappingDTO> getActiveEmpDetails(Long poId);
 	
 	// @Query(value = "Select new com.apmosys.employeeportal.dto.PoDetailsDto(prm.poRequirementMappingId \n"
@@ -1503,5 +1504,13 @@ List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("p
 			@Param("roleId") Long roleId,
 			@Param("rangeStart") LocalDateTime rangeStart,
 			@Param("rangeEnd") LocalDateTime rangeEnd);
+	
+	@Query(value = "SELECT etm.empId, etm.roleId, etm.endDate " +
+            "FROM EmployeeTeamMap etm " +
+            "WHERE etm.empId IN :empIds " +
+            "AND etm.poId = :poId")
+List<Object[]> findEmpIdAndEndDateByEmpIdsAndPoId(
+     @Param("empIds") List<Long> empIds,
+     @Param("poId") Long poId);
 
 }
