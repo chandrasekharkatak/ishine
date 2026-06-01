@@ -33,6 +33,7 @@ import * as XLSX from 'xlsx';
 import { PageEvent } from "@angular/material/paginator";
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
 class FilterData {
   title: any;
@@ -3437,25 +3438,83 @@ get totalPages(): number {
   return Math.ceil(this.filteredData.length / this.pageSize) || 1;
 }
 /* Export Excel Data */
-downloadPreviewExcel(template : TemplateRef<any>) {
-
+downloadPreviewExcel(template: TemplateRef<any>): void {
   if (!this.tableData || this.tableData.length === 0) {
     this.alertMessage = 'No data to export';
     this.openAlertMod(template, this.alertMessage);
     return;
   }
-  const cols = this.customQueryDisplayColumns;
-  const exportRows = this.tableData.map((row: any) => {
-    const o: any = {};
-    cols.forEach((c) => {
-      o[c] = row[c];
-    });
-    return o;
+  this.isLoading = true;
+  const batchSize = 5000;
+  const total = this.customQueryTotalElements || 0;
+  const totalPages = Math.ceil(total / batchSize);
+
+  const requests = Array.from({ length: totalPages }, (_, i) => {
+    const payload: any = {
+      customQuery: this.customQuery,
+      customQueryFilters: this.activeCustomQueryFilters || [],
+      selectedColumns: this.buildSelectedColumnsForRequest(),
+      page: i + 1,
+      size: batchSize,
+      sortColumn: this.customQuerySortColumn,
+      sortDirection: this.customQuerySortDirection,
+      searchText: (this.customQuerySearchText || '').trim(),
+      columnSearch: this.isCustomQueryColumnSearchEnabled ? (this.customQueryColumnSearch || {}) : {}
+    };
+
+    return (this.activeCustomQueryFilters && this.activeCustomQueryFilters.length)
+      ? this.utilityService.getFilteredQueryDataPaged(payload)
+      : this.utilityService.getCustomQueryDataPaged(payload);
   });
-  const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(exportRows);
-  const workbook: XLSX.WorkBook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'AllData');
-  XLSX.writeFile(workbook, 'CustomQueryData.xlsx');
+
+  forkJoin(requests)
+    .pipe(first())
+    .subscribe({
+      next: (responses: any[]) => {
+        this.isLoading = false;
+
+        let allRows: any[] = [];
+        let headers: string[] = [];
+
+        for (const response of responses) {
+          if (response.serviceStatus !== 'Success') {
+            this.alertMessage = 'Failed to fetch all data for export';
+            this.openAlertMod(template, this.alertMessage);
+            return;
+          }
+
+          const pageDto = response.serviceResponse;
+          headers = pageDto?.headers || [];
+          const rows: any[][] = pageDto?.rows || [];
+
+          const mapped = rows.map((r: any[]) => {
+            const obj: any = {};
+            headers.forEach((h, idx) => {
+              obj[h] = r?.[idx] ?? null;
+            });
+            return obj;
+          });
+
+          allRows = [...allRows, ...mapped];
+        }
+
+        const cols = this.customQueryDisplayColumns;
+        const exportRows = allRows.map((row: any) => {
+          const o: any = {};
+          cols.forEach((c) => {
+            o[c] = row[c];
+          });
+          return o;
+        });
+
+        this.exportExcelService.exportTableDataToExcel(exportRows, 'CustomQueryData.xlsx');
+      },
+      error: () => {
+        this.isLoading = false;
+        this.alertMessage = 'Failed to export data. Please try again.';
+        this.openAlertMod(template, this.alertMessage);
+      }
+    });
 }
 
 /** Columns shown in the Custom Query results table (and Excel export). */

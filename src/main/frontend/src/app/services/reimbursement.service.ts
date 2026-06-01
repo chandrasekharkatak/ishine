@@ -204,4 +204,42 @@ export class ReimbursementService {
     return this.http.get(`${this.baseUrl}api/getReimbursementSubmissionWindowStatus`);
   }
 
+  listAllReimbursementRolePolicies() {
+    return this.http.post(`${this.baseUrl}api/listAllReimbursementRolePolicies`, {});
+  }
+
+  fetchReimbursementRolePolicy(jobRoleId?: number, expensePolicyId?: number) {
+    const body: { jobRoleId?: number; expensePolicyId?: number } = {};
+    if (expensePolicyId != null) {
+      body.expensePolicyId = expensePolicyId;
+    } else if (jobRoleId != null) {
+      body.jobRoleId = jobRoleId;
+    }
+    return this.http.post(`${this.baseUrl}api/fetchReimbursementRolePolicy`, body);
+  }
+
+  saveReimbursementRolePolicy(body: {
+    expensePolicyId?: number;
+    jobRoleId?: number;
+    jobRoleIds?: number[];
+    updatedBy: number;
+    policies: any[];
+  }) {
+    return this.http.post(`${this.baseUrl}api/saveReimbursementRolePolicy`, body);
+  }
+
+  deleteReimbursementRolePolicy(jobRoleId?: number, expensePolicyId?: number) {
+    const body: { jobRoleId?: number; expensePolicyId?: number } = {};
+    if (expensePolicyId != null) {
+      body.expensePolicyId = expensePolicyId;
+    } else if (jobRoleId != null) {
+      body.jobRoleId = jobRoleId;
+    }
+    return this.http.post(`${this.baseUrl}api/deleteReimbursementRolePolicy`, body);
+  }
+
+  resolveReimbursementRolePolicyForEmployee(empId: number) {
+    return this.http.post(`${this.baseUrl}api/resolveReimbursementRolePolicyForEmployee`, { empId });
+  }
+
 }

@@ -16,6 +16,8 @@ public class ReimbursementTicketClaimInputDTO {
 	private BigInteger distance;
 	private String vehicleType;
 	private String foodAllowanceType;
+	/** Team meal / working lunch: headcount for per-member daily food cap. */
+	private Integer teamMemberCount;
 	private Date dateOfFood;
 	private Date fromDate;
 	private Date toDate;
@@ -38,6 +40,8 @@ public class ReimbursementTicketClaimInputDTO {
 	private String prospectiveClientName;
 	/** MASTER or PROSPECTIVE_NEW_CLIENT */
 	private String clientCategory;
+	/** Denormalized PO number(s) from project at submit time. */
+	private String poNo;
 	private Boolean recurringExpense;
 	private Boolean pocProject;
 	private List<Long> docIds;

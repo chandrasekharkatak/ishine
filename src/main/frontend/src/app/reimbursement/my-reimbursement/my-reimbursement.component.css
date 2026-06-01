@@ -898,6 +898,26 @@
   margin-bottom: 0.35rem;
 }
 
+.rmb-travel-fields-row {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.rmb-label--distance-day {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+  .rmb-label--distance-day {
+    font-size: 0.72rem;
+  }
+}
+
 /* Info tooltip (no JS) */
 .rmb-page .rmb-info-tip {
   display: inline-flex;
