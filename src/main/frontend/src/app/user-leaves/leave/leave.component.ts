@@ -1045,7 +1045,9 @@ export class LeaveComponent implements OnInit {
 moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
           this.leaveObj.noOfDays=0.5;
         }else{
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - (this.isTNM() ? 0 : this.holidayWeekOffCount);
+        this.leaveObj.noOfDays = (START_DAY_COUNT - (this.leaveObj.fromDateDayType || 0)) +
+  (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - (this.leaveObj.toDateDayType || 0)) -
+  (this.isTNM() ? 0 : (this.holidayWeekOffCount || 0));
         }
         //console.log(" Maternity leave apply :: no of days test ::  ",this.leaveObj.noOfDays);
       } else {
@@ -1080,8 +1082,9 @@ moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDa
 moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
           this.leaveObj.noOfDays=0.5;
         }else{
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - (this.isTNM() ? 0 : this.holidayWeekOffCount);
-        }
+this.leaveObj.noOfDays = (START_DAY_COUNT - (this.leaveObj.fromDateDayType || 0)) +
+  (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - (this.leaveObj.toDateDayType || 0)) -
+  (this.isTNM() ? 0 : (this.holidayWeekOffCount || 0));        }
       }
       if (this.weekOffExcludedDepartmentList.find(deptId => deptId == this.currentUser.departmentId)) {
         this.isWeekOffsExcluded = true;
@@ -1098,8 +1101,9 @@ moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDa
 moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
           this.leaveObj.noOfDays=0.5;
         }else{
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - (this.isTNM() ? 0 : this.holidayWeekOffCount);
-        }
+this.leaveObj.noOfDays = (START_DAY_COUNT - (this.leaveObj.fromDateDayType || 0)) +
+  (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - (this.leaveObj.toDateDayType || 0)) -
+  (this.isTNM() ? 0 : (this.holidayWeekOffCount || 0));        }
       }
     } else {
       let teamMember = this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId)
@@ -1117,7 +1121,9 @@ moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDa
 moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
           this.leaveObj.noOfDays=0.5;
         }else{
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - (this.isTNM() ? 0 : this.holidayWeekOffCount);
+        this.leaveObj.noOfDays = (START_DAY_COUNT - (this.leaveObj.fromDateDayType || 0)) +
+  (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - (this.leaveObj.toDateDayType || 0)) -
+  (this.isTNM() ? 0 : (this.holidayWeekOffCount || 0));
         }
       } else {
         this.isWeekOffsExcluded = false;
@@ -1149,8 +1155,7 @@ moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDa
 moment(this.leaveObj.fromDate).format('YYYY-MM-DD')) && this.leaveObj.fromDateDayType==0.5 &&   this.leaveObj.toDateDayType == 0.5){
           this.leaveObj.noOfDays=0.5;
         }else{
-        this.leaveObj.noOfDays = (START_DAY_COUNT - this.leaveObj.fromDateDayType) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - this.leaveObj.toDateDayType) - (this.isTNM() ? 0 : this.holidayWeekOffCount);
-        }
+        this.leaveObj.noOfDays = (START_DAY_COUNT - (this.leaveObj.fromDateDayType || 0)) + (diff(this.leaveObj.fromDate, this.leaveObj.toDate) - (this.leaveObj.toDateDayType || 0)) - (this.isTNM() ? 0 : (this.holidayWeekOffCount || 0));        }
       }
     }
   }

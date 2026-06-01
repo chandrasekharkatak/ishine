@@ -1519,8 +1519,9 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
       // Cache hit: apply immediately
       this.applyNonWorkingDisabledDates();
     } else {
+      const empIdToCheck = this.timesheetFilledForUser?.empId || this.currentUser?.empId;
       // Cache miss or invalid: load holidays (will increment requestId, invalidating any in-flight requests)
-      this.timesheetNewService.isEmployeeMappedToFCorTNMProject(this.currentUser.empId)
+      this.timesheetNewService.isEmployeeMappedToFCorTNMProject(empIdToCheck)
   .subscribe((res:any) => {
 
       if (res.serviceResponse === true) {
