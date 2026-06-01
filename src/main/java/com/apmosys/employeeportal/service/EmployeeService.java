@@ -3503,13 +3503,10 @@ public class EmployeeService {
 	                    EmployeeDTO empDTO = new EmployeeDTO(empProj);
 	                    empDTO.setFailedAttempt(failedAttempt);
 	                    if (empProj.getEmployeementId() != null) {
-	                        empDTO.setEmploymentIdAcToET(
-	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
-	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
-	                                    ? "CS-" + empProj.getEmployeementId()
-	                                    : "A-" + empProj.getEmployeementId()
-	                        );
+	                        empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+	                            empProj.getEmployeementId(),
+	                            empProj.getIsConsultant(),
+	                            empProj.getIsApmosysProduct()));
 	                    }
 
 	                    if (empProj.getProjectIds() != null && empProj.getProjectName() != null) {
@@ -3976,17 +3973,10 @@ public class EmployeeService {
 
 	            // Employment ID Formatting
 	            if (empDTO.getEmployeementId() != null) {
-
-	                String prefix =
-	                        "true".equalsIgnoreCase(
-	                                empDTO.getIsApmosysProduct()
-	                        )
-	                                ? "AP-"
-	                                : "A-";
-
-	                empDTO.setEmploymentIdAcToET(
-	                        prefix + empDTO.getEmployeementId()
-	                );
+	                empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+	                        empDTO.getEmployeementId(),
+	                        empDTO.getIsConsultant(),
+	                        empDTO.getIsApmosysProduct()));
 	            }
 
 	            // Performance Status Calculation

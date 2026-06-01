@@ -2915,8 +2915,10 @@ storePreviousStatus(){
           employeeObj.skillNames = skillNames;
           employeeObj.certificateNames = certificateNames;
 
-          employeeObj.employeementId = this.employeeIdUtilService.generateEmploymentId(
+          const formattedEmploymentId = this.employeeIdUtilService.generateEmploymentId(
             employeeObj.employeementId, employeeObj.isApmosysProduct, employeeObj.isConsultant);
+          employeeObj.employmentIdAcToET = formattedEmploymentId;
+          employeeObj.employeementId = formattedEmploymentId;
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
