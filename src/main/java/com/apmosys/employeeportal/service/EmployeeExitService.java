@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
+
 import com.apmosys.employeeportal.dto.AssetDTO;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.EmployeeExitDTO;
@@ -652,11 +654,8 @@ public class EmployeeExitService {
 				    String isApmosysProduct = dto.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
+				        dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+				                dto.getIsConsultant(), isApmosysProduct));
 				    }
 
 					

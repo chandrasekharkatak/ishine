@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.service;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -1182,11 +1183,7 @@ rows.forEach(row -> {
             String isApmosysProduct = dto.getIsApmosysProduct();
 
             if (employmentId != null) {
-                if ("true".equalsIgnoreCase(isApmosysProduct)) {
-                    dto.setEmploymentIdAcToET("AP-" + employmentId);
-                } else {
-                    dto.setEmploymentIdAcToET("A-" + employmentId);
-                }
+                dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
             }
 
             dtoList.add(dto);

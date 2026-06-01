@@ -2644,6 +2644,8 @@ onSearchClientProject(searchData: any) {
         return 'CS-';
       case 'Apmosys Product':
         return 'AP-';
+      case 'Apmosys Product Consultant':
+        return 'APCS-';
       default:
         return 'A-';
     }

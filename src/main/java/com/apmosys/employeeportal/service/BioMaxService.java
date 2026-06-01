@@ -1233,7 +1233,10 @@ public class BioMaxService {
 					String id = row[1] != null ? row[1].toString() : null;
 					
 					if (id != null) {
-						if ("AP".equals(type)) {
+						if ("APCS".equals(type)) {
+							employeeCodes.add("APCS" + id);
+							employeeCodes.add("APCS-" + id);
+						} else if ("AP".equals(type)) {
 							employeeCodes.add("AP" + id);
 							employeeCodes.add("AP-" + id);
 						} else if ("CS".equals(type)) {

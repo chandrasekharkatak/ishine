@@ -2075,14 +2075,17 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true'")
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND e.isConsultant = 'true'")
+	Employee findByEmployeementIdForApmosysProductConsultant(@Param("empId") Long empId);
+
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND (e.isConsultant IS NULL OR e.isConsultant = 'false')")
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true' AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false')")
 	Employee findByEmployeementIdForConsultant(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApprenticeship = 'true'")
@@ -2096,6 +2099,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.email FROM Employee e WHERE e.empId = :empId")
     String findEmailByEmpId(Long empId);
 	@Query("SELECT CASE " +
+	       " WHEN e.isConsultant = 'true' AND e.isApmosysProduct = 'true' THEN CONCAT('APCS-', e.employeementId) " +
 	       " WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) " +
 	       " WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
 	       " ELSE CONCAT('A-', e.employeementId) " +

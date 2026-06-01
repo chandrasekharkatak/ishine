@@ -5159,18 +5159,21 @@ public class EmployeeService {
 		logBuilder.append("email : " + employeedto.getEmail());
 
 		try {
-			String employeeType = employeedto.getEmployeeType();
+			String employeeType = com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.resolveEmployeeTypeFromDto(
+					employeedto.getEmployeeType(), employeedto.getIsConsultant(), employeedto.getIsApmosysProduct(),
+					employeedto.getIsApprenticeship());
 			Employee checkEmployeementId;
-			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
+			if (com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT
+					.equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository
+						.findByEmployeementIdForApmosysProductConsultant(employeedto.getEmployeementId());
+			} else if (com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT
+					.equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+			} else if (com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT
+					.equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
-//			}
-//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-//				
-			}
-			else {
+			} else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
@@ -11795,7 +11798,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -12032,7 +12035,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -12320,7 +12323,7 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")

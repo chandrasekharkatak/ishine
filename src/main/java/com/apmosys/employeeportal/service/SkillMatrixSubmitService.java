@@ -64,6 +64,7 @@ import com.apmosys.employeeportal.dto.SkillMatrixSubmitSubskillDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.model.JobRole;
 import com.apmosys.employeeportal.model.SkillCategoryMaster;
 import com.apmosys.employeeportal.model.SkillDomainFeatureMaster;
@@ -2973,14 +2974,8 @@ public class SkillMatrixSubmitService {
 		if (e.getEmployeementId() == null) {
 			return null;
 		}
-		long id = e.getEmployeementId();
-		if ("true".equalsIgnoreCase(e.getIsConsultant())) {
-			return "CS-" + id;
-		}
-		if ("true".equalsIgnoreCase(e.getIsApmosysProduct())) {
-			return "AP-" + id;
-		}
-		return "A-" + id;
+		return EmployeeEmploymentIdUtil.formatEmploymentId(e.getEmployeementId(), e.getIsConsultant(),
+				e.getIsApmosysProduct());
 	}
 
 	private String resolveManagerName(Employee emp) {

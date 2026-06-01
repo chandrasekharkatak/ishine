@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.service;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -382,12 +383,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				    String isApmosysProduct = leavedto.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	leavedto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	leavedto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+                leavedto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, leavedto.getIsConsultant(), isApmosysProduct));
+            }
 
 					dtoList.add(leavedto);
 				});
@@ -1524,14 +1521,8 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isConsultant)) {
-				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
-				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } else {
-				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
+            empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
+        }
 
 
 
@@ -5348,11 +5339,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        
 	        // 2. Build the base native SQL query
 	        String q = "SELECT DISTINCT "
+	        		+ EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentIdWithAp2lEmail("e", "employeement_id") + " AS Employeement_Id, "
 	        		+ "CASE "
-	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
-	        		+ "    ELSE CONCAT('A-', e.employeement_id) "
-	        		+ "END AS Employeement_Id, "
-	        		+ "CASE "
+	        		+ "    WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant' "
 	        		+ "    WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
 	        		+ "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 	        		+ "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular' "
@@ -5442,11 +5431,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		    // 2. Build the base native SQL query
 		    String q = "SELECT distinct "
-		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) "
-		    		+ "      ELSE CONCAT('A-', e.employeement_id) "
-		    		+ " END as EMPLOYEEMENT_ID, "
-		    		// Updated CASE statement with Apmosys Product as highest priority
-		    		+ " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product' "
+		    		+ EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id") + " as EMPLOYEEMENT_ID, "
+		    		+ " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant' "
+		    		+ "      WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product' "
 		    		+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 		    		+ "      WHEN e.is_consultant = 'true' THEN 'Consultant' "
 		    		+ "      ELSE 'Regular' "
@@ -5524,10 +5511,13 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT "
-					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', '')) "
+					+ " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', REPLACE(e.employeement_id, '-', '')) "
+					+ "      WHEN e.is_consultant = 'true' THEN CONCAT('CS-', REPLACE(e.employeement_id, '-', '')) "
+					+ "      WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', REPLACE(e.employeement_id, '-', '')) "
 					+ "      ELSE CONCAT('A-', REPLACE(e.employeement_id, '-', '')) "
 					+ " END as EMPLOYEEMENT_ID, "
-					+ " CASE WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
+					+ " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant' "
+					+ "      WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
 					+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 					+ "      WHEN e.is_consultant = 'true' THEN 'Consultant' "
 					+ "      ELSE 'Regular' "
@@ -5673,11 +5663,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 			// 2. Build the base native SQL query
 			String q = "SELECT DISTINCT "
+			        + EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentIdWithAp2lEmail("e", "employeement_id") + " AS EMPLOYEEMENT_ID, "
 			        + "    CASE "
-			        + "        WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN CONCAT('AP-', e.employeement_id) "
-			        + "        ELSE CONCAT('A-', e.employeement_id) "
-			        + "    END AS EMPLOYEEMENT_ID, "
-			        + "    CASE "
+			        + "        WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant' "
 			        + "        WHEN e.is_apmosys_product = 'true' OR e.email LIKE '%ap2l.ai%' THEN 'ApmosysProduct' "
 			        + "        WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' "
 			        + "        WHEN e.is_consultant = 'true' THEN 'Consultant' "
@@ -5754,11 +5742,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 	        // 2. Build the full native SQL query by combining the static parts with the dynamic part
 	        String q = "SELECT distinct " +
+	        EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id") + " as EMPLOYEEMENT_ID, " +
 	        "CASE " +
-	        " WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
-	        " ELSE CONCAT('A-', e.employeement_id) " +
-	        "END as EMPLOYEEMENT_ID, " +
-	        "CASE " +
+	        " WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant' " +
 	        " WHEN e.is_apmosys_product = 'true' THEN 'ApmosysProduct' " +
 	        " WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 	        " WHEN e.is_consultant = 'true' THEN 'Consultant' " +

@@ -18,11 +18,7 @@
                                         <p class="info-label">Emp Id</p>
                                         <p class="info-text info-highlight">
                                             <!-- {{ employeeObj.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{employeeObj.employeementId}} -->
-                                            {{
-                                        employeeObj.isApmosysProduct === 'true'
-                                        ? ('AP-' + employeeObj.employeementId)
-                                        : (employeeObj.isConsultant === 'true' ? 'CS-' :'A-' + employeeObj.employeementId)
-                                        }}
+                                            {{ displayEmploymentId(employeeObj) }}
                                         </p>
                                     </div>
                                 </div>

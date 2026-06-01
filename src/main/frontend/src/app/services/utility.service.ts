@@ -8,6 +8,7 @@ import { AppComponent } from '../app.component';
 import { SortPipe } from '../sort.pipe';
 import { of } from 'rxjs/internal/observable/of';
 import { Observable } from 'rxjs';
+import { EmployeeIdUtilService } from './employee-id-util.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,24 +21,19 @@ export class UtilityService {
   allEmployeeList360: any[] = [];
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private employeeIdUtil: EmployeeIdUtilService) { }
 
-  appendEmployeementid(isConsultant,emp): string {
-    if(isConsultant == "true"){
-      return "A-".concat(emp);
-    }
-    // else if(isApmosysProduct){
-    //   return emp;
-    // }
-    else 
-      return "A-".concat(emp);
+  appendEmployeementid(isConsultant: any, emp: any, isApmosysProduct?: any): string {
+    const numeric = this.employeeIdUtil.extractNumericId(String(emp)) ?? String(emp);
+    return this.employeeIdUtil.generateEmploymentId(numeric, isApmosysProduct, isConsultant) ?? `A-${numeric}`;
   }
 
   getFormattedEmployeeId(empObj: any): string {
-    return this.appendEmployeementid(
-      empObj.isConsultant,
-      empObj.employeementId
-    );
+    return this.employeeIdUtil.generateEmploymentId(
+      empObj.employeementId,
+      empObj.isApmosysProduct,
+      empObj.isConsultant
+    ) ?? '';
   }
 
   substringEmployeementid(isConsultant,emp): string {

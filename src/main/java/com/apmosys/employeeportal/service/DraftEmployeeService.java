@@ -36,6 +36,7 @@ import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LogEvents;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
 @Service
@@ -819,13 +820,8 @@ public class DraftEmployeeService {
 				    String isApmosysProduct = empDTO.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isConsultant)) {
-				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
-				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } else {
-				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
-				        }
+				        empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+				                Long.valueOf(employmentId), isConsultant, isApmosysProduct));
 				    }
 					
 					

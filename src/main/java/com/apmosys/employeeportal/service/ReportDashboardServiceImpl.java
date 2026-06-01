@@ -31,6 +31,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
+
 import com.apmosys.employeeportal.dto.ChartsCountDTO;
 import com.apmosys.employeeportal.dto.CustomFilterDTO;
 import com.apmosys.employeeportal.dto.DepartmentBillableDTO;
@@ -150,11 +152,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				    String isApmosysProduct = dto.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
+				        dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+				                dto.getIsConsultant(), isApmosysProduct));
 				    }
 
 					
@@ -230,11 +229,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 				    String isApmosysProduct = dto.getIsApmosysProduct();
 
 				    if (employmentId != null) {
-				        dto.setEmploymentIdAcToET(
-				            "true".equalsIgnoreCase(isApmosysProduct)
-				                ? "AP-" + employmentId
-				                : "A-" + employmentId
-				        );
+				        dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+				                dto.getIsConsultant(), isApmosysProduct));
 				    }
 
 				    // Match with pending timesheet list
@@ -274,11 +270,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					    String isApmosysProduct = dto.getIsApmosysProduct();
 
 					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-					        }else {
-					        	dto.setEmploymentIdAcToET("A-" + employmentId);
-					        }
+					        dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+					                dto.getIsConsultant(), isApmosysProduct));
 					    }
 						dtoList.add(dto);
 					});

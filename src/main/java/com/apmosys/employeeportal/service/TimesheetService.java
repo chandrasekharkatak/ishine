@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.service;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 
 import java.io.ByteArrayOutputStream;
@@ -745,12 +746,8 @@ public class TimesheetService {
 	        String isApmosysProduct = dto.getIsApmosysProduct();
 
 	        if (employmentId != null) {
-	            if ("true".equalsIgnoreCase(isApmosysProduct)) {
-	                dto.setEmploymentIdAcToET("AP-" + employmentId);
-	            } else {
-	                dto.setEmploymentIdAcToET("A-" + employmentId);
-	            }
-	        }
+                dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
+            }
 
 	        dto.setClientSideId(object[24] != null ? object[24].toString() : null);
 	        dto.setEmploymentId(object[25] != null ? object[25].toString() : null);
@@ -1639,11 +1636,8 @@ public class TimesheetService {
 					    String isApmosysProduct = dto.getIsApmosysProduct();
 
 					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-					        }else {
-					        	dto.setEmploymentIdAcToET("A-" + employmentId);
-					        }
+					        dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+					                dto.getIsConsultant(), isApmosysProduct));
 					    }
 
 						

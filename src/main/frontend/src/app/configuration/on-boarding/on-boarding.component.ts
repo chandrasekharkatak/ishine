@@ -7,6 +7,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { User } from 'src/app/models/user';
 import { ValidationService } from 'src/app/services/validation.service';
 import { UtilityService } from 'src/app/services/utility.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 import { Feature } from 'src/app/models/feature';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -40,6 +41,7 @@ export class OnBoardingComponent implements OnInit {
     private validationService:ValidationService,
     private modalService: NgbModal,
     private utilityService: UtilityService,
+    private employeeIdUtil: EmployeeIdUtilService,
     private router : Router
   ) {
      this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -116,15 +118,14 @@ export class OnBoardingComponent implements OnInit {
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
 
-  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
-  const digitsOnly = value.replace(/^A-|^AP-/, '');
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-') || value.startsWith('CS-') || value.startsWith('APCS-');
+  const digitsOnly = this.employeeIdUtil.extractNumericId(value) ?? '';
 
-  if (!validPrefix && value.length < 3) {
-
-    if (value === '' && key === 'A') return;
-    if (value === 'A' && key === 'P') return;
-    if (value === 'A' && key === '-') return;
-    if (value === 'AP' && key === '-') return;
+  if (!validPrefix && value.length < 6) {
+    const allowedPrefixKeys = new Set(['A', 'P', 'C', 'S', '-']);
+    if (allowedPrefixKeys.has(key) && 'APCS-CS-AP-A-'.startsWith((value + key).toUpperCase())) {
+      return;
+    }
     event.preventDefault();
     return;
   }
@@ -143,7 +144,9 @@ export class OnBoardingComponent implements OnInit {
 
 
 getEmpIdPrefixFromFlags(employee: any): string {
-  if (employee.isApmosysProduct === 'true') {
+  if (employee.isApmosysProduct === 'true' && employee.isConsultant === 'true') {
+    return 'APCS-';
+  } else if (employee.isApmosysProduct === 'true') {
     return 'AP-';
   } else if (employee.isConsultant === 'true') {
     return 'CS-';
@@ -171,17 +174,14 @@ getEmpIdPrefixFromFlags(employee: any): string {
     // }
 
 
-    if (empIdInput.startsWith('AP-')) {
-    assetObj.employeeType = "Apmosys Product";
-    assetObj.employeementId = empIdInput.substring(3);
-  } else if (empIdInput.startsWith('A-')) {
-    assetObj.employeeType = "Other";
-    assetObj.employeementId = empIdInput.substring(2);
-  } else {
-    this.alertMessage = "Please enter valid Employee ID !!";
-    this.openAlertMod(template, this.alertMessage);
-    return false;
-  }
+    const parsed = this.parsePrefixedEmploymentId(empIdInput);
+    if (!parsed) {
+      this.alertMessage = "Please enter valid Employee ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    }
+    assetObj.employeeType = parsed.employeeType;
+    assetObj.employeementId = parsed.numericId;
 
   // assetObj.employeementId = empIdInput;
 
@@ -242,14 +242,37 @@ getEmpIdPrefixFromFlags(employee: any): string {
       //console.log(this.updatedAssetList);
   }
 
+  private parsePrefixedEmploymentId(empIdInput: string): { numericId: string; employeeType: string } | null {
+    const trimmed = empIdInput?.trim();
+    if (!trimmed) {
+      return null;
+    }
+    const numericId = this.employeeIdUtil.extractNumericId(trimmed);
+    if (!numericId) {
+      return null;
+    }
+    if (trimmed.startsWith('APCS-')) {
+      return { numericId, employeeType: 'Apmosys Product Consultant' };
+    }
+    if (trimmed.startsWith('AP-')) {
+      return { numericId, employeeType: 'Apmosys Product' };
+    }
+    if (trimmed.startsWith('CS-')) {
+      return { numericId, employeeType: 'Consultant' };
+    }
+    if (trimmed.startsWith('A-')) {
+      return { numericId, employeeType: 'Other' };
+    }
+    return null;
+  }
+
   updateOnBoardingCheckList(template: TemplateRef<any>){
      let empIdInput = this.assetObj.employeementId;
-  if (empIdInput?.startsWith('A-')) {
-    empIdInput = empIdInput.substring(2);
-  } else if (empIdInput?.startsWith('CS-')) {
-    empIdInput = empIdInput.substring(3);
-  } else if (empIdInput?.startsWith('AP-')) {
-    empIdInput = empIdInput.substring(3);
+  const parsed = typeof empIdInput === 'string' ? this.parsePrefixedEmploymentId(empIdInput) : null;
+  if (parsed) {
+    empIdInput = parsed.numericId;
+  } else if (empIdInput != null) {
+    empIdInput = String(empIdInput);
   }
   this.assetObj.employeementId = empIdInput;
     // this.departmentList.forEach(asset => {

@@ -37,6 +37,7 @@ import { Skills } from 'src/app/models/skills';
 import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 @Component({
   standalone: false,
   selector: 'app-employee360-profile',
@@ -139,6 +140,7 @@ export class Employee360ProfileComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private encryptionService: EncryptionService,
     private exportExcelService: ExportExcelService,
+    private employeeIdUtilService: EmployeeIdUtilService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -271,6 +273,8 @@ export class Employee360ProfileComponent implements OnInit {
 
   getEmpIdPrefix(employeeType: string): string {
     switch (employeeType) {
+      case 'Apmosys Product Consultant':
+        return 'APCS-';
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
@@ -943,14 +947,17 @@ export class Employee360ProfileComponent implements OnInit {
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isConsultant == 'true')
+        if (this.employeeObj.isApmosysProduct == 'true' && this.employeeObj.isConsultant == 'true') {
+          this.employeeObj.employeeType = 'Apmosys Product Consultant';
+        } else if (this.employeeObj.isConsultant == 'true') {
           this.employeeObj.employeeType = 'Consultant';
-        else if (this.employeeObj.isApprenticeship == 'true')
+        } else if (this.employeeObj.isApprenticeship == 'true') {
           this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true')
-          this.employeeObj.employeeType = 'Apmosys Product'
-        else
+        } else if (this.employeeObj.isApmosysProduct == 'true') {
+          this.employeeObj.employeeType = 'Apmosys Product';
+        } else {
           this.employeeObj.employeeType = 'Regular';
+        }
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -972,19 +979,41 @@ export class Employee360ProfileComponent implements OnInit {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Consultant':
         this.employeeObj.isConsultant = 'true';
         this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Apprentice':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'true';
+        this.employeeObj.isApmosysProduct = 'false';
+        break;
+      case 'Apmosys Product':
+        this.employeeObj.isConsultant = 'false';
+        this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'true';
+        break;
+      case 'Apmosys Product Consultant':
+        this.employeeObj.isConsultant = 'true';
+        this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'true';
         break;
       default:
         this.employeeObj.isConsultant = null;
         this.employeeObj.isApprenticeship = null;
+        this.employeeObj.isApmosysProduct = null;
     }
+  }
+
+  displayEmploymentId(employee: Employee): string {
+    return this.employeeIdUtilService.generateEmploymentId(
+      employee?.employeementId,
+      employee?.isApmosysProduct,
+      employee?.isConsultant
+    ) ?? '';
   }
 
 
@@ -1916,7 +1945,11 @@ if (this.deptSelected) {
 
     console.log("employee update before call ", employee);
 
-    if (this.employeeObj.employeeType === 'Consultant') {
+    if (this.employeeObj.employeeType === 'Apmosys Product Consultant') {
+      employee.isConsultant = 'true';
+      employee.isApprenticeship = 'false';
+      employee.isApmosysProduct = 'true';
+    } else if (this.employeeObj.employeeType === 'Consultant') {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
       employee.isApmosysProduct = 'false';

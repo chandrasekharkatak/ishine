@@ -234,6 +234,7 @@ import com.apmosys.employeeportal.utility.ExceptionLogContext;
 import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -3394,13 +3395,8 @@ public class ResourceManagementService {
 			String isApmosysProduct = empDTO.getIsApmosysProduct();
 
 			if (employmentId != null) {
-				if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-//	                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
-				} else {
-					empDTO.setEmploymentIdAcToET("A-" + employmentId);
-//	                    newDto.setEmployeementIdAccToET("A-" + employmentId);
-				}
+				empDTO.setEmploymentIdAcToET(
+						EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
 			}
 
 			dtoList.add(empDTO);
@@ -5087,13 +5083,8 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isConsultant)) {
-							newDto.setEmployeementIdAccToET("CS-" + employmentId);
-						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-							newDto.setEmployeementIdAccToET("AP-" + employmentId);
-						} else {
-							newDto.setEmployeementIdAccToET("A-" + employmentId);
-						}
+						newDto.setEmployeementIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+								Long.valueOf(employmentId), isConsultant, isApmosysProduct));
 					}
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -5261,13 +5252,8 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isConsultant)) {
-							newDto.setEmployeementIdAccToET("CS-" + employmentId);
-						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-							newDto.setEmployeementIdAccToET("AP-" + employmentId);
-						} else {
-							newDto.setEmployeementIdAccToET("A-" + employmentId);
-						}
+						newDto.setEmployeementIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+								Long.valueOf(employmentId), isConsultant, isApmosysProduct));
 					}
 
 					newDto.setRmgprojects(new ArrayList<>());
@@ -5600,13 +5586,8 @@ public class ResourceManagementService {
 					String isApmosysProduct = newDto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isConsultant)) {
-							newDto.setEmployeementIdAccToET("CS-" + employmentId);
-						} else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-							newDto.setEmployeementIdAccToET("AP-" + employmentId);
-						} else {
-							newDto.setEmployeementIdAccToET("A-" + employmentId);
-						}
+						newDto.setEmployeementIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+								Long.valueOf(employmentId), isConsultant, isApmosysProduct));
 					}
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
@@ -6018,13 +5999,8 @@ public class ResourceManagementService {
 				String isApmosysProduct = newDto.getIsApmosysProduct();
 
 				if (employmentId != null) {
-					if ("true".equalsIgnoreCase(isApmosysProduct)) {
-						newDto.setEmploymentIdAcToET("AP-" + employmentId);
-//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
-					} else {
-						newDto.setEmploymentIdAcToET("A-" + employmentId);
-//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
-					}
+					newDto.setEmploymentIdAcToET(
+							EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
 				}
 			}
 
@@ -6093,13 +6069,8 @@ public class ResourceManagementService {
 				String isApmosysProduct = newDto.getIsApmosysProduct();
 
 				if (employmentId != null) {
-					if ("true".equalsIgnoreCase(isApmosysProduct)) {
-						newDto.setEmploymentIdAcToET("AP-" + employmentId);
-//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
-					} else {
-						newDto.setEmploymentIdAcToET("A-" + employmentId);
-//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
-					}
+					newDto.setEmploymentIdAcToET(
+							EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
 				}
 			}
 
@@ -6164,13 +6135,8 @@ public class ResourceManagementService {
 				String isApmosysProduct = employeeDTO.getIsApmosysProduct();
 
 				if (employmentId != null) {
-					if ("true".equalsIgnoreCase(isApmosysProduct)) {
-						employeeDTO.setEmploymentIdAcToET("AP-" + employmentId);
-//		                	  employeeDTO.setEmployeementIdAccToET("AP-" + employmentId);
-					} else {
-						employeeDTO.setEmploymentIdAcToET("A-" + employmentId);
-//		                	employeeDTO.setEmployeementIdAccToET("A-" + employmentId);
-					}
+					employeeDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+							employeeDTO.getIsConsultant(), isApmosysProduct));
 				}
 
 				employeeDTOList.add(employeeDTO);
