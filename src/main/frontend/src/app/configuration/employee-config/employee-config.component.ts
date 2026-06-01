@@ -3623,6 +3623,11 @@ resetDefaultProjectFields() {
     this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'Approved';
     this.employeeObj.updatedBy = this.currentUser.empId;
+    if (!this.employeeObj.draftEmpId && this.employeeObj.empId) {
+      this.employeeObj.draftEmpId = this.employeeObj.empId;
+    }
+    this.employeeObj.empId = null;
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     if (this.employeeObj.documentList) {
       this.employeeObj.documentList.forEach((doc: Document) => doc.documentBytes = null);
     }

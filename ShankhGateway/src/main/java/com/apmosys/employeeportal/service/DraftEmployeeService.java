@@ -94,7 +94,7 @@ public class DraftEmployeeService {
 
 			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
 			if (apcsEmailValidation != null) {
-				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return apcsEmailValidation;
 			}
@@ -539,7 +539,7 @@ public class DraftEmployeeService {
 		try {
 			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
 			if (apcsEmailValidation != null) {
-				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return apcsEmailValidation;
 			}
@@ -814,7 +814,7 @@ public class DraftEmployeeService {
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 				allEmployeeList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
-					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
+					empDTO.setDraftEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setName(object[1] != null ? object[1].toString() : null);
 					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
 					empDTO.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
@@ -1216,13 +1216,14 @@ public class DraftEmployeeService {
 		logBuilder.append("employeementId"+employeedto.getEmployeementId()+", draftEmpId : "+employeedto.getDraftEmpId());
 
 		try {
-			Employee employee;
-			 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
-				 employee=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			 }else {
-				 employee = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
 
-			 }
+			Employee employee = findEmployeeForDraftApproval(employeedto);
 			// System.out.println(employeedto);
 //			Employee employee = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
 			if (employee != null) {
@@ -1437,12 +1438,7 @@ public class DraftEmployeeService {
 				Employee employeeObj;
 				if (dbResponse != null) {
 					if (dbResponse.getUpdateApplicationStatus().equals("Pending For Approval")) {
-					 if(employeedto.getIsApmosysProduct().equalsIgnoreCase("true")) {
-						 employeeObj=employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-					 }else {
-							employeeObj = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
- 
-					 }
+						employeeObj = findEmployeeByEmploymentIdAndType(employeedto);
 
 						if (employeeObj != null) {
 							employeeObj.setIsUserInfoUpdated("true");
@@ -1477,6 +1473,124 @@ public class DraftEmployeeService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private Employee findEmployeeForDraftApproval(EmployeeDTO employeedto) {
+		enrichFromDraftRecord(employeedto);
+
+		if (employeedto.getEmail() != null && !employeedto.getEmail().isBlank()) {
+			Employee byEmail = employeeRepository.findByEmail(employeedto.getEmail().trim());
+			if (byEmail != null) {
+				employeedto.setEmployeementId(byEmail.getEmployeementId());
+				syncEmployeeTypeFlagsFromEmployee(employeedto, byEmail);
+				return byEmail;
+			}
+		}
+
+		Long employmentId = resolveEmploymentIdForDraftApproval(employeedto);
+		if (employmentId == null) {
+			return null;
+		}
+		employeedto.setEmployeementId(employmentId);
+
+		Employee employee = employeeRepository.findByEmployeementId(employmentId);
+		if (employee != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, employee);
+			return employee;
+		}
+		return findEmployeeByEmploymentIdTryingAllTypes(employmentId, employeedto);
+	}
+
+	private void enrichFromDraftRecord(EmployeeDTO employeedto) {
+		Long draftId = employeedto.getDraftEmpId();
+		if (draftId == null && employeedto.getEmpId() != null) {
+			draftId = employeedto.getEmpId();
+			employeedto.setDraftEmpId(draftId);
+		}
+		if (draftId == null) {
+			return;
+		}
+		draftEmployeeRepository.findById(draftId).ifPresent(draft -> {
+			if (employeedto.getEmployeementId() == null) {
+				employeedto.setEmployeementId(draft.getEmployeementId());
+			}
+			if (employeedto.getIsConsultant() == null) {
+				employeedto.setIsConsultant(draft.getIsConsultant());
+			}
+			if (employeedto.getIsApmosysProduct() == null) {
+				employeedto.setIsApmosysProduct(draft.getIsApmosysProduct());
+			}
+			if (employeedto.getIsApprenticeship() == null) {
+				employeedto.setIsApprenticeship(draft.getIsApprenticeship());
+			}
+			if (employeedto.getEmail() == null || employeedto.getEmail().isBlank()) {
+				employeedto.setEmail(draft.getEmail());
+			}
+		});
+	}
+
+	private void syncEmployeeTypeFlagsFromEmployee(EmployeeDTO employeedto, Employee employee) {
+		if (employee.getIsConsultant() != null) {
+			employeedto.setIsConsultant(employee.getIsConsultant());
+		}
+		if (employee.getIsApmosysProduct() != null) {
+			employeedto.setIsApmosysProduct(employee.getIsApmosysProduct());
+		}
+		if (employee.getIsApprenticeship() != null) {
+			employeedto.setIsApprenticeship(employee.getIsApprenticeship());
+		}
+	}
+
+	private Long resolveEmploymentIdForDraftApproval(EmployeeDTO employeedto) {
+		if (employeedto.getEmployeementId() != null) {
+			return employeedto.getEmployeementId();
+		}
+		if (employeedto.getDraftEmpId() == null) {
+			return null;
+		}
+		return draftEmployeeRepository.findById(employeedto.getDraftEmpId())
+				.map(DraftEmployee::getEmployeementId)
+				.orElse(null);
+	}
+
+	private Employee findEmployeeByEmploymentIdTryingAllTypes(Long employmentId, EmployeeDTO employeedto) {
+		Employee apcs = employeeRepository.findByEmployeementIdForApmosysProductConsultant(employmentId);
+		if (apcs != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, apcs);
+			return apcs;
+		}
+		Employee ap = employeeRepository.findByEmployeementIdForApmosysProduct(employmentId);
+		if (ap != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, ap);
+			return ap;
+		}
+		Employee cs = employeeRepository.findByEmployeementIdForConsultant(employmentId);
+		if (cs != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, cs);
+			return cs;
+		}
+		Employee apprentice = employeeRepository.findByEmployeementIdForApprentice(employmentId);
+		if (apprentice != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, apprentice);
+			return apprentice;
+		}
+		Employee regular = employeeRepository.findByEmployeementIdForOthers(employmentId);
+		if (regular != null) {
+			syncEmployeeTypeFlagsFromEmployee(employeedto, regular);
+		}
+		return regular;
+	}
+
+	private Employee findEmployeeByEmploymentIdAndType(EmployeeDTO employeedto) {
+		Long employmentId = employeedto.getEmployeementId();
+		if (employmentId == null) {
+			return null;
+		}
+		Employee employee = employeeRepository.findByEmployeementId(employmentId);
+		if (employee != null) {
+			return employee;
+		}
+		return findEmployeeByEmploymentIdTryingAllTypes(employmentId, employeedto);
 	}
 
 	private ServiceResponse validateApcsEmailIfRequired(EmployeeDTO employeedto) {

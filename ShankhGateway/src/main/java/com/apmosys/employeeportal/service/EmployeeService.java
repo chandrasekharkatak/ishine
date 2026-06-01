@@ -604,7 +604,7 @@ public class EmployeeService {
 
 			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
 			if (apcsEmailValidation != null) {
-				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return apcsEmailValidation;
 			}
@@ -2411,7 +2411,7 @@ public class EmployeeService {
 		try {
 			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
 			if (apcsEmailValidation != null) {
-				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
 				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
 				return apcsEmailValidation;
 			}

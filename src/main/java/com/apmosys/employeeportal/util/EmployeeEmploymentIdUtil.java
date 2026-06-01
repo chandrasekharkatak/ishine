@@ -21,7 +21,11 @@ public final class EmployeeEmploymentIdUtil {
 	}
 
 	public static boolean isTrue(String value) {
-		return value != null && "true".equalsIgnoreCase(value.trim());
+		if (value == null) {
+			return false;
+		}
+		String normalized = value.trim();
+		return "true".equalsIgnoreCase(normalized) || "1".equals(normalized);
 	}
 
 	public static boolean isApmosysProductConsultant(String isConsultant, String isApmosysProduct) {
