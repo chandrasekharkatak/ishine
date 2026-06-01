@@ -74,6 +74,9 @@ public class ReimbursementTicketClaim {
 	@Column(name = "food_allowance_type")
 	private String foodAllowanceType;
 
+	@Column(name = "team_member_count")
+	private Integer teamMemberCount;
+
 	@Column(name = "date_of_food")
 	private Timestamp dateOfFood;
 
@@ -109,6 +112,9 @@ public class ReimbursementTicketClaim {
 
 	@Column(name = "client_name", length = 512)
 	private String clientName;
+
+	@Column(name = "po_no", length = 512)
+	private String poNo;
 
 	@Column(name = "reimbursement_client_id")
 	private Long reimbursementClientId;

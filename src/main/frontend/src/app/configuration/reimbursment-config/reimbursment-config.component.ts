@@ -14,7 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
   standalone: false,
   selector: 'app-reimbursment-config',
   templateUrl: './reimbursment-config.component.html',
-  styleUrls: ['./reimbursment-config.component.css']
+  styleUrls: ['./reimbursment-config.component.css', '../reimbursement-config-master.css']
 })
 export class ReimbursmentConfigComponent implements OnInit {
 
@@ -61,6 +61,7 @@ export class ReimbursmentConfigComponent implements OnInit {
   isCategoryTableTab: boolean = true;
   /** Reimbursement → Approval Matrix tab (approval rules UI; backend later). */
   isRuleSetTab = false;
+  isRolePolicyTab = false;
   isSubmissionWindowTab = false;
   submissionSettings = { monthlyDeadlineDay: 10, enabled: true };
   submissionSettingsLoading = false;
@@ -132,7 +133,8 @@ export class ReimbursmentConfigComponent implements OnInit {
       centered: true,
       size: 'lg',
       backdrop: 'static',
-      scrollable: true
+      scrollable: true,
+      windowClass: 'rmb-config-master-modal'
     });
   }
 
@@ -187,6 +189,7 @@ export class ReimbursmentConfigComponent implements OnInit {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isRolePolicyTab = false;
     this.isSubmissionWindowTab = false;
   }
   createCategory(){
@@ -225,6 +228,7 @@ toggleSearchReviewType() {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isRolePolicyTab = false;
     this.isSubmissionWindowTab = false;
   }
 
@@ -240,6 +244,7 @@ toggleSearchReviewType() {
     this.foodCategoryTable =false;
     this.foodAllowanceTypeTab = false;
     this.isRuleSetTab = false;
+    this.isRolePolicyTab = false;
     this.isSubmissionWindowTab = false;
   }
 
@@ -253,12 +258,14 @@ toggleSearchReviewType() {
     this.foodAllowanceTypeTab = true;
     this.isClassTab = false;
     this.isRuleSetTab = false;
+    this.isRolePolicyTab = false;
     this.isSubmissionWindowTab = false;
   }
 
   showSubmissionWindowPanel(): void {
     this.isSubmissionWindowTab = true;
     this.isRuleSetTab = false;
+    this.isRolePolicyTab = false;
     this.isCategoryTable = false;
     this.isClass = false;
     this.istravelMode = false;
@@ -317,6 +324,7 @@ toggleSearchReviewType() {
 
   showRuleSetPanel(): void {
     this.isRuleSetTab = true;
+    this.isRolePolicyTab = false;
     this.isSubmissionWindowTab = false;
     this.isCategoryTable = false;
     this.isClass = false;
@@ -327,6 +335,20 @@ toggleSearchReviewType() {
     this.isClassTab = false;
     this.foodAllowanceTypeTab = false;
     this.isSubmissionWindowTab = false;
+  }
+
+  showRolePolicyPanel(): void {
+    this.isRolePolicyTab = true;
+    this.isRuleSetTab = false;
+    this.isSubmissionWindowTab = false;
+    this.isCategoryTable = false;
+    this.isClass = false;
+    this.istravelMode = false;
+    this.foodCategoryTable = false;
+    this.istravelModeTab = false;
+    this.isCategoryTableTab = false;
+    this.isClassTab = false;
+    this.foodAllowanceTypeTab = false;
   }
 
   subClassCategory(){

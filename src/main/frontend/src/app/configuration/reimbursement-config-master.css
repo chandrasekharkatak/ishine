@@ -1,0 +1,60 @@
+/**
+ * Shared typography for Reimbursement configuration master
+ * (expenditure type, travel mode, expense policy, approval matrix, modals).
+ * Title Case on labels and headings; body/help text stays sentence case.
+ */
+.rmb-config-master label,
+.rmb-config-master .info-label,
+.rmb-config-master h3,
+.rmb-config-master h4,
+.rmb-config-master h5,
+.rmb-config-master .table-header-title,
+.rmb-config-master thead .info-label,
+.rmb-config-master .form-check-label,
+.rmb-config-master .btn:not(.close),
+.rmb-config-master .modal-title,
+.rmb-config-master .rmb-role-policy-hero__title,
+.rmb-config-master .rmb-role-policy-form-title,
+.rmb-config-master .rmb-rs-hero__title,
+.rmb-config-master .rmb-rs-form-title,
+.rmb-config-master .rmb-rs-applicability-card__title,
+.rmb-config-master .rmb-rs-scope-card__title,
+.rmb-config-master .rmb-rs-finance__title,
+.rmb-config-master .rmb-role-policy__selected-hint,
+.rmb-config-master .rmb-rs-selected-hint,
+.rmb-config-master .rmb-rs-approver-card__kicker,
+.rmb-config-master .rmb-rs-assignee-card__kicker,
+.rmb-config-master .rmb-rs-level__badge,
+.rmb-config-master .rmb-rs-panel-title,
+.rmb-config-master .rmb-rs-hero__footnote {
+  text-transform: capitalize !important;
+  letter-spacing: 0.02em;
+}
+
+.rmb-config-master p.text-muted,
+.rmb-config-master .alert,
+.rmb-config-master td,
+.rmb-config-master tbody th.info-label,
+.rmb-config-master .rmb-rs-hero__lead,
+.rmb-config-master .rmb-rs-callout,
+.rmb-config-master .rmb-rs-applicability-card__lead,
+.rmb-config-master .rmb-rs-scope-card__lead,
+.rmb-config-master .rmb-rs-hierarchy-note,
+.rmb-config-master .rmb-rs-between-chain,
+.rmb-config-master small.text-muted,
+.rmb-config-master .rmb-rs-pill {
+  text-transform: none;
+}
+
+.rmb-config-master .rmb-rs-pill {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rmb-config-master-modal label,
+.rmb-config-master-modal .info-label,
+.rmb-config-master-modal h4,
+.rmb-config-master-modal .modal-title,
+.rmb-config-master-modal .form-check-label {
+  text-transform: capitalize;
+}

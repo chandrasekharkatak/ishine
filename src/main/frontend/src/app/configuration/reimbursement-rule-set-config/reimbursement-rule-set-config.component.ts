@@ -71,7 +71,7 @@ export interface RmbRsRuleSetDraft {
   standalone: false,
   selector: 'app-reimbursement-rule-set-config',
   templateUrl: './reimbursement-rule-set-config.component.html',
-  styleUrls: ['./reimbursement-rule-set-config.component.css']
+  styleUrls: ['./reimbursement-rule-set-config.component.css', '../reimbursement-config-master.css']
 })
 export class ReimbursementRuleSetConfigComponent implements OnInit {
   readonly maxLevels = 5;

@@ -621,6 +621,79 @@
   font-weight: 800;
 }
 
+.rmbtm-doc-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.rmbtm-doc-pill--main {
+  flex: 1;
+  min-width: 0;
+  border-radius: 10px;
+}
+
+.rmbtm-doc-pill__name {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.rmbtm-doc-download-btn {
+  flex: 0 0 auto;
+  border-radius: 10px;
+  border: 1px solid rgba(25, 61, 138, 0.22);
+  background: #fff;
+  color: var(--rmbtm-primary);
+}
+
+.rmbtm-doc-download-btn:hover {
+  background: rgba(25, 61, 138, 0.08);
+}
+
+.rmbtm-card__head--split {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rmbtm-preview-download-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.rmbtm-download-panel {
+  text-align: center;
+  padding: 28px 16px;
+  border: 1px dashed rgba(25, 61, 138, 0.18);
+  border-radius: 12px;
+  background: rgba(25, 61, 138, 0.03);
+}
+
+.rmbtm-download-panel__icon {
+  font-size: 42px;
+  color: var(--rmbtm-primary);
+  margin-bottom: 12px;
+}
+
+.rmbtm-download-panel__name {
+  font-weight: 700;
+  color: var(--rmbtm-text);
+  word-break: break-word;
+  margin-bottom: 8px;
+}
+
+.rmbtm-download-panel__hint {
+  font-size: 13px;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .proof-panel iframe {
   border: none;
   border-radius: 10px;

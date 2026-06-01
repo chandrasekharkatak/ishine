@@ -794,3 +794,200 @@ border-color: #1a73e8;
 .ts-export-btn i {
 font-size: 13px;
 }
+
+
+.reject-modal-shell {
+  background: #ffffff;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+  border: 1px solid #e8eef9;
+}
+
+/* Header */
+.reject-modal-header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #243b7a 100%);
+  color: #fff;
+}
+
+.reject-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reject-header-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 1.25rem;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.08);
+}
+
+.reject-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin: 0;
+}
+
+.reject-modal-subtitle {
+  font-size: 0.86rem;
+  opacity: 0.92;
+  line-height: 1.4;
+}
+
+/* Body */
+.reject-modal-body {
+  padding: 1.5rem;
+  background: #f8fbff;
+}
+
+/* Info Banner */
+.reject-info-banner {
+  background: linear-gradient(90deg, #eaf3ff, #f4f9ff);
+  border: 1px solid #d6e8ff;
+  color: #0d4ea6;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+/* Labels */
+.reject-field-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #163a70;
+}
+
+.required-mark {
+  color: #dc3545;
+  margin-right: 4px;
+}
+
+/* Select + Inputs */
+.modern-my-select,
+.reject-remark-box,
+.reject-modal-shell .form-control {
+  border-radius: 12px !important;
+  border: 1px solid #cfe0ff !important;
+  background: #ffffff !important;
+  min-height: 46px;
+  transition: all 0.2s ease;
+  box-shadow: none !important;
+}
+
+.modern-my-select:hover,
+.reject-remark-box:hover,
+.reject-modal-shell .form-control:hover {
+  border-color: #86b7fe !important;
+}
+
+.modern-my-select:focus,
+.reject-remark-box:focus,
+.reject-modal-shell .form-control:focus {
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.12) !important;
+}
+
+/* Textarea */
+.reject-remark-box {
+  min-height: 120px;
+  resize: vertical;
+  padding: 0.85rem 1rem;
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+
+/* Footer */
+.reject-modal-footer {
+  padding: 1rem 1.5rem 1.35rem;
+  background: #ffffff;
+  border-top: 1px solid #edf2fa;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Buttons */
+.reject-cancel-btn,
+.reject-submit-btn {
+  min-width: 140px;
+  border-radius: 12px;
+  font-weight: 700;
+  padding: 0.7rem 1.15rem;
+  transition: all 0.22s ease;
+}
+
+/* Cancel */
+.reject-cancel-btn {
+  background: #eef4ff;
+  color: #0d4ea6;
+  border: 1px solid #d7e6ff;
+}
+
+.reject-cancel-btn:hover {
+  background: #dceaff;
+  color: #083d86;
+}
+
+/* Reject */
+.reject-submit-btn {
+  background: linear-gradient(135deg, #dc3545, #bb2d3b);
+  color: #fff;
+  border: none;
+  box-shadow: 0 10px 22px rgba(220, 53, 69, 0.18);
+}
+
+.reject-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(220, 53, 69, 0.24);
+}
+
+.reject-submit-btn:disabled {
+  background: #f1b7bd;
+  color: #fff;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reject-modal-header,
+  .reject-modal-body,
+  .reject-modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .reject-header-left {
+    align-items: flex-start;
+  }
+
+  .reject-modal-footer {
+    flex-direction: column;
+  }
+
+  .reject-cancel-btn,
+  .reject-submit-btn {
+    width: 100%;
+  }
+}
+
+.ts-action-btn--text{
+  width: auto;
+  min-width: 56px;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
