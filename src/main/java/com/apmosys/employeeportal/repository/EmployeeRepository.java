@@ -2118,7 +2118,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct IN ('true', '1') AND e.isConsultant IN ('true', '1')")
+	@Query("Select e from Employee e where e.employeementId = :empId AND ((e.isApmosysProduct = 'true' AND e.isConsultant = 'true') OR (e.isApmosysProduct = 'true' AND e.isConsultant = 'false'))")
 	Employee findByEmployeementIdForApmosysProductConsultant(@Param("empId") Long empId);
 
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND (e.isConsultant IS NULL OR e.isConsultant = 'false')")
