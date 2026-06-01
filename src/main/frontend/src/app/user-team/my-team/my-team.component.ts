@@ -2209,9 +2209,6 @@ ngOnDestroy(): void {
     employee.updatedBy = this.currentUser.empId;
 
     employee.employeementId = this.utilityService.stripEmploymentIdPrefix(employee.employeementId);
-    else {
-      employee.employeementId  = employee.employeementId
-    }
 
     //console.log("updateTimesheetLockCheck : ", employee);
     this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
