@@ -230,6 +230,7 @@ import com.apmosys.employeeportal.utility.ExceptionUtils;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 @Service
 public class ResourceManagementService {
@@ -5559,6 +5560,7 @@ public class ResourceManagementService {
 				Long projectManagerId = row[21] != null ? (Long) row[21] : null;
 				String projectManagerName = row[22] != null ? row[22].toString() : null;
 				String isApmosysProductt = row[23] != null ? row[23].toString() : null;
+				String isConsultant = row[24] != null ? row[24].toString() : null;
 
 				RMGProjectMappedEmployees dto = employeeMap.computeIfAbsent(empId, k -> {
 					RMGProjectMappedEmployees newDto = new RMGProjectMappedEmployees();
@@ -5569,21 +5571,11 @@ public class ResourceManagementService {
 					newDto.setBillable(billable);
 					newDto.setBillableType(billableType);
 					newDto.setIsApmosysProduct(isApmosysProductt);
-					   String employmentId = newDto.getEmployeementId().toString();
-					     if (employmentId != null) {
-
-				        String prefix = "A-"; // default
-
-				        if ("true".equalsIgnoreCase(newDto.getIsApmosysProduct())) {
-				            prefix = "AP-";
-				        } else if ("true".equalsIgnoreCase(newDto.getIsConsultant())) {
-				            prefix = "CS-";
-				        }
-
-				        newDto.setEmployeementIdAccToET(prefix + employmentId);
-				    }
-					
-					
+					newDto.setIsConsultant(isConsultant);
+					if (employeementId != null) {
+						newDto.setEmployeementIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+								employeementId.toString(), isConsultant, isApmosysProductt));
+					}
 					newDto.setRmgprojects(new ArrayList<>());
 					return newDto;
 				});
@@ -6007,22 +5999,22 @@ public class ResourceManagementService {
 				employeeDTO.setName(row[9] != null ? row[9].toString() : null);
 				employeeDTO.setBillableType(row[10] != null ? row[10].toString() : null);
 				employeeDTO.setIsApmosysProduct(row[11] != null ? row[11].toString() : null);
+				employeeDTO.setIsConsultant(row[12] != null ? row[12].toString() : null);
+				employeeDTO.setIsApprenticeship(row[13] != null ? row[13].toString() : null);
 
 				String employmentId = employeeDTO.getEmployeementId() != null
 						? employeeDTO.getEmployeementId().toString()
 						: null;
 
-				String isApmosysProduct = employeeDTO.getIsApmosysProduct();
-
 				if (employmentId != null) {
-					if ("true".equalsIgnoreCase(isApmosysProduct)) {
-						employeeDTO.setEmploymentIdAcToET("AP-" + employmentId);
-//		                	  employeeDTO.setEmployeementIdAccToET("AP-" + employmentId);
-					} else {
-						employeeDTO.setEmploymentIdAcToET("A-" + employmentId);
-//		                	employeeDTO.setEmployeementIdAccToET("A-" + employmentId);
-					}
+					String formattedId = EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+							employeeDTO.getIsConsultant(), employeeDTO.getIsApmosysProduct());
+					employeeDTO.setEmploymentIdAcToET(formattedId);
+					employeeDTO.setEmployeementIdAccToET(formattedId);
 				}
+				employeeDTO.setEmployeeType(EmployeeEmploymentIdUtil.resolveEmployeeType(
+						employeeDTO.getIsConsultant(), employeeDTO.getIsApmosysProduct(),
+						employeeDTO.getIsApprenticeship()));
 
 				employeeDTOList.add(employeeDTO);
 			}

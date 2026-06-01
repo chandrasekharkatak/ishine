@@ -9884,7 +9884,9 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
                     employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
                     employeeDetails.setPoProjectType(object[9] != null ? object[9].toString() : null);
-                    employeeDetails.setEmployeementIdAccToET(object[10] != null ? object[10].toString() : null);
+                    String prefixedId = object[10] != null ? object[10].toString() : null;
+                    employeeDetails.setEmployeementIdAccToET(prefixedId);
+                    employeeDetails.setEmploymentIdAcToET(prefixedId);
                     countOfInActivePoEmployeeWise.add(employeeDetails);
                 }
 

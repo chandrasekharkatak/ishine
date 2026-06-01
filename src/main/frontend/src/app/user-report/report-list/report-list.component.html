@@ -735,7 +735,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                   <input type="checkbox" [(ngModel)]="employee.isSelected" (change)="checkIfAllSelected()" />
                 </td> -->
             <th class="info-label">{{20*(page-1)+i+1}}</th>
-            <td>{{ employee.employeementIdAccToET }}</td>
+            <td>{{ employee.employeementIdAccToET || employee.employmentIdAcToET }}</td>
             <td *ngIf="userMapping.reports_employee_360 && employee.emp360EmpId" id="clickablefor360"
               [navigateToEmployee360]="employee.emp360EmpId" style="cursor: pointer;"
               title="Click to view Employee 360">{{employee.name}}</td>
@@ -1203,8 +1203,8 @@ firt share list of feature and then go one by one details, nothing to be missed
           <tr
             *ngFor="let employee of allEmployeeList | colFilter:filters: false | sort : [sortColumn, sortColumnType, sortDirection] |paginate: { itemsPerPage: 20, currentPage: page }, let i = index">
             <th class="info-label">{{20*(page-1)+i+1}}</th>
-            <td class="info-label">{{employee.employeementId}}</td>
-            <td>{{employee.employeeType}}</td>
+            <td class="info-label">{{ employee.employmentIdAcToET || employee.employeementId }}</td>
+            <td>{{ employee.employeeType }}</td>
             <td class="text-capitalize" id="clickablefor360" *ngIf="userMapping.reports_employee_360"
               [navigateToEmployee360]="employee.emp360" style="cursor: pointer;" title="Click to view Employee 360"
               (click)="cancelRequest()">{{employee.name}}</td>
@@ -3058,7 +3058,7 @@ firt share list of feature and then go one by one details, nothing to be missed
                             <th colspan="9" class="text-center info-label">No details to display...</th>
                         </tr>
                         <tr *ngFor="let emp of allInactivePOListOfEmployee | colFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: {id: 'inactivePO',  itemsPerPage: 10, currentPage: page2 }; let i = index">
-                            <td>{{ emp.employeementIdAccToET }}</td>
+                            <td>{{ emp.employeementIdAccToET || emp.employmentIdAcToET }}</td>
                             <td>{{ emp.name }}</td>
                             <td>{{ emp.projectName || 'N/A' }}</td>
                             <td>{{ emp.poNo || 'N/A' }}</td>

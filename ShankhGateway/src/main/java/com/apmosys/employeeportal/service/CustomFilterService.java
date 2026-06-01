@@ -681,13 +681,21 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //			}
 			case "Employee Id":
 			case "employmentID": {
-				appendPrefixedEmployeeIdFilter(query, dto.getValue(), dto.getOperator(), dto.getConjunction(), false);
+				if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("LIKE")) {
+					appendFormattedEmploymentIdLikeFilter(query, dto.getValue(), "e");
+				} else {
+					appendPrefixedEmployeeIdFilter(query, dto.getValue(), dto.getOperator(), dto.getConjunction(), false);
+				}
 				break;
 			}
 			case "employeeType":
 			case "Employee Type": {
-				query.append(" ").append(buildEmployeeTypeFilterSql(dto.getValue())).append(" ")
-						.append(dto.getConjunction());
+				if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("LIKE")) {
+					query.append(" (").append(buildEmployeeTypeLikeFilterSql(dto.getValue(), "e")).append(") ");
+				} else {
+					query.append(" (").append(buildEmployeeTypeFilterSql(dto.getValue(), "e")).append(") ");
+				}
+				query.append(dto.getConjunction());
 				break;
 			}
 
@@ -1469,25 +1477,9 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
                     empDTO.setProjectStartDate(object[74] != null ? object[74].toString() : null);
 					empDTO.setProjectEndDate(object[75] != null ? object[75].toString() : null);
 					empDTO.setPoProjectType(object[76] != null ? object[76].toString() : null);
-					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);	
-					
-					String employmentId = empDTO.getEmployeementId() != null ? empDTO.getEmployeementId().toString() : null;
-				    String isConsultant = empDTO.getIsConsultant();
-				    String isApmosysProduct = empDTO.getIsApmosysProduct();
+					empDTO.setIsApmosysProduct(object[78] != null ? object[78].toString() : null);
+					applyEmployeeReportDisplay(empDTO);
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isConsultant)) {
-				            empDTO.setEmploymentIdAcToET("CS-" + employmentId);
-				        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				            empDTO.setEmploymentIdAcToET("AP-" + employmentId);
-				        } else {
-				            empDTO.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
-
-
-
-					
 					if (object[60] != null && object[62] != null) {
 		                String projectIdStr = object[62].toString().trim();
 		                String projectNameStr = object[60].toString().trim();
@@ -5165,6 +5157,19 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	    }
 	}
 
+	private void applyEmployeeReportDisplay(EmployeeDTO dto) {
+		if (dto == null) {
+			return;
+		}
+		dto.setEmployeeType(EmployeeEmploymentIdUtil.resolveEmployeeType(dto.getIsConsultant(),
+				dto.getIsApmosysProduct(), dto.getIsApprenticeship()));
+		if (dto.getEmployeementId() != null) {
+			String numericId = dto.getEmployeementId().toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+			dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(numericId, dto.getIsConsultant(),
+					dto.getIsApmosysProduct()));
+		}
+	}
+
 	private void applyLeaveDtoEmployeeDisplay(LeaveDTO dto) {
 		if (dto == null) {
 			return;
@@ -5294,28 +5299,65 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		}
 	}
 
+	private void appendFormattedEmploymentIdLikeFilter(StringBuilder query, String likeValue, String tableAlias) {
+		if (likeValue == null) {
+			return;
+		}
+		String escaped = likeValue.replace("'", "''");
+		query.append(EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId(tableAlias, "employeement_id"))
+				.append(" LIKE '").append(escaped).append("' ");
+	}
+
 	private String buildEmployeeTypeFilterSql(String employeeTypeValue) {
+		return buildEmployeeTypeFilterSql(employeeTypeValue, "e");
+	}
+
+	private String buildEmployeeTypeFilterSql(String employeeTypeValue, String tableAlias) {
 		if (employeeTypeValue == null || employeeTypeValue.isBlank()) {
 			return "1=1";
 		}
 		String v = employeeTypeValue.replace("%", "").trim();
 		if (matchesEmployeeTypeLabel(v, "Apmosys Product Consultant", "ApMoSys Product Consultant")) {
-			return "(e.is_apmosys_product = 'true' AND e.is_consultant = 'true')";
+			return "(" + tableAlias + ".is_apmosys_product = 'true' AND " + tableAlias + ".is_consultant = 'true')";
 		}
 		if (matchesEmployeeTypeLabel(v, "Apmosys Product", "ApMoSys Product")) {
-			return "(e.is_apmosys_product = 'true' AND COALESCE(e.is_consultant, 'false') != 'true')";
+			return "(" + tableAlias + ".is_apmosys_product = 'true' AND COALESCE(" + tableAlias
+					+ ".is_consultant, 'false') != 'true')";
 		}
 		if (matchesEmployeeTypeLabel(v, "Consultant")) {
-			return "(e.is_consultant = 'true' AND COALESCE(e.is_apmosys_product, 'false') != 'true')";
+			return "(" + tableAlias + ".is_consultant = 'true' AND COALESCE(" + tableAlias
+					+ ".is_apmosys_product, 'false') != 'true')";
 		}
 		if (matchesEmployeeTypeLabel(v, "Apprentice")) {
-			return "(e.is_apprenticeship = 'true')";
+			return "(" + tableAlias + ".is_apprenticeship = 'true')";
 		}
 		if (matchesEmployeeTypeLabel(v, "Regular")) {
-			return "((e.is_consultant = 'false' AND COALESCE(e.is_apmosys_product, 'false') != 'true' AND COALESCE(e.is_apprenticeship, 'false') != 'true') "
-					+ "OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))";
+			return "((" + tableAlias + ".is_consultant = 'false' AND COALESCE(" + tableAlias
+					+ ".is_apmosys_product, 'false') != 'true' AND COALESCE(" + tableAlias
+					+ ".is_apprenticeship, 'false') != 'true') "
+					+ "OR (COALESCE(" + tableAlias + ".is_consultant, '') = '' AND COALESCE(" + tableAlias
+					+ ".is_apprenticeship, '') = ''))";
 		}
 		return "1=1";
+	}
+
+	private String buildEmployeeTypeLikeFilterSql(String likeValue, String tableAlias) {
+		if (likeValue == null || likeValue.isBlank()) {
+			return "1=1";
+		}
+		String escaped = likeValue.replace("'", "''");
+		return "(" + sqlEmployeeTypeDisplayCase(tableAlias) + ") LIKE '" + escaped + "'";
+	}
+
+	private String sqlEmployeeTypeDisplayCase(String tableAlias) {
+		return "CASE "
+				+ "WHEN " + tableAlias + ".is_apmosys_product = 'true' AND " + tableAlias
+				+ ".is_consultant = 'true' THEN 'Apmosys Product Consultant' "
+				+ "WHEN " + tableAlias + ".is_consultant = 'true' THEN 'Consultant' "
+				+ "WHEN " + tableAlias + ".is_apprenticeship = 'true' THEN 'Apprentice' "
+				+ "WHEN " + tableAlias + ".is_apmosys_product = 'true' THEN 'Apmosys Product' "
+				+ "ELSE 'Regular' "
+				+ "END";
 	}
 
 	private boolean matchesEmployeeTypeLabel(String value, String... candidates) {

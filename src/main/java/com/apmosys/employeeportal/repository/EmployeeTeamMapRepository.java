@@ -843,7 +843,7 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		+ "    etm.employee_role, \n"
 		+ "    etm.active,  \n"
 		+ "    pm.emp_id AS project_manager_id, \n"
-		+ "    pm.name AS project_manager_name,e.is_apmosys_product\n"
+		+ "    pm.name AS project_manager_name, e.is_apmosys_product, e.is_consultant\n"
 		+ "FROM \n"
 		+ "    employee_team_mapping etm\n"
 		+ "RIGHT JOIN \n"
@@ -906,7 +906,8 @@ List<Long> findShadowMembersByEmpIdsAndProjectId(@Param("empIds") List<Long> emp
 		+ "    etm.active,\n"
 		+ "    pm.emp_id,\n"
 		+ "    pm.name,\n"
-		+ "    e.is_apmosys_product\n",
+		+ "    e.is_apmosys_product,\n"
+		+ "    e.is_consultant\n",
 nativeQuery = true)
 List<Object[]> findEmployeeProjectTeamDetailsByProjectIdsAndDepartment(@Param("projectIds") Set<Integer> projectIds,@Param("deptIds")List<Long> deptIds,@Param("hideMaternityLeaveEmps")Boolean hideMaternityLeaveEmps); 
 

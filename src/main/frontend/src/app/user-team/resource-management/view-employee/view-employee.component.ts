@@ -5,6 +5,7 @@ import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { BreadcrumbService } from 'src/app/services/breadcrumb.service';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   standalone: false,
@@ -45,6 +46,7 @@ export class ViewEmployeeComponent implements OnInit {
   constructor(private exportExcelService :ExportExcelService,
     private breadcrumbService: BreadcrumbService,
     private authenticationService: AuthenticationService,
+    private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -59,7 +61,16 @@ export class ViewEmployeeComponent implements OnInit {
     if(this.catagory !== 'Unfilled Timesheet Projects') {
       this.allEmployeeData = this.processEmployeeDataForSearch(this.allEmployeeData);
     }
-    
+    this.utilityService.applyEmployeeDisplayFieldsToList(this.allEmployeeData);
+    this.allEmployeeData.forEach(emp => {
+      const formattedId = emp.employeementIdAccToET || emp.employmentIdAcToET
+        || this.utilityService.getFormattedEmployeeId(emp);
+      if (formattedId) {
+        emp.employeementIdAccToET = formattedId;
+        emp.employmentIdAcToET = formattedId;
+      }
+    });
+
     this.filteredEmployeeData = [...this.allEmployeeData];
   }
 
@@ -236,7 +247,8 @@ getHierarchicalSrNo1(pIndex: number, tIndex: number, eIndex: number): string {
       employee.rmgprojects.forEach(empProject => {
         empProject.rmgTeam.forEach(data => {
           dataForTable.push({
-            "Employment Id": "A-" + employee.employeementId,
+            "Employment Id": employee.employeementIdAccToET || employee.employmentIdAcToET
+              || this.utilityService.getFormattedEmployeeId(employee),
             "Employee Name": employee.name,
             "Department": employee.department,
             "Billable Type": employee.billableType,
@@ -494,9 +506,10 @@ exportNotMappedToExcel(): void {
   const dataForTable = this.allEmployeeData.map((employee: any, index: number) => {
     return {
       "Sr No.": index + 1,
-      "Employment Id": "A-" + employee.employeementId,
+      "Employment Id": employee.employeementIdAccToET || employee.employmentIdAcToET
+        || this.utilityService.getFormattedEmployeeId(employee),
       "Employee Name": employee.name,
-      "Department": employee.deptName,
+      "Department": employee.departmentName || employee.deptName,
       "Billable Type": employee.billableType,
       "Manager Name": employee.managerName,
       "Employee Role": employee.jobRoleName

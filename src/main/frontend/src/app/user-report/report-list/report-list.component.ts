@@ -227,7 +227,7 @@ selectedClientProjectViewOption: string = 'default';
   employeeReportColumnForDetailedProjectView: any[] = ['blank', 'employeementIdAccToET', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'billable', 'billableType', 'teamName', 'projectName', 'poNo', 'poProjectType', 'projectStartDate', 'projectEndDate', 'effectiveStartDate', 'effectiveEndDate', 'clientName', 'clientLocation', 'workLocation', 'experience'];
   leaveReportColumns: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'leaveType', 'fromDate', 'toDate', 'fromDateDayType', 'toDateDayType', 'noOfDays', 'reason', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'leaveStatusUpdatedByName'];
   timesheetReportColumns: any[] = ['employeementId', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'totalWorkingHours', 'officeInTime', 'officeOutTime', 'totalWorkingOfficeHours', 'leaveType', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
-  employeeReportColumn: any[] = ['blank', 'employeementId', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
+  employeeReportColumn: any[] = ['blank', 'employmentIdAcToET', 'employeeType', 'name', 'departmentName', 'jobRoleName', 'managerName', 'mobileNo', 'email', 'employmentstatus', 'projectName', 'poNo', 'projectStartDate', 'projectEndDate', 'poProjectType', 'clientName', 'billable', 'billableType', 'updatedOn', 'updatedByName', 'createdByName', 'createdOn'];
   leaveTimesheetReportColumn: any[] = ['employmentIdAcToET', 'employeeType', 'employeeName', 'date', 'dayType', 'description', 'status', 'managerName', 'departmentName', 'createdOn', 'updatedOn', 'timesheetStatusUpdatedByName'];
   defaultMappingColumns: any[] = ['tabName', 'featureName', 'subFeatureName'];
   employeeReportColumnForDetailedProjecttttView: any[] = ['blank', 'blank',
@@ -602,6 +602,12 @@ dateRange: string; type: string; count: string;
     this.employeeService.projectLessEmployeesDepartmentWise(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.projectLessEmployeesDepartwise = response.serviceResponse;
+        this.utilityService.applyEmployeeDisplayFieldsToList(this.projectLessEmployeesDepartwise);
+        this.projectLessEmployeesDepartwise.forEach(emp => {
+          if (emp.employmentIdAcToET && !emp.employeementIdAccToET) {
+            emp.employeementIdAccToET = emp.employmentIdAcToET;
+          }
+        });
         this.projectLessEmployeesDepartwiseCount = this.projectLessEmployeesDepartwise.length;
         const billableTypeMap = new Map<string, number>();
 
@@ -630,6 +636,15 @@ dateRange: string; type: string; count: string;
     this.employeeService.employeesMappedProjectsDepartmentWise(this.employeeReportObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.employeesWithProjectDeptWise = response.serviceResponse;
+        this.utilityService.applyEmployeeDisplayFieldsToList(this.employeesWithProjectDeptWise);
+        this.employeesWithProjectDeptWise.forEach(emp => {
+          const formattedId = emp.employeementIdAccToET || emp.employmentIdAcToET
+            || this.utilityService.getFormattedEmployeeId(emp);
+          if (formattedId) {
+            emp.employeementIdAccToET = formattedId;
+            emp.employmentIdAcToET = formattedId;
+          }
+        });
         this.employeesWithProjectDeptWiseCount = this.employeesWithProjectDeptWise.length;
 
         const billableTypeMap = new Map<string, number>();
@@ -1004,15 +1019,19 @@ dateRange: string; type: string; count: string;
         this.employeeList = res.getEmployeeProjectReportForEmployeeDTO || [];
         // console.log("employeeList before", this.employeeList);
         this.employeeList.forEach(employee => {
+          this.utilityService.applyEmployeeDisplayFields(employee);
           employee.emp360EmpId = employee.empId;
           employee.emp360ManagerId = employee.managerId;
           this.applyExperienceForReport(employee);
-
         });
         this.projectList = res.getProjectToEmployeeReportForProjectDTO || [];
         this.projectList.forEach(project => {
           project.teamDetails.forEach(team => {
             team.mappedEmployeeDetails.forEach(employee => {
+              this.utilityService.applyEmployeeDisplayFields(employee);
+              if (employee.employmentIdAcToET && !employee.employeementIdAccToET) {
+                employee.employeementIdAccToET = employee.employmentIdAcToET;
+              }
               employee.emp360EmpId = employee.empId;
               employee.emp360ManagerId = project.projectManagerId;
               this.applyExperienceForReport(employee);
@@ -4011,7 +4030,7 @@ handlePageChange1(event) {
 
         const onlySpecificDataArr = this.allEmployeeList.map(
           x => ({
-            "Employee Id": x.employeementId,
+            "Employee Id": x.employmentIdAcToET ?? x.employeementId,
             "Employee Type": x.employeeType,
             "Full Name": x.name,
             "Email Id": x.email,
@@ -4040,7 +4059,7 @@ handlePageChange1(event) {
             console.log(this.employeeList);
             const onlySpecificDataArr = this.employeeList.map(
               x => ({
-                "Employee Id": x.employeementId,
+                "Employee Id": x.employeementIdAccToET ?? x.employmentIdAcToET ?? x.employeementId,
                 "Full Name": x.name,
                 "Department": x.departmentName,
                 "Job Role": x.jobRole,
@@ -4069,7 +4088,7 @@ handlePageChange1(event) {
           } else {
             const onlySpecificDataArr = this.employeeList.map(
               x => ({
-                "Employee Id": x.employeementId,
+                "Employee Id": x.employeementIdAccToET ?? x.employmentIdAcToET ?? x.employeementId,
                 "Full Name": x.name,
                 "Department": x.departmentName,
                 "Job Role": x.jobRole,
@@ -4659,6 +4678,15 @@ onInfoClickModel(box: any, defaultTemplate: TemplateRef<any>, dateRange: string 
     .subscribe((response: any) => {
       if (response.serviceStatus === "Success") {
         this.allInactivePOListOfEmployee = response.serviceResponse;
+        this.utilityService.applyEmployeeDisplayFieldsToList(this.allInactivePOListOfEmployee);
+        this.allInactivePOListOfEmployee.forEach(emp => {
+          const formattedId = emp.employeementIdAccToET || emp.employmentIdAcToET
+            || this.utilityService.getFormattedEmployeeId(emp);
+          if (formattedId) {
+            emp.employeementIdAccToET = formattedId;
+            emp.employmentIdAcToET = formattedId;
+          }
+        });
       } else {
         this.allInactivePOListOfEmployee = [];
       }
@@ -5009,7 +5037,7 @@ getActivePoCount(box: any): void {
 
       const onlySpecificDataArr = this.allInactivePOListOfEmployee.map(
         x => ({
-      'Employee ID': `${x.employeementIdAccToET}`,
+      'Employee ID': `${x.employeementIdAccToET || x.employmentIdAcToET || ''}`,
       'Name' : x.name,
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',

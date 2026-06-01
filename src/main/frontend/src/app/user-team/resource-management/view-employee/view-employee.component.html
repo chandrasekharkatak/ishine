@@ -330,7 +330,7 @@ matSort (matSortChange)="sortData($event)"
                         *ngFor="let employee of filteredEmployeeData | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <tr>
                             <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
-                            <td class="text-center">{{employee.employmentIdAcToET}}</td>
+                            <td class="text-center">{{employee.employmentIdAcToET || employee.employeementIdAccToET}}</td>
                             <td class="text-center text-capitalize"
                             id="clickablefor360"
                             *ngIf="userMapping.rmg_employee_360"
@@ -782,7 +782,7 @@ matSort (matSortChange)="sortData($event)"
                         *ngFor="let employee of filteredEmployeeData | multicolFilter:filters:false | sort : [sortColumn, sortColumnType, sortDirection] | paginate: { itemsPerPage: 10, currentPage: page }; let i = index">
                         <tr>
                             <td class="text-center">{{ (page - 1) * 10 + i + 1 }}</td>
-                            <td class="text-center">{{employee.employmentIdAcToET}}</td>
+                            <td class="text-center">{{employee.employmentIdAcToET || employee.employeementIdAccToET}}</td>
                             <td class="text-center text-capitalize"
                             id="clickablefor360"
                             *ngIf="userMapping.rmg_employee_360"
