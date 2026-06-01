@@ -396,10 +396,10 @@ public class EmployeeLeaveService {
 
         apiLogInfo.setApiResponse("Leave application submitted.");
         apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
-		if (!"Compensatory Off".equals(leavetype.getLeaveType())){
+		// if (!"Compensatory Off".equals(leavetype.getLeaveType())){
 			leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(
 					leaveDTO, dates.fromDate, dates.toDate, leaveDayType);
-		}
+		// }
         if (isHalfDayLeave(leaveDTO)) {
             rejectFullDayTimesheetsForHalfDayLeave(leaveDTO.getEmpId(), dates.fromDate, dates.toDate, leaveDTO);
         }
@@ -1979,15 +1979,15 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
                                 compOffLeave.forEach((leave) -> {
                                     leave.setCompOffStatus("Availed");
                                     compOffLeaveRepository.save(leave);
-									DayTypeMasterNew leaveDayType = leaveApplicationValidator.requireLeaveDayTypeForTimesheet();
-									DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+									// DayTypeMasterNew leaveDayType = leaveApplicationValidator.requireLeaveDayTypeForTimesheet();
+									// DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-									String fromDate = pendingLeaveApplication.getFromDate().format(formatter);
-									String toDate = pendingLeaveApplication.getToDate().format(formatter);
-									leaveDTO.setFromDate(fromDate);
-									leaveDTO.setToDate(toDate);
+									// String fromDate = pendingLeaveApplication.getFromDate().format(formatter);
+									// String toDate = pendingLeaveApplication.getToDate().format(formatter);
+									// leaveDTO.setFromDate(fromDate);
+									// leaveDTO.setToDate(toDate);
 									
-									leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(leaveDTO, pendingLeaveApplication.getFromDate(), pendingLeaveApplication.getToDate(), leaveDayType);
+									// leaveAppliedTimesheetWriter.syncTimesheetsAfterLeaveApplication(leaveDTO, pendingLeaveApplication.getFromDate(), pendingLeaveApplication.getToDate(), leaveDayType);
                                 });
                             }
                         }

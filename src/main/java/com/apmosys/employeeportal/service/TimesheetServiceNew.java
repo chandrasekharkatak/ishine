@@ -408,7 +408,7 @@ public class TimesheetServiceNew {
 						empDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
 				
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId() , hasClient);
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(empDTO.getDate(), empDTO.getDayTypeId() , hasClient ,empDTO.getEmpId(),empDTO);
 			}
 
 			EmployeeTimesheetsNew existing = timesheetValidationHelper.validateTimesheetAlreadyExists(empDTO,
@@ -1088,7 +1088,7 @@ public class TimesheetServiceNew {
 				timesheetValidationHelper.validateDayTypeAgainstLeave(newEmpDTO.getEmpId(), newEmpDTO.getDate(),
 						newEmpDTO.getDayTypeId());
 				// Prevent Working / Half-day Working on dates configured as Holiday / Week Off
-				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId() , hasClient);
+				timesheetValidationHelper.validateDayTypeAgainstHoliday(newEmpDTO.getDate(), newEmpDTO.getDayTypeId() , hasClient,newEmpDTO.getEmpId(),newEmpDTO);
 			}
 
 			// Based on day type transition we have to take validation action

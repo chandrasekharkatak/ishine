@@ -99,6 +99,9 @@ public class FileUploadService {
 	
 	
 	
+	@Value("${report.output.directory}")
+	private String REPORT_OUTPUT_DIR;
+	
 	@Value("${spring.profiles.active}")
 	private String profile;
 	
@@ -511,7 +514,8 @@ public class FileUploadService {
 	            }
 
 	            // Export to Excel
-	            String filePath = "EmployeeBillableData_" + deptId + ".xlsx";
+	            //String filePath = "EmployeeBillableData_" + deptId + ".xlsx";
+	            String filePath = REPORT_OUTPUT_DIR + "/EmployeeBillableData_" + deptId + ".xlsx";
 	            writeToExcel(dtoList, filePath);
 	            File file = new File(filePath);
 
@@ -724,7 +728,8 @@ public class FileUploadService {
 	            dtoList.add(dto);
 	        });
 
-	        String filePath = "Department_BillableData.xlsx";
+	        //String filePath = "Department_BillableData.xlsx";
+	        String filePath = REPORT_OUTPUT_DIR + "/Department_BillableData.xlsx";
 	        writeToExcelBillableReport(dtoList, filePath);
 	        logger.info("Excel file written to {}", filePath);
 

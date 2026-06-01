@@ -48,6 +48,7 @@ import com.apmosys.employeeportal.dto.HrHodHrViewPerformance;
 import com.apmosys.employeeportal.dto.TimesheetDTO;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.service.EmployeeService;
+import com.apmosys.employeeportal.service.HolidayService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 
@@ -57,6 +58,9 @@ public class EmployeeController {
 
 	@Autowired
 	EmployeeService employeeService;
+
+	@Autowired
+	HolidayService holidayService;
 
 	@Autowired
 	PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
@@ -509,6 +513,13 @@ public class EmployeeController {
 		System.out.println(" projectName  getTeamByProjectName "+projectName);
 		ServiceResponse response = employeeService.getTeamByProjectName(projectName);
 		return response;
+	}
+
+	@GetMapping("/isEmployeeMappedToFCorTNMProject/{empId}")
+	public ServiceResponse isEmployeeMappedToFCorTNMProject(
+			@PathVariable Integer empId) {
+
+		 return holidayService.isEmployeeMappedToFCorTNMProject(empId);
 	}
 	
 //	getTeamMemberByTeamName
