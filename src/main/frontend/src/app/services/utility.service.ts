@@ -36,7 +36,11 @@ export class UtilityService {
     ) ?? '';
   }
 
-  substringEmployeementid(isConsultant,emp): string {
+  substringEmployeementid(isConsultant, emp): string {
+    const numeric = this.employeeIdUtil.toApiEmploymentId(emp);
+    if (numeric != null) {
+      return String(numeric);
+    }
     if(isConsultant == "true"){
       if (emp.startsWith("A-")) {
         return emp.substring(2); 

@@ -61,6 +61,27 @@ export class EmployeeIdUtilService {
     return 'Regular';
   }
 
+  /** Strip A-/CS-/AP-/APCS- prefix for API payloads (backend expects numeric Long). */
+  toApiEmploymentId(id: any): number | string | null {
+    if (id == null || id === '') {
+      return id;
+    }
+    if (typeof id === 'number') {
+      return id;
+    }
+    const str = String(id).trim();
+    const extracted = this.extractNumericId(str);
+    if (extracted != null) {
+      const parsed = Number(extracted);
+      return Number.isNaN(parsed) ? extracted : parsed;
+    }
+    if (!str.includes('-')) {
+      const parsed = Number(str);
+      return Number.isNaN(parsed) ? str : parsed;
+    }
+    return null;
+  }
+
   extractNumericId(prefixedId: any): string | null {
     if (!prefixedId || typeof prefixedId !== 'string') {
       return null;

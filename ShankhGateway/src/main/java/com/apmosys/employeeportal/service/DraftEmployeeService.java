@@ -35,6 +35,7 @@ import com.apmosys.employeeportal.repository.LogsRepository;
 import com.apmosys.employeeportal.repository.PreviousEmploymentRepository;
 import com.apmosys.employeeportal.utility.DbTable;
 import com.apmosys.employeeportal.utility.LogEvents;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 
@@ -90,6 +91,13 @@ public class DraftEmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("draftEmployeeId : "+employeedto.getDraftEmpId());
 		try {
+
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
 
 			DraftEmployee employee = new DraftEmployee();
 
@@ -529,6 +537,13 @@ public class DraftEmployeeService {
 		List<PreviousEmploymentDTO> newPreviousEmploymentList = new ArrayList<PreviousEmploymentDTO>();
 
 		try {
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
+
 			Optional<DraftEmployee> employeeObject = draftEmployeeRepository.findById(employeedto.getDraftEmpId());
 			if (employeeObject.isPresent()) {
 				DraftEmployee employee = employeeObject.get();
@@ -1462,5 +1477,19 @@ public class DraftEmployeeService {
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
+	}
+
+	private ServiceResponse validateApcsEmailIfRequired(EmployeeDTO employeedto) {
+		if (!EmployeeEmploymentIdUtil.requiresAp2lEmailDomain(employeedto.getIsConsultant(),
+				employeedto.getIsApmosysProduct())) {
+			return null;
+		}
+		if (!EmployeeEmploymentIdUtil.hasAp2lEmailDomain(employeedto.getEmail())) {
+			ServiceResponse response = new ServiceResponse();
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse(EmployeeEmploymentIdUtil.APCS_EMAIL_DOMAIN_REQUIRED_MESSAGE);
+			return response;
+		}
+		return null;
 	}
 }

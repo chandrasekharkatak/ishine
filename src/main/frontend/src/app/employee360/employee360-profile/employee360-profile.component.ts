@@ -929,7 +929,8 @@ export class Employee360ProfileComponent implements OnInit {
     this.updatedPreviousEmployment = [];
 
     // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
-    employee.employeementId = this.employeeData.employeementId?.substring(2);
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(
+      employee.employeementId ?? this.employeeData.employeementId);
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1178,8 +1179,8 @@ export class Employee360ProfileComponent implements OnInit {
   checkEmail(template: TemplateRef<any>) {
 
     let employee = new Employee();
-    // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
-    employee.employeementId = this.employeeObj.employeementId.substring(2);
+    employee.employeementId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId)
+      ?? this.employeeObj.employeementId;
     console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -1191,7 +1192,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
 
     if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
-      this.alertMessage = "Please Enter Valid Email ID !!"
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(this.employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
       return false;
@@ -1621,6 +1622,13 @@ export class Employee360ProfileComponent implements OnInit {
       return false;
     } else if (!this.validationService.validateEmail(employeeObj.email)) {
       this.alertMessage = "Please enter valid email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       return false;
     }

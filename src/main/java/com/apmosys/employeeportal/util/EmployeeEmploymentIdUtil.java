@@ -138,4 +138,18 @@ public final class EmployeeEmploymentIdUtil {
 		}
 	}
 
+	public static final String APCS_EMAIL_DOMAIN_REQUIRED_MESSAGE =
+			"ApMoSys Product Consultant employees must use @ap2l.ai email domain.";
+
+	public static boolean requiresAp2lEmailDomain(String isConsultant, String isApmosysProduct) {
+		return isApmosysProductConsultant(isConsultant, isApmosysProduct);
+	}
+
+	public static boolean hasAp2lEmailDomain(String email) {
+		if (email == null || email.isBlank()) {
+			return false;
+		}
+		return email.trim().toLowerCase().endsWith("@ap2l.ai");
+	}
+
 }

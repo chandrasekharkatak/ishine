@@ -491,6 +491,13 @@ public class EmployeeService {
 		logBuilder.append("employeementId : " + employeedto.getEmployeementId()+ "jobRoleId : " +employeedto.getJobRoleId()+ "createdBy : " +employeedto.getCreatedBy());
 		try {
 
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
+
 			ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
 
 			if (employeementIdExists.getServiceStatus().equals(ServiceResponse.STATUS_FAIL)) {
@@ -2287,6 +2294,13 @@ public class EmployeeService {
 		List<Employee> listOfEmp = new ArrayList<>();
 //		System.out.println("listOfEmp : "+listOfEmp);		
 		try {
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(apcsEmailValidation.getServiceResponse());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
+
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			
 			if (employeeObject.isPresent()) {
@@ -13078,6 +13092,20 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 		}
 		return response;
 	}
+
+private ServiceResponse validateApcsEmailIfRequired(EmployeeDTO employeedto) {
+	if (!EmployeeEmploymentIdUtil.requiresAp2lEmailDomain(employeedto.getIsConsultant(),
+			employeedto.getIsApmosysProduct())) {
+		return null;
+	}
+	if (!EmployeeEmploymentIdUtil.hasAp2lEmailDomain(employeedto.getEmail())) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(EmployeeEmploymentIdUtil.APCS_EMAIL_DOMAIN_REQUIRED_MESSAGE);
+		return response;
+	}
+	return null;
+}
 
 private ServiceResponse buildFailureResponse(ServiceResponse response,
                                              LogDTO apiLogInfo,

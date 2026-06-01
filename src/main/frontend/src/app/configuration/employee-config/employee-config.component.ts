@@ -1245,8 +1245,7 @@ storePreviousStatus(){
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
 
-    // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
-    employee.employeementId = employee.employeementId?.substring(2)
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1315,7 +1314,7 @@ storePreviousStatus(){
     this.getAllDepartmentList();
     this.getAllDomain();
 
-    employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant, employee.employeementId);
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -1516,6 +1515,13 @@ storePreviousStatus(){
       return false;
     } else if (!this.validationService.validateEmail(employeeObj.email)) {
       this.alertMessage = "Please enter valid email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -2073,6 +2079,13 @@ storePreviousStatus(){
       this.alertMessage = "Please enter valid email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
@@ -2385,8 +2398,8 @@ storePreviousStatus(){
   checkEmail(template: TemplateRef<any>) {
 
     let employee = new Employee();
-    // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
-    employee.employeementId = this.employeeObj.employeementId.substring(2);
+    employee.employeementId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId)
+      ?? this.employeeObj.employeementId;
     console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -2398,7 +2411,7 @@ storePreviousStatus(){
     }
 
     if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
-      this.alertMessage = "Please Enter Valid Email ID !!"
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(this.employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
       return false;
@@ -2723,7 +2736,7 @@ storePreviousStatus(){
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -2918,7 +2931,6 @@ storePreviousStatus(){
           const formattedEmploymentId = this.employeeIdUtilService.generateEmploymentId(
             employeeObj.employeementId, employeeObj.isApmosysProduct, employeeObj.isConsultant);
           employeeObj.employmentIdAcToET = formattedEmploymentId;
-          employeeObj.employeementId = formattedEmploymentId;
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -3121,7 +3133,7 @@ storePreviousStatus(){
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.getAllEmployeesByRoleForManager(employeeObjManager).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
@@ -3333,8 +3345,8 @@ storePreviousStatus(){
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         for (let x of this.allEmployeeList) {
-          x.employeementId = x.employmentIdAcToET;
-          // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
+          x.employmentIdAcToET = x.employmentIdAcToET ?? this.employeeIdUtilService.generateEmploymentId(
+            x.employeementId, x.isApmosysProduct, x.isConsultant);
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           if (x.isApmosysProduct == 'true' && x.isConsultant == 'true') {
@@ -3636,7 +3648,7 @@ resetDefaultProjectFields() {
     // }else{
     //   currentEmp.employeementId = employeeObj.employeementId.substring(2);
     // }
-    currentEmp.employeementId = employeeObj.employeementId.substring(2);
+    currentEmp.employeementId = this.employeeIdUtilService.toApiEmploymentId(employeeObj.employeementId);
 
     console.log("employment id : ", currentEmp);
 
@@ -3689,7 +3701,7 @@ resetDefaultProjectFields() {
     // }else{
     // currentEmp.employeementId = currentEmp.employeementId?.substring(2);
     // }
-    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
+    currentEmp.employeementId = this.employeeIdUtilService.toApiEmploymentId(employeeObj.employeementId);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;
 
@@ -4510,7 +4522,7 @@ resetDefaultProjectFields() {
     // }else {
     //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -5017,6 +5029,13 @@ resetDefaultProjectFields() {
       this.checkEmployeementIdWithDifferentPrefix(template);
     }
 
+    if (this.employeeObj.email?.trim()
+      && (selectedType === 'Apmosys Product Consultant' || selectedType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(this.employeeObj.email, selectedType)) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(selectedType);
+      this.openAlertMod(template, this.alertMessage);
+    }
+
   }
 
   getReporteesListByReportingManagerId() {
@@ -5222,7 +5241,7 @@ resetDefaultProjectFields() {
 
   //added to optimize the code featch managerlist at a time and overcome from undefied employee onject
   loadManagerList(): void {
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
 
     let employeeObjManager: Partial<Employee> = {
       role: "Manager"

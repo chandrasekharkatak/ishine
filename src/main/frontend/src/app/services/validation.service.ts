@@ -198,12 +198,25 @@ export class ValidationService {
 
   }
 
+  readonly APCS_EMAIL_DOMAIN_MESSAGE =
+    'ApMoSys Product Consultant employees must use @ap2l.ai email domain.';
+
+  getApmosysEmailValidationMessage(employeeType: string): string {
+    if (employeeType === 'Apmosys Product Consultant') {
+      return this.APCS_EMAIL_DOMAIN_MESSAGE;
+    }
+    if (employeeType === 'Apmosys Product') {
+      return 'Please enter valid @ap2l.ai email id !!';
+    }
+    return 'Please Enter Valid Email ID !!';
+  }
+
    validateApmosysEmail(text: string,employeeType: string): boolean {
     //const regex = /^(?:[0-9]+[a-z_.]|[a-z_.])[a-z0-9_.]+@apmosys\.com$/i;
     // const regex = /^[a-z]{3}[a-z0-9_.]+@apmosys\.com$/i;
     // const regex = /^[a-z]+[a-z0-9_.]*@apmosys\.com$/i;
      let regex;
-    if (employeeType === "Apmosys Product") {
+    if (employeeType === "Apmosys Product" || employeeType === "Apmosys Product Consultant") {
     regex = /^[a-z]+[a-z0-9_.]*@ap2l\.ai$/i;
   } else {
     regex = /^[a-z]+[a-z0-9_.]*@apmosys\.com$/i;
