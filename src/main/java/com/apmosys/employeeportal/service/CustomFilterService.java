@@ -149,33 +149,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //						.append(dto.getValue() + "' ").append(dto.getConjunction());
 //				break;
 //			}
-			case "Employee Id": {
-			    String value = dto.getValue();
-			    String operator = dto.getOperator();
-			    String conjunction = dto.getConjunction();
-
-			    if (value != null && operator.equals("=")) {
-			        if (value.startsWith("AP-")) {
-			            String id = value.substring(3);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND e.is_apmosys_product = 'true' ")
-			                 .append(conjunction);
-			        } else if (value.startsWith("A-")) {
-			            String id = value.substring(2);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
-			                 .append(conjunction);
-			        } else {
-			          
-			            query.append(" e.employeement_id ").append(operator).append(" '")
-			                 .append(value).append("' ").append(conjunction);
-			        }
-			    } else {
-			      
-			        query.append(" e.employeement_id ").append(operator).append(" '")
-			             .append(value).append("' ").append(conjunction);
-			    }
-			    break;
+			case "Employee Id":
+			case "employmentID": {
+				appendPrefixedEmployeeIdFilter(query, dto.getValue(), dto.getOperator(), dto.getConjunction(), false);
+				break;
+			}
+			case "employeeType":
+			case "Employee Type": {
+				query.append(" ").append(buildEmployeeTypeFilterSql(dto.getValue())).append(" ")
+						.append(dto.getConjunction());
+				break;
 			}
 			
 			case "Full Name": {
@@ -377,14 +360,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 					leavedto.setManagerId(object[20] != null? Integer.parseInt(object[20].toString()) : null);
 					leavedto.setEmpId(object[21] != null? Long.parseLong(object[21].toString()):null);
 					leavedto.setIsApmosysProduct(object[22] != null ? object[22].toString() : null);
-					
-					String employmentId = leavedto.getEmployeementId() != null ? leavedto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = leavedto.getIsApmosysProduct();
-
-				    if (employmentId != null) {
-                leavedto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, leavedto.getIsConsultant(), isApmosysProduct));
-            }
+					applyLeaveDtoEmployeeDisplay(leavedto);
 
 					dtoList.add(leavedto);
 				});
@@ -5839,6 +5815,19 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	            session.close();
 	        }
 	    }
+	}
+
+	private void applyLeaveDtoEmployeeDisplay(LeaveDTO dto) {
+		if (dto == null) {
+			return;
+		}
+		dto.setEmployeeType(EmployeeEmploymentIdUtil.resolveEmployeeType(dto.getIsConsultant(),
+				dto.getIsApmosysProduct(), dto.getIsApprenticeship()));
+		if (dto.getEmployeementId() != null) {
+			String numericId = dto.getEmployeementId().toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+			dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(numericId, dto.getIsConsultant(),
+					dto.getIsApmosysProduct()));
+		}
 	}
 
 	private String formatFilterDropdownEmploymentId(Object rawEmploymentId, Object isConsultant, Object isApmosysProduct) {

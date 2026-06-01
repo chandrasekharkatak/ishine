@@ -144,20 +144,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
 					dto.setIsApmosysProduct(object[13] != null ? object[13].toString() : null);
-					
-					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+					applyLeaveEmployeeDisplay(dto);
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
-
-					
 					dtoList.add(dto);
 				});
 
@@ -2163,6 +2151,22 @@ try {
 		}
 		String numeric = employmentId.replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
 		dto.setEmployeementId(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT + numeric);
+	}
+
+	private void applyLeaveEmployeeDisplay(LeaveDTO dto) {
+		if (dto == null) {
+			return;
+		}
+		String isConsultant = dto.getIsConsultant();
+		String isApmosysProduct = dto.getIsApmosysProduct();
+		String isApprenticeship = dto.getIsApprenticeship();
+		dto.setEmployeeType(
+				EmployeeEmploymentIdUtil.resolveEmployeeType(isConsultant, isApmosysProduct, isApprenticeship));
+		if (dto.getEmployeementId() != null) {
+			String numericId = dto.getEmployeementId().toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+			dto.setEmploymentIdAcToET(
+					EmployeeEmploymentIdUtil.formatEmploymentId(numericId, isConsultant, isApmosysProduct));
+		}
 	}
 	}
 

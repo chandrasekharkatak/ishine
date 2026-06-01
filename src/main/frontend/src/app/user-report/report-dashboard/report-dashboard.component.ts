@@ -324,6 +324,34 @@ export class ReportDashboardComponent implements OnInit {
     );
   }
 
+  private formatLeaveSummaryEmployeeFields(leave: any): void {
+    if (!leave) {
+      return;
+    }
+    if (leave.fromDateDayType != null) {
+      leave.fromDateDayType = leave.fromDateDayType === 0 ? 'Full Day' : 'Half Day';
+    }
+    if (leave.toDateDayType != null) {
+      leave.toDateDayType = leave.toDateDayType === 0 ? 'Full Day' : 'Half Day';
+    }
+    if (leave.employeeType) {
+      leave.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(leave.employeeType);
+    } else {
+      leave.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(
+        this.displayEmployeeType(leave)
+      );
+    }
+    const formattedId = this.employeeIdUtilService.generateEmploymentId(
+      leave.employmentIdAcToET ?? leave.employeementId,
+      leave.isApmosysProduct,
+      leave.isConsultant,
+      leave.employeeType
+    );
+    if (formattedId) {
+      leave.employmentIdAcToET = formattedId;
+    }
+  }
+
   ngOnInit(): void {
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
     featureMap.subFeatures?.forEach(sub => {
@@ -864,17 +892,12 @@ onFilterChange(filter: CustomFilter): void {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
 
-        this.leaveSumarryList.forEach((leave) => {
-          if (leave.fromDateDayType != null) {
-            leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
-          }
-          if (leave.toDateDayType != null) {
-            leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
-          }
-          leave.emp360Manager = leave.managerId;
-        });
+            this.leaveSumarryList.forEach((leave) => {
+              this.formatLeaveSummaryEmployeeFields(leave);
+              leave.emp360Manager = leave.managerId;
+            });
 
-        this.extractLeaveReportData();
+            this.extractLeaveReportData();
       } else {
         console.error(response.serviceResponse);
       }
@@ -938,12 +961,7 @@ onFilterChange(filter: CustomFilter): void {
           this.leaveSumarryList = response.serviceResponse;
 
           this.leaveSumarryList.forEach((leave) => {
-            if (leave.fromDateDayType != null) {
-              leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
-            }
-            if (leave.toDateDayType != null) {
-              leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
-            }
+            this.formatLeaveSummaryEmployeeFields(leave);
           });
 
           this.extractLeaveReportData();
@@ -2313,15 +2331,17 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId ?? this.displayEmploymentId(x),
+        "Emp ID": x.employmentIdAcToET ?? this.displayEmploymentId(x),
         "Employee Type": this.employeeIdUtilService.formatEmployeeTypeLabel(x.employeeType ?? this.displayEmployeeType(x)),
         "Name": x.employeeName,
         "Department Name": x.departmentName,
+        "Manager Name": x.managerName,
         "From Date": (x.fromDate) ? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
         "To Date": (x.toDate) ? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
         "From Date Day Type": x.fromDateDayType,
         "To Date Day Type": x.toDateDayType,
-        "Status": x.status
+        "Status": x.status,
+        "Type of Leave": x.leaveType
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -2544,7 +2564,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     this.modalTitle = statusName + " Leave Summary";
     this.modalSummaryList = modalTableList.filter(x => x.status == statusName);
     this.modalSummaryList.forEach(x => {
-      x.employeeType = this.displayEmployeeType(x);
+      this.formatLeaveSummaryEmployeeFields(x);
     });
     this.modalSummaryList.forEach(y => {
       y.emp360 = y.empId;

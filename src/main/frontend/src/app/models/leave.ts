@@ -147,6 +147,7 @@ export class Leave{
 
 	currentUserEmpId:any;
 	employeeType;
+	employmentIdAcToET: any;
 	isHierarchyView:boolean = false;
 	rejectionIds: number[] = [];
 }
