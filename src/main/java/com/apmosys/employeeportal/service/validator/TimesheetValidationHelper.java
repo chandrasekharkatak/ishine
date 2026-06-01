@@ -1126,13 +1126,13 @@ public class TimesheetValidationHelper {
         }
 
         // Check if employee is assigned to any team in the project
-        boolean isAssigned = employeeTeamMapRepository.findByProjectIdAndActive(projectId.intValue(), 1L)
-                .stream()
-                .anyMatch(etm -> etm.getEmpId().equals(empId));
+        // boolean isAssigned = employeeTeamMapRepository.findByProjectIdAndActive(projectId.intValue(), 2L)
+        //         .stream()
+        //         .anyMatch(etm -> etm.getEmpId().equals(empId));
 
-        if (!isAssigned) {
-            throw new TimesheetValidationFailedException("You are not assigned to the selected project. Please contact your manager.");
-        }
+        // if (!isAssigned) {
+        //     throw new TimesheetValidationFailedException("You are not assigned to the selected project. Please contact your manager.");
+        // }
     }
 
     /**
