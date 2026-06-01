@@ -2314,7 +2314,10 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 			validateEmploymentIdPresent(leaveDTO);
 			
 			Employee employee;
-			if("Apmosys Product".equalsIgnoreCase(leaveDTO.getEmployeeType())){
+			if("ApMoSys Product Consultant".equalsIgnoreCase(leaveDTO.getEmployeeType())){
+				employee = employeeRepository.findByEmployeementIdForApmosysProductConsultant(leaveDTO.getEmployeementId());	
+			}
+			else if("Apmosys Product".equalsIgnoreCase(leaveDTO.getEmployeeType())){
 				employee = employeeRepository.findByEmployeementIdForApmosysProduct(leaveDTO.getEmployeementId());	
 			}else {
 				employee = employeeRepository.findByEmployeementIdForOthers(leaveDTO.getEmployeementId());			

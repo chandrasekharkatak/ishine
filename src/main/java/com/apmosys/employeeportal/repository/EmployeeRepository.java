@@ -2121,14 +2121,14 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("Select e from Employee e where e.employeementId = :empId AND ((e.isApmosysProduct = 'true' AND e.isConsultant = 'true') OR (e.isApmosysProduct = 'true' AND e.isConsultant = 'false'))")
 	Employee findByEmployeementIdForApmosysProductConsultant(@Param("empId") Long empId);
 
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND (e.isConsultant IS NULL OR e.isConsultant = 'false')")
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true'")
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
 	
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true' AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false')")
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
 	Employee findByEmployeementIdForConsultant(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApprenticeship = 'true'")

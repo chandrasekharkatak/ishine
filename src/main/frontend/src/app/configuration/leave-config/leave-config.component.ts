@@ -1340,31 +1340,39 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   const value = input.value;
   const key = event.key;
 
-
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
+  const validPrefix = value.startsWith('A-') ||
+                      value.startsWith('AP-') ||
+                      value.startsWith('CS-') ||
+                      value.startsWith('APCS-');
 
-  const validPrefix = value.startsWith('A-') || value.startsWith('AP-') || value.startsWith('CS-') || value.startsWith('APCS-');
   const digitsOnly = value.replace(/^(A-|CS-|AP-|APCS-)/, '');
 
-  if (!validPrefix && value.length < 3) {
+  if (!validPrefix) {
 
-    if (value === '' && key === 'A') return;
-    if (value === 'A' && key === 'P') return;
-    if (value === 'A' && key === '-') return;
-    if (value === 'AP' && key === '-') return;
+    if (value === '' && (key === 'A' || key === 'C')) return;
+
+    if (value === 'A' && (key === 'P' || key === '-')) return;
+
+    if (value === 'AP' && (key === 'C' || key === '-')) return;
+
+    if (value === 'APC' && key === 'S') return;
+
+    if (value === 'APCS' && key === '-') return;
+
+    if (value === 'C' && key === 'S') return;
+
+    if (value === 'CS' && key === '-') return;
+
     event.preventDefault();
     return;
   }
 
-
   if (validPrefix) {
-
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
-  } else {
-    event.preventDefault();
   }
 }
 
