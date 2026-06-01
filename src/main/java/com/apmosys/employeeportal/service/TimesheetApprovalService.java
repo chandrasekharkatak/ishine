@@ -1197,6 +1197,7 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	        
 	        String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 	        String isApmosysProduct = dto.getIsApmosysProduct();
+	        String isConsultant = dto.getIsConsultant();
 	        if (employmentId != null) {
                 dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
             }
