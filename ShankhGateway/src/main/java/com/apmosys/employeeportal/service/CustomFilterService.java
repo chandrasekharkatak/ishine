@@ -5159,6 +5159,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        " OR (:regular = true AND ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))) " +
 	        " OR (:probation = true AND e.employmentstatus = 'Probation' AND TIMESTAMPDIFF(DAY, e.date_of_joining, current_date()) > 180) " +
 	        " OR (:apmosysProduct = 'true' AND e.is_apmosys_product = 'true') " +
+	        " OR (:apmosysProductConsultant = true AND e.is_apmosys_product = 'true' AND e.is_consultant = 'true') " +
 	        " OR (:allEmp = true)) " +
 	        customFilterConditions +
 	        "GROUP BY e.emp_id";
@@ -5172,6 +5173,7 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        query.setParameter("regular", request.isRegular());
 	        query.setParameter("probation", request.isProbation());
 	        query.setParameter("apmosysProduct", request.getIsApmosysProduct());
+	        query.setParameter("apmosysProductConsultant", request.isApmosysProductConsultant());
 	        query.setParameter("allEmp", request.isAllEmp());
 
 	        // 4. Execute and return the results

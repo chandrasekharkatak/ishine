@@ -65,6 +65,12 @@ public class ReportCountDTO {
 	private Long apmosysProductYear2to5;
 	private Long apmosysProductYear5to10;
 	private Long apmosysProductYearAbove10;
+
+	private Long apmosysProductConsultantYear0to1;
+	private Long apmosysProductConsultantYear1to2;
+	private Long apmosysProductConsultantYear2to5;
+	private Long apmosysProductConsultantYear5to10;
+	private Long apmosysProductConsultantYearAbove10;
 	
 	//departmentwise billable / non-billable summary
 	private Long fixedCost;
@@ -80,6 +86,7 @@ public class ReportCountDTO {
 	private Long consultantCountDisplay;
 	private Long regularCountDisplay;
 	private Long apmosysProductDisplay;
+	private Long apmosysProductConsultantCountDisplay;
 	
 	
 	private String departmentName;

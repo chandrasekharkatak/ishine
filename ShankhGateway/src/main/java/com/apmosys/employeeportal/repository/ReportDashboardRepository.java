@@ -109,11 +109,17 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_consultant = 'true' THEN 1 ELSE 0 END) as consultant_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND ((is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '')) THEN 1 ELSE 0 END) as regular_count,\n"
 			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' THEN 1 ELSE 0 END) as apmosys_product_count,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_0_1,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_1_2,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_2_5,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_5_10,\n"
-			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_Above_10\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' THEN 1 ELSE 0 END) as apmosys_product_consultant_count,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Years_Above_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 >= 0 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 1 THEN 1 ELSE 0 END) AS Apmosys_Product_Consultant_Years_0_1,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 1 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 2 THEN 1 ELSE 0 END) AS Apmosys_Product_Consultant_Years_1_2,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 2 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 5 THEN 1 ELSE 0 END) AS Apmosys_Product_Consultant_Years_2_5,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 5 AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 <= 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Consultant_Years_5_10,\n"
+			+ "    SUM(CASE WHEN employmentstatus != 'InActive' AND is_apmosys_product = 'true' AND is_consultant = 'true' AND TIMESTAMPDIFF(MONTH, date_of_joining, CURRENT_DATE()) / 12 > 10 THEN 1 ELSE 0 END) AS Apmosys_Product_Consultant_Years_Above_10\n"
 			+ "FROM employee_data")
          public List<Object[]> getAllGraphEmployeeSummary();
 	
@@ -316,14 +322,15 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "SELECT * FROM ( " +
         				    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
         				    "           COALESCE(j.year, r.year) AS year, " +
-        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, " +
+        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, j.apmosys_product_consultant_count, " +
         				    "           COALESCE(r.total_emp_count, 0) resign_count " +
         				    "    FROM ( " +
         				    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
         				    "               YEAR(date_of_joining) AS year, " +
         				    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
-        				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
-        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' THEN emp_id END) AS apmosys_product_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' AND COALESCE(is_apmosys_product, 'false') != 'true' THEN emp_id END) AS consultant_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' THEN emp_id END) AS apmosys_product_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' AND is_consultant = 'true' THEN emp_id END) AS apmosys_product_consultant_count, " +
         				    "               COUNT(DISTINCT CASE " +
         				    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false' AND is_apmosys_product = 'false') " +
         				    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
@@ -345,14 +352,15 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "    UNION " +
         				    "    SELECT COALESCE(j.month_name, r.month_name) AS month_name, " +
         				    "           COALESCE(j.year, r.year) AS year, " +
-        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, " +
+        				    "           j.apprentice_count, j.consultant_count, j.regular_count, j.apmosys_product_count, j.apmosys_product_consultant_count, " +
         				    "           r.total_emp_count " +
         				    "    FROM ( " +
         				    "        SELECT DATE_FORMAT(date_of_joining, '%M') AS month_name, " +
         				    "               YEAR(date_of_joining) AS year, " +
         				    "               COUNT(DISTINCT CASE WHEN is_apprenticeship = 'true' THEN emp_id END) AS apprentice_count, " +
-        				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' THEN emp_id END) AS consultant_count, " +
-        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' THEN emp_id END) AS apmosys_product_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_consultant = 'true' AND COALESCE(is_apmosys_product, 'false') != 'true' THEN emp_id END) AS consultant_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' AND COALESCE(is_consultant, 'false') != 'true' THEN emp_id END) AS apmosys_product_count, " +
+        				    "               COUNT(DISTINCT CASE WHEN is_apmosys_product = 'true' AND is_consultant = 'true' THEN emp_id END) AS apmosys_product_consultant_count, " +
         				    "               COUNT(DISTINCT CASE " +
         				    "                   WHEN (is_consultant = 'false' AND is_apprenticeship = 'false') " +
         				    "                        OR (COALESCE(is_consultant, '') = '' AND COALESCE(is_apprenticeship, '') = '') " +
@@ -406,6 +414,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 	@Query(value = "SELECT " +
 	        "d.name AS departmentName, " +
 	        "CASE " +
+	        "    WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'ApmosysProductConsultant' " +
 	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
 	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR " +
@@ -420,6 +429,7 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 	        "WHERE e.employmentstatus != 'InActive' " +
 	        "GROUP BY d.name, " +
 	        "CASE " +
+	        "    WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'ApmosysProductConsultant' " +
 	        "    WHEN e.is_apprenticeship = 'true' THEN 'Apprentice' " +
 	        "    WHEN e.is_consultant = 'true' THEN 'Consultant' " +
 	        "    WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND e.is_apmosys_product = 'false') OR " +

@@ -36,6 +36,7 @@ public class ReportsQueryDTO {
     private boolean apprentice;
     private boolean consultant;
     private boolean regular;
+    private boolean apmosysProductConsultant;
     private boolean probation;
     private boolean allEmp;
     private String employeeType;

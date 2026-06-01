@@ -579,12 +579,18 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	            reportDto.setConsultantCountDisplay(count[40] != null ? Long.parseLong(count[40].toString()) : 0L);
 	            reportDto.setRegularCountDisplay(count[41] != null ? Long.parseLong(count[41].toString()) : 0L);
 	            reportDto.setApmosysProductDisplay(count[42] != null ? Long.parseLong(count[42].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantCountDisplay(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
 	            
-	            reportDto.setApmosysProductYear0to1(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
-	            reportDto.setApmosysProductYear1to2(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
-	            reportDto.setApmosysProductYear2to5(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
-	            reportDto.setApmosysProductYear5to10(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
-	            reportDto.setApmosysProductYearAbove10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	            reportDto.setApmosysProductYear0to1(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
+	            reportDto.setApmosysProductYear1to2(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
+	            reportDto.setApmosysProductYear2to5(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
+	            reportDto.setApmosysProductYear5to10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	            reportDto.setApmosysProductYearAbove10(count[48] != null ? Long.parseLong(count[48].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear0to1(count[49] != null ? Long.parseLong(count[49].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear1to2(count[50] != null ? Long.parseLong(count[50].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear2to5(count[51] != null ? Long.parseLong(count[51].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear5to10(count[52] != null ? Long.parseLong(count[52].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYearAbove10(count[53] != null ? Long.parseLong(count[53].toString()) : 0L);
 	            dtoList.add(reportDto);
 	        });
 	        
@@ -749,7 +755,8 @@ try {
     		dto.setConsultantCount(object[3] != null ? Long.parseLong(object[3].toString()): null);
     		dto.setRegularCount(object[4] != null ? Long.parseLong(object[4].toString()): null);
     		dto.setApmosysProductCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
-    		dto.setResignCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+    		dto.setApmosysProductConsultantCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+    		dto.setResignCount(object[7] != null ? Long.parseLong(object[7].toString()): null);
     		dtoList.add(dto);
     	});
 
@@ -1684,12 +1691,18 @@ try {
 	                    reportDto.setConsultantCountDisplay(count[40] != null ? Long.parseLong(count[40].toString()) : 0L);
 	                    reportDto.setRegularCountDisplay(count[41] != null ? Long.parseLong(count[41].toString()) : 0L);
 	                    reportDto.setApmosysProductDisplay(count[42] != null ? Long.parseLong(count[42].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantCountDisplay(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
 	                    
-	                    reportDto.setApmosysProductYear0to1(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear1to2(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear2to5(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear5to10(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
-	    	            reportDto.setApmosysProductYearAbove10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	                    reportDto.setApmosysProductYear0to1(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear1to2(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear2to5(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear5to10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	    	            reportDto.setApmosysProductYearAbove10(count[48] != null ? Long.parseLong(count[48].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear0to1(count[49] != null ? Long.parseLong(count[49].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear1to2(count[50] != null ? Long.parseLong(count[50].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear2to5(count[51] != null ? Long.parseLong(count[51].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear5to10(count[52] != null ? Long.parseLong(count[52].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYearAbove10(count[53] != null ? Long.parseLong(count[53].toString()) : 0L);
 	                    dtoList.add(reportDto);
 	                });
 	            }
@@ -1804,7 +1817,8 @@ try {
 	                    dto.setConsultantCount(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 	                    dto.setRegularCount(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 	                    dto.setApmosysProductCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
-	                    dto.setResignCount(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+	                    dto.setApmosysProductConsultantCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+	                    dto.setResignCount(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 	                    dtoList.add(dto);
 	                });
 	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
