@@ -6,6 +6,7 @@ import { Employee } from '../models/employee';
 import { Query } from '../models/query';
 import { User } from '../models/user';
 import { Certificate } from '../models/certificate';
+import { EmployeeIdUtilService } from './employee-id-util.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,18 +18,35 @@ export class EmployeeService {
   private employeeSubject = new BehaviorSubject<Employee | null>(null);
   employee$: Observable<Employee | null> = this.employeeSubject.asObservable();
 
-  constructor(private http: HttpClient) { }
+  constructor(
+    private http: HttpClient,
+    private employeeIdUtil: EmployeeIdUtilService
+  ) { }
+
+  /** Backend EmployeeDTO employment id fields are Long; strip display prefixes before POST. */
+  private withNumericEmploymentId<T extends { employeementId?: any; oldEmployeementId?: any }>(employeeObj: T): T {
+    const payload = { ...employeeObj };
+    const apiId = this.employeeIdUtil.toApiEmploymentId(payload.employeementId);
+    if (apiId != null) {
+      payload.employeementId = apiId;
+    }
+    const oldApiId = this.employeeIdUtil.toApiEmploymentId(payload.oldEmployeementId);
+    if (oldApiId != null) {
+      payload.oldEmployeementId = oldApiId;
+    }
+    return payload;
+  }
 
   setEmployee(employee: Employee) {
     this.employeeSubject.next(employee);
   }
 
   createEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `api/createEmployee`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/createEmployee`, this.withNumericEmploymentId(employeeObj));
   }
 
   updateEmployee(employeeObj: Employee) {
-    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeByEmpId`, employeeObj);
+    return this.http.post(`${this.baseUrl}` + `api/updateEmployeeByEmpId`, this.withNumericEmploymentId(employeeObj));
   }
 
   changeManagerMapping(employeeObj: Employee) {

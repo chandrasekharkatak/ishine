@@ -1252,6 +1252,9 @@ storePreviousStatus(){
 
         this.employeeObj = Object.assign({}, response.serviceResponse);
         this.employeeObj.reportiesFlag = 'No';
+        this.employeeObj.oldEmployeementId = this.employeeIdUtilService.toApiEmploymentId(
+          this.employeeObj.employeementId) ?? this.employeeObj.employeementId;
+        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
@@ -1271,8 +1274,6 @@ storePreviousStatus(){
         this.employeeObj.employeementId = this.employeeObj.employmentIdAcToET ?? this.employeeObj.employeementId;
 
         console.log("employee :", this.employeeObj);
-        this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
-        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -2702,6 +2703,11 @@ storePreviousStatus(){
     }
 
     employee.onbenchDate = this.billableBenchDate;
+
+    const apiEmploymentId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
+    if (apiEmploymentId != null) {
+      employee.employeementId = apiEmploymentId;
+    }
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

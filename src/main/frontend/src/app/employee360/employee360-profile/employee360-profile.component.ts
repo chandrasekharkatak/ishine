@@ -1946,6 +1946,11 @@ if (this.deptSelected) {
 
     employee.onbenchDate = this.billableBenchDate;
 
+    const apiEmploymentId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
+    if (apiEmploymentId != null) {
+      employee.employeementId = apiEmploymentId;
+    }
+
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
