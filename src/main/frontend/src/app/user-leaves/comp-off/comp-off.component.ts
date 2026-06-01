@@ -183,7 +183,7 @@ export class CompOffComponent implements OnInit {
       const dateFormat = 'YYYY-MM-DD';
       const currentDate = new Date();
       const DAY_IN_MS = 24 * 60 * 60 * 1000;
-      let BACKDATED_LEAVE_PERIOD = 3;
+      let BACKDATED_LEAVE_PERIOD = 7;
 
       if(this.currentUser.compOffLockDays){
         BACKDATED_LEAVE_PERIOD = this.currentUser.compOffLockDays;
