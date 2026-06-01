@@ -1059,10 +1059,7 @@ resetRejectModalData() {
 
 
     let leaveObj = new Leave();
-    leaveObj.employeementId = this.currentUser.employeementId;
-    leaveObj.empId = this.currentUser.empId;
-    leaveObj.employmentStatus = this.currentUser.employmentstatus;
-    leaveObj.employeeType = this.utilityService.resolveEmployeeTypeForLeaveApi(this.currentUser);
+    this.utilityService.applyLeaveBalanceRequestFields(leaveObj, this.currentUser);
 
     console.log("sdnkvsvns" + leaveObj.employmentStatus);
     let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();

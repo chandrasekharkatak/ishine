@@ -50,7 +50,7 @@ export class UtilityService {
     return this.employeeIdUtil.formatEmployeeTypeLabel(emp);
   }
 
-  /** Leave balance / legacy APIs that expect ApMoSys Product or Other. */
+  /** Leave balance API employeeType (must match backend lookup labels). */
   resolveEmployeeTypeForLeaveApi(emp: any): string {
     const type = this.employeeIdUtil.resolveEmployeeType(
       emp?.isApmosysProduct, emp?.isConsultant, emp?.isApprenticeship);
@@ -58,9 +58,26 @@ export class UtilityService {
       return 'ApMoSys Product Consultant';
     }
     if (type === 'Apmosys Product') {
-      return 'ApMoSys Product';
+      return 'Apmosys Product';
+    }
+    if (type === 'Consultant') {
+      return 'Consultant';
     }
     return 'Other';
+  }
+
+  /** Sets employment id, status, type, and flags for getMyLeaveBalancesByEmpId. */
+  applyLeaveBalanceRequestFields(leaveObj: any, emp: any): void {
+    if (!leaveObj || !emp) {
+      return;
+    }
+    leaveObj.employeementId = emp.employeementId;
+    leaveObj.empId = emp.empId;
+    leaveObj.employmentStatus = emp.employmentstatus ?? emp.employmentStatus;
+    leaveObj.isConsultant = emp.isConsultant;
+    leaveObj.isApmosysProduct = emp.isApmosysProduct;
+    leaveObj.isApprenticeship = emp.isApprenticeship;
+    leaveObj.employeeType = this.resolveEmployeeTypeForLeaveApi(emp);
   }
 
   formatNaEmployeementPlaceholder(emp: any): string {

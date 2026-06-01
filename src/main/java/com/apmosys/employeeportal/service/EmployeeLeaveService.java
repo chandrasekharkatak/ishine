@@ -2312,23 +2312,8 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 
 		try {
 			validateEmploymentIdPresent(leaveDTO);
-			
-			Employee employee;
-			if("ApMoSys Product Consultant".equalsIgnoreCase(leaveDTO.getEmployeeType())){
-				employee = employeeRepository.findByEmployeementIdForApmosysProductConsultant(leaveDTO.getEmployeementId());	
-			}
-			else if("Apmosys Product".equalsIgnoreCase(leaveDTO.getEmployeeType())){
-				employee = employeeRepository.findByEmployeementIdForApmosysProduct(leaveDTO.getEmployeementId());
-				
-			}else if("Consultant".equalsIgnoreCase(leaveDTO.getEmployeeType())){
-				employee = employeeRepository.findByEmployeementIdForConsultant(leaveDTO.getEmployeementId());
-				
-			}
-			else {
-				employee = employeeRepository.findByEmployeementIdForOthers(leaveDTO.getEmployeementId());			
-			}
 
-//			Employee employee = employeeRepository.findByEmployeementId(leaveDTO.getEmployeementId());
+			Employee employee = resolveEmployeeForLeaveBalance(leaveDTO);
 
 			if (employee != null) {
 				
@@ -2411,6 +2396,68 @@ public boolean isValidateCasualLeave(LocalDate toDate, LocalDate fromDate, Strin
 		if (leaveDTO == null || leaveDTO.getEmployeementId() == null) {
 			throw new LeaveApplicationException("employeementId is required.");
 		}
+	}
+
+	private Employee resolveEmployeeForLeaveBalance(LeaveDTO leaveDTO) {
+		if (leaveDTO.getEmpId() != null) {
+			Employee byEmpId = employeeRepository.findByEmpId(leaveDTO.getEmpId());
+			if (byEmpId != null) {
+				return byEmpId;
+			}
+		}
+		String employeeType = resolveEmployeeTypeForLeaveBalance(leaveDTO);
+		Employee employee = findEmployeeForLeaveBalanceLookup(leaveDTO.getEmployeementId(), employeeType);
+		if (employee == null && isFlagTrue(leaveDTO.getIsApmosysProduct()) && !isFlagTrue(leaveDTO.getIsConsultant())) {
+			employee = employeeRepository.findByEmployeementIdForApmosysProductConsultant(leaveDTO.getEmployeementId());
+		}
+		return employee;
+	}
+
+	private String resolveEmployeeTypeForLeaveBalance(LeaveDTO leaveDTO) {
+		if (isFlagTrue(leaveDTO.getIsConsultant()) && isFlagTrue(leaveDTO.getIsApmosysProduct())) {
+			return "ApMoSys Product Consultant";
+		}
+		String employeeType = normalizeLeaveEmployeeType(leaveDTO.getEmployeeType());
+		if (employeeType != null && "ApMoSys Product Consultant".equalsIgnoreCase(employeeType)) {
+			return "ApMoSys Product Consultant";
+		}
+		if (isFlagTrue(leaveDTO.getIsApmosysProduct()) && !isFlagTrue(leaveDTO.getIsConsultant())) {
+			return "Apmosys Product";
+		}
+		if (isFlagTrue(leaveDTO.getIsConsultant()) && !isFlagTrue(leaveDTO.getIsApmosysProduct())) {
+			return "Consultant";
+		}
+		if (employeeType != null && !employeeType.isBlank()) {
+			return employeeType;
+		}
+		return "Other";
+	}
+
+	private String normalizeLeaveEmployeeType(String employeeType) {
+		if (employeeType == null || employeeType.isBlank()) {
+			return employeeType;
+		}
+		if ("ApMoSys Product".equalsIgnoreCase(employeeType)) {
+			return "Apmosys Product";
+		}
+		return employeeType;
+	}
+
+	private boolean isFlagTrue(String flag) {
+		return "true".equalsIgnoreCase(flag);
+	}
+
+	private Employee findEmployeeForLeaveBalanceLookup(Long employeementId, String employeeType) {
+		if ("ApMoSys Product Consultant".equalsIgnoreCase(employeeType)) {
+			return employeeRepository.findByEmployeementIdForApmosysProductConsultant(employeementId);
+		}
+		if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
+			return employeeRepository.findByEmployeementIdForApmosysProduct(employeementId);
+		}
+		if ("Consultant".equalsIgnoreCase(employeeType)) {
+			return employeeRepository.findByEmployeementIdForConsultant(employeementId);
+		}
+		return employeeRepository.findByEmployeementIdForOthers(employeementId);
 	}
 
 	private LeaveDTO mapLeaveBalanceObjectToDTO(Object[] object) {

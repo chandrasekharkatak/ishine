@@ -5710,7 +5710,9 @@ public class EmployeeService {
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
 					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;
-					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);	
+					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					employee.setIsConsultant(object[30] != null ? object[30].toString() : null);
+					employee.setIsApprenticeship(object[31] != null ? object[31].toString() : null);
 					});
 				
 				//Check if all Policy read.

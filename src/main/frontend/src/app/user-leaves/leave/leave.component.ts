@@ -25,6 +25,7 @@ import { PortalService } from 'src/app/services/portal.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { DepartmentService } from 'src/app/services/department.service';
 import { Department } from 'src/app/models/department';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   standalone: false,
@@ -181,6 +182,7 @@ export class LeaveComponent implements OnInit {
     private employeeService: EmployeeService,
     private departmentService: DepartmentService,
     private cd: ChangeDetectorRef,
+    private utilityService: UtilityService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -1987,27 +1989,10 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
     let leaveObj = new Leave();
     leaveObj.employeementId = this.leaveObj.employeementId;
-     let employeeTypeSource: any;
-
-  if (this.leaveObj.leaveAppliedFor == 'self') {
-
-    employeeTypeSource = this.currentUser;
-
-  } else {
-
-    employeeTypeSource = this.teamMemberList.find(
-      employee => employee.empId == this.leaveObj.empId
-    );
-
-  }
-
-  if (employeeTypeSource?.isApmosysProduct === 'true' && employeeTypeSource?.isConsultant === 'true') {
-    leaveObj.employeeType = 'ApMoSys Product Consultant';
-  } else if (employeeTypeSource?.isApmosysProduct === 'true') {
-    leaveObj.employeeType = 'ApMoSys Product';
-  } else {
-    leaveObj.employeeType = 'Other';
-  }
+    const employeeTypeSource = this.leaveObj.leaveAppliedFor == 'self'
+      ? this.currentUser
+      : this.teamMemberList.find(employee => employee.empId == this.leaveObj.empId);
+    this.utilityService.applyLeaveBalanceRequestFields(leaveObj, employeeTypeSource);
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.leaveBalanceList = response.serviceResponse;

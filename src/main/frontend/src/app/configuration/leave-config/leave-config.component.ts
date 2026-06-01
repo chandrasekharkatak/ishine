@@ -1405,9 +1405,15 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
 
  if (empIdInput.startsWith('APCS-')) {
     leaveObj.employeeType = "ApMoSys Product Consultant";
+    leaveObj.isApmosysProduct = 'true';
+    leaveObj.isConsultant = 'true';
   } else if (empIdInput.startsWith('AP-')) {
-    leaveObj.employeeType = "ApMoSys Product";
+    leaveObj.employeeType = "Apmosys Product";
+    leaveObj.isApmosysProduct = 'true';
+    leaveObj.isConsultant = 'false';
   } else if (empIdInput.startsWith('CS-')) {
+    leaveObj.isConsultant = 'true';
+    leaveObj.isApmosysProduct = 'false';
     leaveObj.employeeType = "Consultant";
   } else if (empIdInput.startsWith('A-')) {
     leaveObj.employeeType = "Other";
