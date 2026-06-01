@@ -1524,7 +1524,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
   .subscribe((res:any) => {
 
       if (res.serviceResponse === true) {
-          this.disabledDatesForPicker = [];
+          this.disabledDatesForPicker = [...this.disabledDatesBase];
           return;
       }
 

@@ -516,18 +516,11 @@ public class EmployeeController {
 	}
 
 	@GetMapping("/isEmployeeMappedToFCorTNMProject/{empId}")
-public ServiceResponse isEmployeeMappedToFCorTNMProject(
-        @PathVariable Integer empId) {
+	public ServiceResponse isEmployeeMappedToFCorTNMProject(
+			@PathVariable Integer empId) {
 
-    ServiceResponse response = new ServiceResponse();
-
-    boolean isFC = holidayService.isEmployeeMappedToFCorTNMProject(empId);
-
-    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
-    response.setServiceResponse(isFC);
-
-    return response;
-}
+		 return holidayService.isEmployeeMappedToFCorTNMProject(empId);
+	}
 	
 //	getTeamMemberByTeamName
 //	@RequestMapping(value = "/getTeamMemberByTeamName/{teamName}", method = RequestMethod.POST)

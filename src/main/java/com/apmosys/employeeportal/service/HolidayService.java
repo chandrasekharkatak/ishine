@@ -319,12 +319,19 @@ public class HolidayService {
 		logService.logMyInfo(httpRequest, apiLogInfo);
 		return response;
 	}
-	public boolean isEmployeeMappedToFCorTNMProject(Integer empId) {
-		Long count = employeeRepository
-            .isEmployeeMappedToFCorTNMProject(empId);
+	public ServiceResponse isEmployeeMappedToFCorTNMProject(Integer empId) {
 
-    return count != null && count > 0;
-	}
+    ServiceResponse response = new ServiceResponse();
+
+    Long count = employeeRepository.isEmployeeMappedToFCorTNMProject(empId);
+
+    boolean isMapped = count != null && count > 0;
+
+    response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+    response.setServiceResponse(isMapped);
+
+    return response;
+}
 	
 	// getAllHoliday
 	public ServiceResponse getAllHoliday() {
