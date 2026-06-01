@@ -25,7 +25,8 @@ public final class EmployeeEmploymentIdUtil {
 			return false;
 		}
 		String normalized = value.trim();
-		return "true".equalsIgnoreCase(normalized) || "1".equals(normalized);
+		return "true".equalsIgnoreCase(normalized) || "1".equals(normalized)
+				|| "y".equalsIgnoreCase(normalized) || "yes".equalsIgnoreCase(normalized);
 	}
 
 	public static boolean isApmosysProductConsultant(String isConsultant, String isApmosysProduct) {

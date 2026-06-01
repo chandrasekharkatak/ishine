@@ -1192,9 +1192,10 @@ try {
 		    StringBuilder logBuilder = new StringBuilder();
 
 		    try {
+		        String kycStatusFilter = normalizeKycStatusFilter(request.getIsUserInfoUpdated());
 		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByDepartmentAndKyc(
 		            request.getDeptId(),
-		            request.getIsUserInfoUpdated()
+		            kycStatusFilter
 		        );
 
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
@@ -1203,30 +1204,29 @@ try {
 		            employeeDetails.forEach((object) -> {
 		                ReportListDTO dto = new ReportListDTO();
 
-		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);        // EMP_ID
-		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);          // EMPLOYMENT_TYPE
-		                dto.setName(object[2] != null ? object[2].toString() : null);                  // NAME
-		                dto.setExperience(object[3] != null ? object[3].toString() : null);            // EXPERIENCE
-		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);        // DEPARTMENT_NAME
-		                dto.setEmail(object[5] != null ? object[5].toString() : null);                 // EMAIL_ID
-		                dto.setManagerName(object[6] != null ? object[6].toString() : null);           // MANAGER_NAME
-		                dto.setBillable(object[7] != null ? object[7].toString() : null);              // BILLABLE
-		                dto.setBillableType(object[8] != null ? object[8].toString() : null);          // BILLABLE_TYPE
-		                dto.setProjectName(object[9] != null ? object[9].toString() : null);           // PROJECT_NAMES
-		                dto.setClientName(object[10] != null ? object[10].toString() : null);          // CLIENT_NAMES
-		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);       // DATE_OF_JOINING
-		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);            // MOBILE_NO
-		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);    // STATUS
-		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);     // TOTAL_EXPERIENCE
-		                dto.setGender(object[15] != null ? object[15].toString() : null);              // GENDER
-		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);        // WORK_LOCATION
-		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null); // age
-		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);    // KYC
-		                
-		                // These fields are no longer available in the query result, set to null or remove if not needed
-		                dto.setManagerId(null);  // MANAGER_ID was removed from query
-		                dto.setEmpId(null);      // EMP_ID was removed from query (the formatted EMP_ID is in employeementId)
-		                
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                normalizeReportListEmploymentFromType(dto);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+		                dto.setManagerId(object.length > 19 && object[19] != null ? Long.parseLong(object[19].toString()) : null);
+		                dto.setEmpId(object.length > 20 && object[20] != null ? Long.parseLong(object[20].toString()) : null);
+
 		                dtoList.add(dto);
 		            });
 
@@ -1280,6 +1280,7 @@ try {
 
 		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
 		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                normalizeApcsEmploymentIdForReportList(dto);
 		                dto.setName(object[2] != null ? object[2].toString() : null);
 		                dto.setExperience(object[3] != null ? object[3].toString() : null);
 		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
@@ -1472,7 +1473,6 @@ try {
 		        
 		        data.forEach((object) -> {
 		            LeaveTrendAnalysisDTO dto = new LeaveTrendAnalysisDTO();
-		            dto.setEmployeementId(object[0] != null ? (object[0].toString()) : null);
 		            dto.setDepartmentName(object[1] != null ? object[1].toString() : null);
 		            dto.setEmployeeName(object[2] != null ? object[2].toString() : null);
 		            dto.setFromDate(object[3] != null ? LocalDate.parse(object[3].toString()) : null);
@@ -1480,12 +1480,15 @@ try {
 		            dto.setStatus(object[5] != null ? object[5].toString() : null);
 		            dto.setFromDateDayType(object[6] != null ? object[6].toString() : null);
 		            dto.setToDateDayType(object[7] != null ? object[7].toString() : null);
-		            dto.setEmployeeType(object[8] != null ? object[8].toString() : null);
 		            dto.setManagerName(object[9] != null ? (object[9].toString()) : null);
 		            dto.setTypeOfLeave(object[10] != null ? object[10].toString() : null);
 		            dto.setLeaveDate(object[11] != null ? LocalDate.parse(object[11].toString()) : null);
 		            dto.setManagerId(object[12] != null ? Long.parseLong(object[12].toString())  : null);
 		            dto.setEmpId(object[13] != null ? Long.parseLong(object[13].toString()) : null);
+		            String isConsultant = object.length > 14 && object[14] != null ? object[14].toString() : "false";
+		            String isApmosysProduct = object.length > 15 && object[15] != null ? object[15].toString() : "false";
+		            String isApprenticeship = object.length > 16 && object[16] != null ? object[16].toString() : "false";
+		            applyLeaveTrendEmployeeDisplay(dto, object[0], isConsultant, isApmosysProduct, isApprenticeship);
 		            dtoList.add(dto);
 		        });
 		        
@@ -1933,6 +1936,38 @@ try {
 		    
 	  }
 
+	private String normalizeKycStatusFilter(String isUserInfoUpdated) {
+		if (isUserInfoUpdated == null) {
+			return "false";
+		}
+		if ("true".equalsIgnoreCase(isUserInfoUpdated.trim()) || "1".equals(isUserInfoUpdated.trim())) {
+			return "true";
+		}
+		return "false";
+	}
+
+	private void normalizeReportListEmploymentFromType(ReportListDTO dto) {
+		if (dto == null || dto.getEmployeementId() == null || dto.getEmployeeType() == null) {
+			return;
+		}
+		String type = dto.getEmployeeType().trim();
+		String isConsultant = "false";
+		String isApmosysProduct = "false";
+		if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(type)) {
+			isConsultant = "true";
+			isApmosysProduct = "true";
+		} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(type)) {
+			isConsultant = "true";
+		} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(type)) {
+			isApmosysProduct = "true";
+		} else {
+			normalizeApcsEmploymentIdForReportList(dto);
+			return;
+		}
+		String numericId = dto.getEmployeementId().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+		dto.setEmployeementId(EmployeeEmploymentIdUtil.formatEmploymentId(numericId, isConsultant, isApmosysProduct));
+	}
+
 	private void normalizeApcsEmploymentIdForReportList(ReportListDTO dto) {
 		if (dto == null || dto.getEmployeementId() == null || dto.getEmployeeType() == null) {
 			return;
@@ -1946,6 +1981,18 @@ try {
 		}
 		String numeric = employmentId.replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
 		dto.setEmployeementId(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT + numeric);
+	}
+
+	private void applyLeaveTrendEmployeeDisplay(LeaveTrendAnalysisDTO dto, Object rawEmploymentId,
+			String isConsultant, String isApmosysProduct, String isApprenticeship) {
+		if (dto == null) {
+			return;
+		}
+		dto.setEmployeeType(EmployeeEmploymentIdUtil.resolveEmployeeType(isConsultant, isApmosysProduct, isApprenticeship));
+		if (rawEmploymentId != null) {
+			String numericId = rawEmploymentId.toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+			dto.setEmployeementId(EmployeeEmploymentIdUtil.formatEmploymentId(numericId, isConsultant, isApmosysProduct));
+		}
 	}
 	}
 

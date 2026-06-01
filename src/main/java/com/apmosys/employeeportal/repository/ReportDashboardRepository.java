@@ -936,13 +936,17 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 //            			);
         			
         			@Query(nativeQuery = true, value = "SELECT distinct \n" + 
-        				    " CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n" +
+        				    " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id)\n" +
+        				    "      WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n" +
+        				    "      WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n" +
         				    "      ELSE CONCAT('A-', e.employeement_id) \n" +
         				    " END as EMPLOYEEMENT_ID,\n" + 
-        				    " CASE WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n" +
+        				    " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant'\n" +
+        				    "      WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n" +
         				    "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n" + 
-        				    "      WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n" + 
         				    "      WHEN e.is_consultant = 'true' THEN 'Consultant' \n" + 
+        				    "      WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND COALESCE(e.is_apmosys_product, 'false') != 'true') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n" + 
+        				    "      ELSE 'Regular' \n" + 
         				    " END AS EMPLOYMENT_TYPE,\n" + 
         				    " e.name NAME,\n" + 
         				    " e.experience EXPERIENCE,\n" + 
@@ -974,13 +978,15 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         				    "left join clients c on p.client_id = c.client_id\n" +
         				    "WHERE 1=1 and e.employmentstatus != 'InActive' \n" + 
         				    " and (\n" + 
-        				    "     (:employ_type = 'apmosys_product' and e.is_apmosys_product = 'true')\n" +
+        				    "     (:employ_type = 'apmosys_product_consultant' and e.is_apmosys_product = 'true' and e.is_consultant = 'true')\n" +
+        				    "     or\n" +
+        				    "     (:employ_type = 'apmosys_product' and e.is_apmosys_product = 'true' and COALESCE(e.is_consultant, 'false') != 'true')\n" +
         				    "     or\n" +
         				    "     (:employ_type = 'apprentice' and e.is_apprenticeship = 'true')\n" + 
         				    "     or\n" + 
-        				    "     (:employ_type = 'consultant' and e.is_consultant = 'true')\n" + 
+        				    "     (:employ_type = 'consultant' and e.is_consultant = 'true' and COALESCE(e.is_apmosys_product, 'false') != 'true')\n" + 
         				    "     or\n" + 
-        				    "     (:employ_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n" + 
+        				    "     (:employ_type = 'regular' and ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND COALESCE(e.is_apmosys_product, 'false') != 'true') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')))\n" + 
         				    " )\n" + 
         				    " and (d.dept_id in (:dept_id))\n" + 
         				    " and e.emp_id NOT BETWEEN 1 AND 6\n" +
@@ -1042,15 +1048,17 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
 //        				);
         			
         			@Query(nativeQuery = true, value ="SELECT distinct \n"
-        					+ " CASE \n"
-        					+ "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-        					+ "  ELSE CONCAT('A-', e.employeement_id)\n"
-        					+ " END as EMP_ID,\n"
-        					+ " CASE \n"
-        					+ "  WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
-        					+ "  WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
-        					+ "  WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
-        					+ "  WHEN e.is_consultant = 'true' THEN 'Consultant' \n"
+        					+ " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id)\n"
+        					+ "      WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+        					+ "      WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+        					+ "      ELSE CONCAT('A-', e.employeement_id)\n"
+        					+ " END AS EMP_ID,\n"
+        					+ " CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN 'Apmosys Product Consultant'\n"
+        					+ "      WHEN e.is_apmosys_product = 'true' THEN 'Apmosys Product'\n"
+        					+ "      WHEN e.is_apprenticeship = 'true' THEN 'Apprentice'\n"
+        					+ "      WHEN e.is_consultant = 'true' THEN 'Consultant'\n"
+        					+ "      WHEN ((e.is_consultant = 'false' AND e.is_apprenticeship = 'false' AND COALESCE(e.is_apmosys_product, 'false') != 'true') OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = '')) THEN 'Regular'\n"
+        					+ "      ELSE 'Regular'\n"
         					+ " END AS EMPLOYMENT_TYPE,\n"
         					+ " e.name NAME,\n"
         					+ " e.experience EXPERIENCE,\n"
@@ -1068,7 +1076,9 @@ public interface ReportDashboardRepository extends JpaRepository<Employee, Long>
         					+ " e.gender GENDER,\n"
         					+ " e.work_location WORK_LOCATION,\n"
         					+ " TIMESTAMPDIFF(YEAR, e.date_of_birth, CURRENT_DATE()) age,\n"
-        					+ " e.is_user_info_updated KYC\n"
+        					+ " e.is_user_info_updated KYC,\n"
+        					+ " m.emp_id MANAGER_ID,\n"
+        					+ " e.emp_id INTERNAL_EMP_ID\n"
         					+ "FROM employee e \n"
         					+ "left join job_role jr on e.job_role_id = jr.job_role_id\n"
         					+ "left join department d on jr.dept_id = d.dept_id\n"

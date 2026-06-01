@@ -16,7 +16,11 @@ export class EmployeeIdUtilService {
   constructor() { }
 
   private isTrue(value: any): boolean {
-    return value === true || value === 'true';
+    if (value === true || value === 1) {
+      return true;
+    }
+    const normalized = String(value ?? '').trim().toLowerCase();
+    return normalized === 'true' || normalized === '1' || normalized === 'y' || normalized === 'yes';
   }
 
   resolveCategory(isApmosysProduct: any, isConsultant: any): EmployeeIdCategory {

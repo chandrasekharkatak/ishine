@@ -1,5 +1,7 @@
 package com.apmosys.employeeportal.service;
 
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -705,33 +707,16 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 //				;
 //				break;
 //			}
-			case "Employee Id": {
-			    String value = dto.getValue();
-			    String operator = dto.getOperator();
-			    String conjunction = dto.getConjunction();
-
-			    if (value != null && operator.equals("=")) {
-			        if (value.startsWith("AP-")) {
-			            String id = value.substring(3);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND e.is_apmosys_product = 'true' ")
-			                 .append(conjunction);
-			        } else if (value.startsWith("A-")) {
-			            String id = value.substring(2);
-			            query.append(" e.employeement_id = '").append(id).append("' ")
-			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
-			                 .append(conjunction);
-			        } else {
-			          
-			            query.append(" e.employeement_id ").append(operator).append(" '")
-			                 .append(value).append("' ").append(conjunction);
-			        }
-			    } else {
-			      
-			        query.append(" e.employeement_id ").append(operator).append(" '")
-			             .append(value).append("' ").append(conjunction);
-			    }
-			    break;
+			case "Employee Id":
+			case "employmentID": {
+				appendPrefixedEmployeeIdFilter(query, dto.getValue(), dto.getOperator(), dto.getConjunction(), false);
+				break;
+			}
+			case "employeeType":
+			case "Employee Type": {
+				query.append(" ").append(buildEmployeeTypeFilterSql(dto.getValue())).append(" ")
+						.append(dto.getConjunction());
+				break;
 			}
 
 			case "Full Name": {
@@ -2749,10 +2734,37 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 		apiLogInfo.setLogLevel("INFO");
 		StringBuilder logBuilder = new StringBuilder();
 		try {
-			
+			if (customFilterDTO == null || customFilterDTO.getColumn() == null
+					|| customFilterDTO.getColumn().trim().isEmpty()) {
+				response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				response.setServiceResponse("Filter column is required");
+				return response;
+			}
+
+			final String column = customFilterDTO.getColumn().trim();
+			logBuilder.append(" column: ").append(column).append(" empId: ").append(customFilterDTO.getEmpId());
+
+			List<EmployeeDTO> staticOptions = buildStaticValueOptionList(column);
+			if (staticOptions != null) {
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(staticOptions);
+				apiLogInfo.setApiResponse("Static options fetched of size : " + staticOptions.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
+				apiLogInfo.setApiRequest(logBuilder.toString());
+				logService.logMyInfo(httpRequest, apiLogInfo);
+				return response;
+			}
+
 			if(customFilterDTO.getEmpId()!= null) {
 
 			   String deptList = departmentRepository.findAccessibleDeptIdsForEmp(customFilterDTO.getEmpId());
+			   if (deptList == null || deptList.isBlank()) {
+				   response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+				   response.setServiceResponse("No accessible departments for user");
+				   apiLogInfo.setApiRequest(logBuilder.toString());
+				   logService.logMyInfo(httpRequest, apiLogInfo);
+				   return response;
+			   }
 						 List<Integer> deptIds = Arrays.stream(deptList.split(","))
 								    .map(String::trim)
 								    .map(Integer::parseInt)
@@ -2766,27 +2778,24 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 			switch (customFilterDTO.getColumn()) {
-			case "Employee Id": {
+			case "Employee Id":
+			case "employmentID": {
 				if (!allEmployeeList.isEmpty()) {
-					allEmployeeList.forEach((object) -> {
-						EmployeeDTO dto = new EmployeeDTO();
-						
-						  String employeementId = object[0] != null ? object[0].toString() : null; 
-				            String isApmosysProductStr = object[89] != null ? object[89].toString() : null;
-//				            System.err.println(isApmosysProductStr + "lalalalal")	;            
-				            
-				            if ("true".equalsIgnoreCase(isApmosysProductStr)) {
-			                    dto.setName("AP-" + employeementId);
-			                } else {
-			                    dto.setName("A-" + employeementId);
-			                }
-						dtoList.add(dto);
-					});
+					addEmployeeIdFilterOptionsFromRows(allEmployeeList, dtoList);
 					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 					response.setServiceResponse(dtoList);
 					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				}
+				break;
+			}
+			case "employeeType":
+			case "Employee Type": {
+				addEmployeeTypeFilterOptions(dtoList);
+				response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+				response.setServiceResponse(dtoList);
+				apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 				break;
 			}
 			case "Full Name": {
@@ -3096,27 +3105,35 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 
 				switch (customFilterDTO.getColumn()) {
-				case "Employee Id": {
+				case "Employee Id":
+				case "employmentID": {
 					if (!allEmployeeList.isEmpty()) {
+						java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
 						allEmployeeList.forEach(employee -> {
-						    EmployeeDTO dto = new EmployeeDTO();
-
-						    String employeementId = employee.getEmployeementId() != null ? employee.getEmployeementId().toString() : null;
-						    String isApmosysProductStr = employee.getIsApmosysProduct();
-
-						    if ("true".equalsIgnoreCase(isApmosysProductStr)) {
-						        dto.setName("AP-" + employeementId);
-						    } else {
-						        dto.setName("A-" + employeementId);
-						    }
-
-						    dtoList.add(dto);
+							String formatted = formatFilterDropdownEmploymentId(
+									employee.getEmployeementId(),
+									employee.getIsConsultant(),
+									employee.getIsApmosysProduct());
+							if (formatted != null && seen.add(formatted)) {
+								EmployeeDTO dto = new EmployeeDTO();
+								dto.setName(formatted);
+								dtoList.add(dto);
+							}
 						});
 						response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 						response.setServiceResponse(dtoList);
 						apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
 						apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					}
+					break;
+				}
+				case "employeeType":
+				case "Employee Type": {
+					addEmployeeTypeFilterOptions(dtoList);
+					response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
+					response.setServiceResponse(dtoList);
+					apiLogInfo.setApiResponse("List fetched of size : " + dtoList.size());
+					apiLogInfo.setApiStatus(ServiceResponse.STATUS_SUCCESS);
 					break;
 				}
 				case "Full Name": {
@@ -3430,6 +3447,12 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 			apiLogInfo.setApiStatus(ServiceResponse.SOMETHING_WENT_WRONG);
 			apiLogInfo.setLogLevel("ERROR");
 			response.setServiceError(e.getMessage());
+			logBuilder.append(" error: ").append(e.getMessage());
+		}
+		if (response.getServiceStatus() == null) {
+			response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+			response.setServiceResponse("No options found for column: "
+					+ (customFilterDTO != null ? customFilterDTO.getColumn() : "unknown"));
 		}
 		apiLogInfo.setApiRequest(logBuilder.toString());
 		logService.logMyInfo(httpRequest, apiLogInfo);
@@ -4283,35 +4306,15 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 
 		for (CustomFilterDTO dto : queryList) {
 			
-			if ("Employee Id".equals(dto.getColumn())) {
-			
- 			    String value = dto.getValue();
- 			    String operator = dto.getOperator();
- 			    String conjunction = dto.getConjunction();
+			if ("Employee Id".equals(dto.getColumn()) || "employmentID".equals(dto.getColumn())) {
+				appendPrefixedEmployeeIdFilter(query, dto.getValue(), dto.getOperator(), dto.getConjunction(), true);
+				continue;
+			}
 
- 			    if (value != null && operator.equals("=")) {
- 			        if (value.startsWith("AP-")) {
- 			            String id = value.substring(3);
- 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
- 			                 .append("AND e.is_apmosys_product = 'true' ")
- 			                 .append(conjunction);
- 			        } else if (value.startsWith("A-")) {
- 			            String id = value.substring(2);
- 			            query.append(" AND e.employeement_id = '").append(id).append("' ")
- 			                 .append("AND (e.is_apmosys_product = 'false' OR e.is_apmosys_product IS NULL) ")
- 			                 .append(conjunction);
- 			        } else {
- 			          
- 			            query.append(" AND e.employeement_id ").append(operator).append(" '")
- 			                 .append(value).append("' ").append(conjunction);
- 			        }
- 			    } else {
- 			      
- 			        query.append("AND e.employeement_id ").append(operator).append(" '")
- 			             .append(value).append("' ").append(conjunction);
- 			    }
- 			    break;
- 			}
+			if ("employeeType".equals(dto.getColumn()) || "Employee Type".equals(dto.getColumn())) {
+				query.append(" AND ").append(buildEmployeeTypeFilterSql(dto.getValue()));
+				continue;
+			}
 			
 			if (dto.getOperator() != null && dto.getOperator().equalsIgnoreCase("like")) {
 				dto.setValue("%" + dto.getValue() + "%");
@@ -5189,7 +5192,154 @@ public StringBuilder createQueryForLeaveReport(List<CustomFilterDTO> queryList) 
 	        }
 	    }
 	}
-	
 
+	private String formatFilterDropdownEmploymentId(Object rawEmploymentId, Object isConsultant, Object isApmosysProduct) {
+		if (rawEmploymentId == null) {
+			return null;
+		}
+		String numeric = rawEmploymentId.toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+		return EmployeeEmploymentIdUtil.formatEmploymentId(numeric,
+				isConsultant != null ? isConsultant.toString() : "false",
+				isApmosysProduct != null ? isApmosysProduct.toString() : "false");
+	}
+
+	private void addEmployeeIdFilterOptionsFromRows(List<Object[]> allEmployeeList, List<EmployeeDTO> dtoList) {
+		java.util.LinkedHashSet<String> seen = new java.util.LinkedHashSet<>();
+		allEmployeeList.forEach((object) -> {
+			String formatted = formatFilterDropdownEmploymentId(object[0],
+					object.length > 76 ? object[76] : null,
+					object.length > 89 ? object[89] : null);
+			if (formatted != null && seen.add(formatted)) {
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setName(formatted);
+				dtoList.add(dto);
+			}
+		});
+	}
+
+	private List<EmployeeDTO> buildStaticValueOptionList(String column) {
+		List<EmployeeDTO> dtoList = new ArrayList<>();
+		switch (column) {
+		case "employeeType":
+		case "Employee Type":
+			addEmployeeTypeFilterOptions(dtoList);
+			return dtoList;
+		case "Employment Status": {
+			String[] status = new String[] { "Probation", "Confirmed", "Resigned", "InActive" };
+			for (String value : status) {
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setName(value);
+				dtoList.add(dto);
+			}
+			return dtoList;
+		}
+		case "Gender": {
+			String[] values = new String[] { "male", "female", "other" };
+			for (String value : values) {
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setName(value);
+				dtoList.add(dto);
+			}
+			return dtoList;
+		}
+		case "Status": {
+			String[] values = new String[] { "Pending", "Approved", "Rejected" };
+			for (String value : values) {
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setName(value);
+				dtoList.add(dto);
+			}
+			return dtoList;
+		}
+		case "Day Type": {
+			String[] values = new String[] { "Working", "Holiday", "Non-working", "Public Holiday", "Leave",
+					"Week Off", "Comp Off" };
+			for (String value : values) {
+				EmployeeDTO dto = new EmployeeDTO();
+				dto.setName(value);
+				dtoList.add(dto);
+			}
+			return dtoList;
+		}
+		default:
+			return null;
+		}
+	}
+
+	private void addEmployeeTypeFilterOptions(List<EmployeeDTO> dtoList) {
+		String[] types = { "Regular", "Consultant", "ApMoSys Product", "ApMoSys Product Consultant", "Apprentice" };
+		for (String type : types) {
+			EmployeeDTO dto = new EmployeeDTO();
+			dto.setName(type);
+			dtoList.add(dto);
+		}
+	}
+
+	private void appendPrefixedEmployeeIdFilter(StringBuilder query, String value, String operator, String conjunction,
+			boolean leadingAnd) {
+		if (value == null) {
+			return;
+		}
+		String prefix = leadingAnd ? " AND " : " ";
+		if ("=".equals(operator)) {
+			String upper = value.toUpperCase();
+			if (upper.startsWith("APCS-")) {
+				query.append(prefix).append("e.employeement_id = '").append(value.substring(5))
+						.append("' AND e.is_apmosys_product = 'true' AND e.is_consultant = 'true' ");
+			} else if (upper.startsWith("AP-")) {
+				query.append(prefix).append("e.employeement_id = '").append(value.substring(3))
+						.append("' AND e.is_apmosys_product = 'true' AND COALESCE(e.is_consultant, 'false') != 'true' ");
+			} else if (upper.startsWith("CS-")) {
+				query.append(prefix).append("e.employeement_id = '").append(value.substring(3))
+						.append("' AND e.is_consultant = 'true' AND COALESCE(e.is_apmosys_product, 'false') != 'true' ");
+			} else if (upper.startsWith("A-")) {
+				query.append(prefix).append("e.employeement_id = '").append(value.substring(2))
+						.append("' AND COALESCE(e.is_consultant, 'false') != 'true' ")
+						.append("AND COALESCE(e.is_apmosys_product, 'false') != 'true' ");
+			} else {
+				query.append(prefix).append("e.employeement_id ").append(operator).append(" '").append(value)
+						.append("' ");
+			}
+		} else {
+			query.append(prefix).append("e.employeement_id ").append(operator).append(" '").append(value)
+					.append("' ");
+		}
+		if (conjunction != null) {
+			query.append(conjunction);
+		}
+	}
+
+	private String buildEmployeeTypeFilterSql(String employeeTypeValue) {
+		if (employeeTypeValue == null || employeeTypeValue.isBlank()) {
+			return "1=1";
+		}
+		String v = employeeTypeValue.replace("%", "").trim();
+		if (matchesEmployeeTypeLabel(v, "Apmosys Product Consultant", "ApMoSys Product Consultant")) {
+			return "(e.is_apmosys_product = 'true' AND e.is_consultant = 'true')";
+		}
+		if (matchesEmployeeTypeLabel(v, "Apmosys Product", "ApMoSys Product")) {
+			return "(e.is_apmosys_product = 'true' AND COALESCE(e.is_consultant, 'false') != 'true')";
+		}
+		if (matchesEmployeeTypeLabel(v, "Consultant")) {
+			return "(e.is_consultant = 'true' AND COALESCE(e.is_apmosys_product, 'false') != 'true')";
+		}
+		if (matchesEmployeeTypeLabel(v, "Apprentice")) {
+			return "(e.is_apprenticeship = 'true')";
+		}
+		if (matchesEmployeeTypeLabel(v, "Regular")) {
+			return "((e.is_consultant = 'false' AND COALESCE(e.is_apmosys_product, 'false') != 'true' AND COALESCE(e.is_apprenticeship, 'false') != 'true') "
+					+ "OR (COALESCE(e.is_consultant, '') = '' AND COALESCE(e.is_apprenticeship, '') = ''))";
+		}
+		return "1=1";
+	}
+
+	private boolean matchesEmployeeTypeLabel(String value, String... candidates) {
+		for (String candidate : candidates) {
+			if (candidate.equalsIgnoreCase(value)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 }

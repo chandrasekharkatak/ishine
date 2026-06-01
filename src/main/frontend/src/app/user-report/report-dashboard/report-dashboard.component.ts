@@ -1287,12 +1287,12 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
 
     this.modalTitle = "Employee(s) with KYC " + status;
 
-    let isUserInfoUpdated = null;
+    let isUserInfoUpdated: string | null = null;
 
     if (status === 'Pending') {
-        isUserInfoUpdated = false;
+        isUserInfoUpdated = 'false';
     } else if (status === 'Completed') {
-        isUserInfoUpdated = true;
+        isUserInfoUpdated = 'true';
     }
 
     const requestParams = {
@@ -1309,7 +1309,22 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-                emp.totalExperience,emp.dateOfJoining);
+                emp.totalExperience, emp.dateOfJoining);
+              if (emp.employeeType) {
+                emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+              }
+              const formattedId = this.employeeIdUtilService.generateEmploymentId(
+                emp.employeementId,
+                emp.isApmosysProduct,
+                emp.isConsultant,
+                emp.employeeType
+              );
+              if (formattedId) {
+                emp.employeementId = formattedId;
+              }
+              if (emp.dateOfJoining) {
+                emp.dateOfJoining = moment(emp.dateOfJoining).format(AppComponent.DATE_FORMAT);
+              }
             });
 
             console.log(`Filtered count for department "${deptName}" with KYC status "${status}":`, this.modalSummaryList.length);
@@ -1317,11 +1332,6 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
             }
-
-            this.modalSummaryList.forEach((employee) => {
-                employee.dateOfJoining = employee.dateOfJoining ?
-                    moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            });
 
             this.modalTitle = `Employee(s) with KYC ${status} in ${deptName} (${this.modalSummaryList.length})`;
 
@@ -2303,8 +2313,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": this.displayEmploymentId(x),
-        "Employee Type": this.displayEmployeeType(x),
+        "Emp ID": x.employeementId ?? this.displayEmploymentId(x),
+        "Employee Type": this.employeeIdUtilService.formatEmployeeTypeLabel(x.employeeType ?? this.displayEmployeeType(x)),
         "Name": x.employeeName,
         "Department Name": x.departmentName,
         "From Date": (x.fromDate) ? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
@@ -2358,8 +2368,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelEmployeeSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": this.displayEmploymentId(x),
-        "Employee Type": this.displayEmployeeType(x),
+        "Emp ID": x.employeementId ?? this.displayEmploymentId(x),
+        "Employee Type": this.employeeIdUtilService.formatEmployeeTypeLabel(x.employeeType ?? this.displayEmployeeType(x)),
         "Name": x.name,
         "Department Name": x.departmentName,
         "Experience": x.experience,
@@ -3070,16 +3080,16 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
 
     let employeeType = null;
 
-
     if (seriesName === 'Employee') {
         employeeType = 'regular';
-
     } else if (seriesName === 'Apprentice') {
         employeeType = 'apprentice';
-
     } else if (seriesName === 'Consultant') {
         employeeType = 'consultant';
-
+    } else if (seriesName === 'Apmosys Product Consultant') {
+        employeeType = 'apmosys_product_consultant';
+    } else if (seriesName === 'Apmosys Product') {
+        employeeType = 'apmosys_product';
     }
 
     const requestParams = {
@@ -3096,7 +3106,15 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-                emp.totalExperience,emp.dateOfJoining);
+                emp.totalExperience, emp.dateOfJoining);
+              if (emp.employeementId) {
+                emp.employeementId = this.displayEmploymentId(emp);
+              }
+              if (emp.employeeType) {
+                emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+              } else {
+                emp.employeeType = this.displayEmployeeType(emp);
+              }
             });
 
             console.log(`Filtered count for department "${pointName}" and series "${seriesName}":`, this.modalSummaryList.length);
@@ -4045,6 +4063,11 @@ openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
 
                 this.modalTitle = `${leaveType} Details - ${moment(date, 'MMM DD').format('MMM DD, YYYY')}`;
                 this.modalSummaryList = detailedLeaveData;
+                this.modalSummaryList.forEach((emp: any) => {
+                  if (emp.employeeType) {
+                    emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+                  }
+                });
 
                 this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
             } else {
