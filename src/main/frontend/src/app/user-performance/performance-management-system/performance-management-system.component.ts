@@ -345,7 +345,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           // this.allEmployee = this.allEmployee.filter(employee => employee.empId !== this.currentUser.empId);
           this.eligibleEmployees = mergedData.filter(employee => {
             // Append employee ID using utility service
-            employee.employeementId = this.utilityService.appendEmployeementid(employee.isConsultant, employee.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(employee);
+            employee.employeementId = employee.employmentIdAcToET;
 
             // Calculate experience from date_of_joining
             if (employee.dateOfJoining) {
@@ -643,7 +644,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
       const onlySpecificDataArr = this.employeeDataForExcel.map(
         x => ({
           // "EmployeeId":"A-".concat(x.employeementId),
-          "EmployeeId": (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
+          "EmployeeId": this.utilityService.formatEmploymentIdForExport(x),
           "Full Name": x.name,
           "EmailId": x.email,
           "Employment Status": x.employmentstatus,
@@ -708,12 +709,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             this.openAlertMod(this.alertTemplate, "No Data found")
           }
           this.eligibleEmployees.forEach(employee => {
-            if (employee.isConsultant == 'true') {
-              employee.employeementId = "A-".concat(employee.employeementId);
-            } else {
-              employee.employeementId = "A-CS-".concat(employee.employeementId);
-            }
-            // employee.employeementId = "A-".concat(employee.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(employee);
+            employee.employeementId = employee.employmentIdAcToET;
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;

@@ -1322,7 +1322,7 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
   }
 
 
-  const prefixMatch = value.match(/^(A-|CS-|AP-)/);
+  const prefixMatch = value.match(/^(A-|CS-|AP-|APCS-)/);
   const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
 
 
@@ -1344,8 +1344,8 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
 
-  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
-  const digitsOnly = value.replace(/^A-|^AP-/, '');
+  const validPrefix = value.startsWith('A-') || value.startsWith('AP-') || value.startsWith('CS-') || value.startsWith('APCS-');
+  const digitsOnly = value.replace(/^(A-|CS-|AP-|APCS-)/, '');
 
   if (!validPrefix && value.length < 3) {
 
@@ -1395,18 +1395,21 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   }
 
 
- if (empIdInput.startsWith('AP-')) {
-    leaveObj.employeeType = "Apmosys Product";
-    leaveObj.employeementId = empIdInput.substring(3);
+ if (empIdInput.startsWith('APCS-')) {
+    leaveObj.employeeType = "ApMoSys Product Consultant";
+  } else if (empIdInput.startsWith('AP-')) {
+    leaveObj.employeeType = "ApMoSys Product";
+  } else if (empIdInput.startsWith('CS-')) {
+    leaveObj.employeeType = "Consultant";
   } else if (empIdInput.startsWith('A-')) {
     leaveObj.employeeType = "Other";
-    leaveObj.employeementId = empIdInput.substring(2);
   } else {
     this.alertMessage = "Please enter valid Employee ID !!";
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
 
+  leaveObj.employeementId = this.utilityService.stripEmploymentIdPrefix(empIdInput);
 
     if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
       this.alertMessage = "Please enter valid Employee ID !!";
@@ -1460,7 +1463,7 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     //console.log("manage Leave Balance :", this.leaveBalanceObj);
 
     // let empIdInput = this.leaveBalanceObj.employeementId;
- this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.replace(/^(A-|CS-|AP-)/, '');
+ this.leaveBalanceObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.leaveBalanceObj.employeementId);
   // this.leaveBalanceObj.employeementId = empIdInput;
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

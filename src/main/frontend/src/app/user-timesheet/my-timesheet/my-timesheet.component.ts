@@ -36,6 +36,7 @@ import { TimesheetFormComponent } from './timesheet-form/timesheet-form.componen
 import { ProjectBasedBulkUploadPayload } from '../team-timesheet/types';
 import { M } from '@angular/material/ripple.d-BxTUZJt7';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { UtilityService } from 'src/app/services/utility.service';
 import { firstValueFrom } from 'rxjs';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 
@@ -352,7 +353,8 @@ fileType2: '' | 'pdf' | 'image' | 'excel' | null = null;
     private route: ActivatedRoute,
     private inputValidationService:InputValidationService,
     private router: Router,
-    private excelDownloadService: ExcelDownloadService
+    private excelDownloadService: ExcelDownloadService,
+    private utilityService: UtilityService
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -3996,14 +3998,7 @@ onSyncToggle() {
 }
 
   get formattedEmployeeId(): string {
-    let placeholder = "";
-    if (this.currentUser.isApmosysProduct) {
-      placeholder = `NA (AP-${this.currentUser.employeementId})`;
-    }
-    else {
-      placeholder = `NA (A-${this.currentUser.employeementId})`
-    }
-    return placeholder;
+    return this.utilityService.formatNaEmployeementPlaceholder(this.currentUser);
   }
 
   filterClients(projectId: any) {

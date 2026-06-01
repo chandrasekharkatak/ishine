@@ -7,10 +7,11 @@ export type EmployeeIdCategory = 'A' | 'CS' | 'AP' | 'APCS';
 })
 export class EmployeeIdUtilService {
 
-  private static readonly PREFIX_APMOSYS_PRODUCT_CONSULTANT = 'APCS-';
-  private static readonly PREFIX_APMOSYS_PRODUCT = 'AP-';
-  private static readonly PREFIX_CONSULTANT = 'CS-';
-  private static readonly PREFIX_REGULAR = 'A-';
+  static readonly PREFIX_APMOSYS_PRODUCT_CONSULTANT = 'APCS-';
+  static readonly PREFIX_APMOSYS_PRODUCT = 'AP-';
+  static readonly PREFIX_CONSULTANT = 'CS-';
+  static readonly PREFIX_REGULAR = 'A-';
+  static readonly EMPLOYMENT_ID_PREFIX_PATTERN = /^(A-|CS-|AP-|APCS-)/i;
 
   constructor() { }
 
@@ -59,6 +60,61 @@ export class EmployeeIdUtilService {
       return 'Apmosys Product';
     }
     return 'Regular';
+  }
+
+  /** UI-facing employee type label (ApMoSys branding for product types). */
+  formatEmployeeTypeLabel(
+    employeeTypeOrEmp: string | any,
+    isConsultant?: any,
+    isApmosysProduct?: any,
+    isApprenticeship?: any
+  ): string {
+    let type: string;
+    if (employeeTypeOrEmp != null && typeof employeeTypeOrEmp === 'object') {
+      const emp = employeeTypeOrEmp;
+      if (emp.employeeType && emp.employeeType !== 'On roll') {
+        type = String(emp.employeeType);
+      } else {
+        type = this.resolveEmployeeType(emp.isApmosysProduct, emp.isConsultant, emp.isApprenticeship);
+      }
+    } else {
+      type = String(employeeTypeOrEmp ?? '');
+      if (!type || type === 'On roll') {
+        type = this.resolveEmployeeType(isApmosysProduct, isConsultant, isApprenticeship);
+      }
+    }
+    switch (type) {
+      case 'Apmosys Product Consultant':
+      case 'ApMoSys Product Consultant':
+        return 'ApMoSys Product Consultant';
+      case 'Apmosys Product':
+      case 'ApMoSys Product':
+        return 'ApMoSys Product';
+      default:
+        return type;
+    }
+  }
+
+  formatEmploymentIdForDisplay(emp: any): string | null {
+    if (!emp) {
+      return null;
+    }
+    return this.generateEmploymentId(
+      emp.employeementId ?? emp.employmentIdAcToET ?? emp.employmentId,
+      emp.isApmosysProduct,
+      emp.isConsultant
+    );
+  }
+
+  applyEmployeeDisplayFields(emp: any): void {
+    if (!emp) {
+      return;
+    }
+    emp.employeeType = this.formatEmployeeTypeLabel(emp);
+    const formattedId = this.formatEmploymentIdForDisplay(emp);
+    if (formattedId) {
+      emp.employmentIdAcToET = formattedId;
+    }
   }
 
   /** Strip A-/CS-/AP-/APCS- prefix for API payloads (backend expects numeric Long). */

@@ -1123,8 +1123,8 @@ dateRange: string; type: string; count: string;
       if (response.serviceStatus === "Success") {
         this.filteredTimesheets = response.serviceResponse;
         this.filteredTimesheets.forEach(timesheet => {
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
-          timesheet.employeeType = ((timesheet.isApprenticeship === 'true') ? 'Apprentice' : ((timesheet.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          this.utilityService.applyEmployeeDisplayFields(timesheet);
+          timesheet.employeementId = timesheet.employmentIdAcToET;
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1812,14 +1812,10 @@ onSearchClientProject(searchData: any) {
       if (response.serviceStatus == "Success") {
         this.allLeaveApplicationsList = response.serviceResponse;
         this.allLeaveApplicationsList.forEach(leave => {
-          leave.employeementId = "A-".concat(leave.employeementId);
-          leave.employeeType = (leave.isApmosysProduct === 'true')
-  ? 'Apmosys Product'
-  : ((leave.isApprenticeship === 'true')
-    ? 'Apprentice'
-    : ((leave.isConsultant === 'true')
-      ? 'Consultant'
-      : 'On roll')),
+          this.utilityService.applyEmployeeDisplayFields(leave);
+          if (leave.employeeType === 'Regular') {
+            leave.employeeType = 'On roll';
+          }
             leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
           leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
           leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1864,16 +1860,7 @@ onSearchClientProject(searchData: any) {
             this.openAlertMod(this.alertModal, "No Leave Application Report found ")
           }
           this.allLeaveApplicationsList.forEach(leave => {
-            leave.employmentIdAcToET = (leave.employmentIdAcToET);
-            // leave.employeeType = ((leave.isApprenticeship === 'true') ? 'Apprentice' : ((leave.isConsultant === 'true') ? 'Consultant' : 'Regular')),
-             leave.employeeType = (leave.isApmosysProduct === 'true')
-  ? 'Apmosys Product'
-  : ((leave.isApprenticeship === 'true')
-    ? 'Apprentice'
-    : ((leave.isConsultant === 'true')
-      ? 'Consultant'
-      : 'On roll')),
-
+            this.utilityService.applyEmployeeDisplayFields(leave, { regularLabel: 'On roll' });
               leave.fromDate = (leave.fromDate) ? moment(leave.fromDate).format(AppComponent.DATE_FORMAT) : null;
             leave.toDate = (leave.toDate) ? moment(leave.toDate).format(AppComponent.DATE_FORMAT) : null;
             leave.createdOn = (leave.createdOn) ? moment(leave.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1956,14 +1943,8 @@ onSearchClientProject(searchData: any) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
            this.allTimesheetApplicationsListForExcel.forEach(timesheet => {
-            timesheet.employeementId = (timesheet.employmentIdAcToET);
-           timesheet.employeeType = (timesheet.isApmosysProduct === 'true')
-  ? 'Apmosys Product'
-  : ((timesheet.isApprenticeship === 'true')
-    ? 'Apprentice'
-    : ((timesheet.isConsultant === 'true')
-      ? 'Consultant'
-      : 'Regular')),
+            this.utilityService.applyEmployeeDisplayFields(timesheet);
+            timesheet.employeementId = timesheet.employmentIdAcToET ?? timesheet.employeementId;
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1989,14 +1970,8 @@ onSearchClientProject(searchData: any) {
             this.openAlertMod(this.alertModal, "No Timesheet Application Report found ");
           }
           this.allTimesheetApplicationsList.forEach(timesheet => {
-            timesheet.employeementId = (timesheet.employmentIdAcToET);
-           timesheet.employeeType = (timesheet.isApmosysProduct === 'true')
-  ? 'Apmosys Product'
-  : ((timesheet.isApprenticeship === 'true')
-    ? 'Apprentice'
-    : ((timesheet.isConsultant === 'true')
-      ? 'Consultant'
-      : 'Regular')),
+            this.utilityService.applyEmployeeDisplayFields(timesheet);
+            timesheet.employeementId = timesheet.employmentIdAcToET ?? timesheet.employeementId;
               timesheet.description = timesheet.description?.replaceAll('<br>', '')
             timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
             timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -2065,8 +2040,8 @@ onSearchClientProject(searchData: any) {
             this.openAlertMod(this.alertModal, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
-            employee.employeementId = "A-".concat(employee.employeementId);
-            employee.employeeType = ((employee.isApprenticeship === 'true') ? 'Apprentice' : ((employee.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+            this.utilityService.applyEmployeeDisplayFields(employee);
+            employee.employeementId = employee.employmentIdAcToET;
             employee.profileCompletedPercent = employee.profileCompletedPercent + "%";
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
@@ -2608,17 +2583,7 @@ onSearchClientProject(searchData: any) {
         this.totalItems = response.serviceResponse.totalElements;
 
         for (let x of this.allLeaveTimesheets) {
-          // Determine readable employee type
-          x.employeeType = (x.isApmosysProduct === 'true')
-            ? 'Apmosys Product'
-            : ((x.isApprenticeship === 'true')
-              ? 'Apprentice'
-              : ((x.isConsultant === 'true')
-                ? 'Consultant'
-                : 'Regular'));
-
-          const prefix = this.getEmpIdPrefix(x.employeeType);
-          x.employmentIdAcToET = prefix.concat(String(x.employeementId));
+          this.utilityService.applyEmployeeDisplayFields(x);
 
           x.date = (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null;
           x.createdOn = (x.createdOn) ? moment(x.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
@@ -5022,7 +4987,7 @@ getActivePoCount(box: any): void {
 
       const onlySpecificDataArr = this.allactivePOListOfEmployee.map(
         x => ({
-      'Employee ID': `A-${x.employeementId}`,
+      'Employee ID': this.utilityService.formatEmploymentIdForExport(x),
       'Name' : x.name,
       'Project Name': x.projectName || 'N/A',
       'PO No': x.poNo || 'N/A',

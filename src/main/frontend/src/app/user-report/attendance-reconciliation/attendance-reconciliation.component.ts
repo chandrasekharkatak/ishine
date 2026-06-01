@@ -464,14 +464,13 @@ export class AttendanceReconciliationComponent implements OnInit {
     this.storedDataList.forEach((data) => {
       if (data.filterName == title) {
         data.queryList.forEach((queryObj) => {
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-")) {
-            queryObj.value = "A-".concat(queryObj.value);
-          }
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("A-CS-") && (data.isConsultant == 'true')) {
-            queryObj.value = "A-CS-".concat(queryObj.value);
-          }
-          if (queryObj.column == "Employee Id" && !queryObj.value.includes("AP-") && (data.IsApprenticeship == 'true')) {
-            queryObj.value = "AP-".concat(queryObj.value);
+          if (queryObj.column == "Employee Id" && queryObj.value && !/[A-Z]+-/.test(String(queryObj.value))) {
+            queryObj.value = this.utilityService.formatEmploymentIdForExport({
+              employeementId: queryObj.value,
+              isConsultant: data.isConsultant,
+              isApmosysProduct: data.isApmosysProduct ?? data.IsApmosysProduct,
+              isApprenticeship: data.isApprenticeship ?? data.IsApprenticeship
+            });
           }
 
           if (queryObj.column == 'From Date' || queryObj.column == 'To Date' || queryObj.column == 'Date' || queryObj.column == 'Date Of Joining') {

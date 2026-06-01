@@ -3763,7 +3763,7 @@ getTileInfo(status: string): string[] {
 
  onEmployeeViewSearch() {
     if (
-      !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
+      !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap|apcs|cs)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, APCS-123456, CS-123456, or 123456'") ||
       !this.validateField(this.currentColumnFilter.clientSideId ,/^[A-Za-z][A-Za-z0-9\s]*$/, "Employee Name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.employeeName, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.") ||
       !this.validateField(this.currentColumnFilter.employmentStatus ,/^[A-Za-z]+$/, "Employment status must only contain characters.") ||
@@ -3795,7 +3795,7 @@ getTileInfo(status: string): string[] {
 
   onProjectInsightSearch() {
     if (
-      !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, or 123456'") ||
+      !this.validateField(this.currentColumnFilter.employmentId, /^(a|ap|apcs|cs)-\d{1,10}$|^\d{1,10}$/i, "Employment ID must be in format A-123456, AP-123456, APCS-123456, CS-123456, or 123456'") ||
       !this.validateField(this.currentColumnFilter.name, /^[A-Za-z][A-Za-z.\s]*$/, "Employee Name must only contain characters.")
     ) {
       return;

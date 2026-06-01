@@ -1996,14 +1996,12 @@ if (this.leaveObj.leaveTypeCode === 'CL') {
 
   }
 
-  if (employeeTypeSource?.isApmosysProduct === 'true') {
-
-    leaveObj.employeeType = 'Apmosys Product';
-
+  if (employeeTypeSource?.isApmosysProduct === 'true' && employeeTypeSource?.isConsultant === 'true') {
+    leaveObj.employeeType = 'ApMoSys Product Consultant';
+  } else if (employeeTypeSource?.isApmosysProduct === 'true') {
+    leaveObj.employeeType = 'ApMoSys Product';
   } else {
-
     leaveObj.employeeType = 'Other';
-
   }
     this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

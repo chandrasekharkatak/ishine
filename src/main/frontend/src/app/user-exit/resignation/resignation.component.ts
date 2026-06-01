@@ -15,6 +15,7 @@ import { EmployeeService } from 'src/app/services/employee.service';
 import { ExitService } from 'src/app/services/exit.service';
 import { LogService } from 'src/app/services/log.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 @Component({
   standalone: false,
@@ -65,6 +66,7 @@ export class ResignationComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private logService:LogService,
     private employeeService:EmployeeService,
+    private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x)}
 
   ngOnInit(): void {
@@ -113,9 +115,7 @@ export class ResignationComponent implements OnInit {
 
   async onGetEmployeeInfo(resignation: any){
 
-    if(resignation.employmentId.startsWith('A-')){
-      resignation.employmentId  = resignation.employmentId.substring(2);
-    }
+    resignation.employmentId = this.utilityService.stripEmploymentIdPrefix(resignation.employmentId);
 
     this.employeeInfoObj = new Employee();
     let currentEmp = new Employee();
@@ -158,9 +158,7 @@ export class ResignationComponent implements OnInit {
     let resignation: EmployeeExit = this.applicationToBeApproved;
 
     resignation.statusUpdatedBy = this.currentUser.empId;
-    if(resignation.employmentId.startsWith('A-')){
-      resignation.employmentId  = resignation.employmentId.substring(2);
-    }
+    resignation.employmentId = this.utilityService.stripEmploymentIdPrefix(resignation.employmentId);
 
     this.exitService.approveResignationApplication(resignation).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -183,9 +181,7 @@ export class ResignationComponent implements OnInit {
 
     this.applicationToBeRejected.statusUpdatedBy = this.currentUser.empId;
     this.applicationToBeRejected.rejectReason = this.employeeExitObj.rejectReason;
-    if(this.applicationToBeRejected.employmentId.startsWith('A-')){
-      this.applicationToBeRejected.employmentId  = this.applicationToBeRejected.employmentId.substring(2);
-    }
+    this.applicationToBeRejected.employmentId = this.utilityService.stripEmploymentIdPrefix(this.applicationToBeRejected.employmentId);
 
     this.exitService.rejectResignationApplication(this.applicationToBeRejected).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

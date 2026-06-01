@@ -482,7 +482,8 @@ export class PortalConfigComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
-          employee.employeementId = "A-".concat(employee.employeementId)
+          this.utilityService.applyEmployeeDisplayFields(employee);
+          employee.employeementId = employee.employmentIdAcToET ?? employee.employeementId
         });
         //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
@@ -796,7 +797,8 @@ export class PortalConfigComponent implements OnInit {
             this.openAlertMod(template, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
-            employee.employeementId = "A-".concat(employee.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(employee);
+          employee.employeementId = employee.employmentIdAcToET ?? employee.employeementId;
           });
           //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {

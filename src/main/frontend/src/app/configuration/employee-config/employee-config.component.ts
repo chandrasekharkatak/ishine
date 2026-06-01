@@ -1266,22 +1266,9 @@ storePreviousStatus(){
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isApmosysProduct == 'true' && this.employeeObj.isConsultant == 'true') {
-          this.employeeObj.employeeType = 'Apmosys Product Consultant';
-          this.isConsultant = true;
-          this.isApmosysProductUpdate = true;
-        } else if (this.employeeObj.isConsultant == 'true') {
-          this.employeeObj.employeeType = 'Consultant';
-          this.isConsultant = true;
-        }
-        else if (this.employeeObj.isApprenticeship == 'true')
-          this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true') {
-          this.employeeObj.employeeType = 'Apmosys Product';
-          this.isApmosysProductUpdate = true;
-        }
-        else
-          this.employeeObj.employeeType = 'Regular';
+        this.applyEmployeeTypeFromFlags(this.employeeObj);
+        this.employeeIdUtilService.applyEmployeeDisplayFields(this.employeeObj);
+        this.employeeObj.employeementId = this.employeeObj.employmentIdAcToET ?? this.employeeObj.employeementId;
 
         console.log("employee :", this.employeeObj);
         this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
@@ -2270,8 +2257,10 @@ storePreviousStatus(){
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
+      case 'ApMoSys Product':
         return 'AP-';
       case 'Apmosys Product Consultant':
+      case 'ApMoSys Product Consultant':
         return 'APCS-';
       default:
         return 'A-';
@@ -3025,18 +3014,11 @@ storePreviousStatus(){
   exportToExcel(): void {
     const onlySpecificDataArr = this.allEmployeeList.map(
       x => ({
-        "EmployeeId": x.employmentIdAcToET,
-        // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
-        "Employee Type":
-          x.isApmosysProduct === 'true' && x.isConsultant === 'true'
-            ? 'Apmosys Product Consultant'
-            : x.isApmosysProduct === 'true'
-              ? 'Apmosys Product'
-              : x.isApprenticeship === 'true'
-                ? 'Apprentice'
-                : x.isConsultant === 'true'
-                  ? 'Consultant'
-                  : 'On roll',
+        "EmployeeId": this.utilityService.formatEmploymentIdForExport(x),
+        "Employee Type": (() => {
+          const label = this.employeeIdUtilService.formatEmployeeTypeLabel(x);
+          return label === 'Regular' ? 'On roll' : label;
+        })(),
         "Full Name": x.name,
         "EmailId": x.email,
         "Employment Status": x.employmentstatus,
@@ -3349,15 +3331,8 @@ storePreviousStatus(){
             x.employeementId, x.isApmosysProduct, x.isConsultant);
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          if (x.isApmosysProduct == 'true' && x.isConsultant == 'true') {
-            x.employeeType = 'Apmosys Product Consultant';
-          } else if (x.isConsultant == 'true') {
-            x.employeeType = 'Consultant';
-          } else if (x.isApprenticeship == 'true') {
-            x.employeeType = 'Apprentice';
-          } else if (x.isApmosysProduct == 'true') {
-            x.employeeType = 'Apmosys Product';
-          } else {
+          this.employeeIdUtilService.applyEmployeeDisplayFields(x);
+          if (x.employeeType === 'Regular') {
             x.employeeType = 'On roll';
           }
         }
@@ -4372,14 +4347,11 @@ resetDefaultProjectFields() {
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            if (employee.isConsultant == 'true')
-              employee.employeeType = 'Consultant';
-            else if (employee.isApprenticeship == 'true')
-              employee.employeeType = 'Apprentice';
-            else if (employee.isApmosysProduct == 'true')
-              employee.employeeType = 'Apmosys Product';
-            else
+            employee.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(employee);
+            if (employee.employeeType === 'Regular') {
               employee.employeeType = 'On roll';
+            }
+            employee.employmentIdAcToET = employee.employeementId;
           });
           console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
