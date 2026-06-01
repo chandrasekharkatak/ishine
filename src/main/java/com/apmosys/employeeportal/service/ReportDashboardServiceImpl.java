@@ -1070,6 +1070,7 @@ try {
 		                
 		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
 		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                normalizeApcsEmploymentIdForReportList(dto);
 		                dto.setName(object[2] != null ? object[2].toString() : null);
 		                dto.setExperience(object[3] != null ? object[3].toString() : null);
 		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
@@ -1131,6 +1132,7 @@ try {
 
 		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
 		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                normalizeApcsEmploymentIdForReportList(dto);
 		                dto.setName(object[2] != null ? object[2].toString() : null);
 		                dto.setExperience(object[3] != null ? object[3].toString() : null);
 		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
@@ -1925,13 +1927,28 @@ try {
 	            logService.logMyInfo(httpRequest, apiLogInfo);
 	        }
 
-	        return response;
+		        return response;
 		    
 		    
 		    
 	  }
+
+	private void normalizeApcsEmploymentIdForReportList(ReportListDTO dto) {
+		if (dto == null || dto.getEmployeementId() == null || dto.getEmployeeType() == null) {
+			return;
+		}
+		if (!EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(dto.getEmployeeType())) {
+			return;
+		}
+		String employmentId = dto.getEmployeementId();
+		if (employmentId.toUpperCase().startsWith(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT.toUpperCase())) {
+			return;
+		}
+		String numeric = employmentId.replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+		dto.setEmployeementId(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT + numeric);
+	}
 	}
 
-	
 
+	
 

@@ -308,7 +308,8 @@ export class ReportDashboardComponent implements OnInit {
     return this.employeeIdUtilService.generateEmploymentId(
       emp?.employeementId ?? emp?.employmentIdAcToET,
       emp?.isApmosysProduct,
-      emp?.isConsultant
+      emp?.isConsultant,
+      emp?.employeeType
     ) ?? emp?.employeementId;
   }
 
@@ -2824,9 +2825,11 @@ openTotalCountModal(title: any) {
           this.modalSummaryList = response.serviceResponse;
           this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-            emp.totalExperience,emp.dateOfJoining);
+            emp.totalExperience, emp.dateOfJoining);
           if (!emp.employeeType) {
             emp.employeeType = this.displayEmployeeType(emp);
+          } else {
+            emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
           }
           if (emp.employeementId) {
             emp.employeementId = this.displayEmploymentId(emp);
@@ -3178,7 +3181,13 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       this.modalSummaryList = response.serviceResponse;
       this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-            emp.totalExperience,emp.dateOfJoining);
+            emp.totalExperience, emp.dateOfJoining);
+          if (emp.employeementId) {
+            emp.employeementId = this.displayEmploymentId(emp);
+          }
+          if (emp.employeeType) {
+            emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+          }
         });
 
       this.page = 1;

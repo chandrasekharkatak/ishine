@@ -102,8 +102,34 @@ export class EmployeeIdUtilService {
     return this.generateEmploymentId(
       emp.employeementId ?? emp.employmentIdAcToET ?? emp.employmentId,
       emp.isApmosysProduct,
-      emp.isConsultant
+      emp.isConsultant,
+      emp.employeeType
     );
+  }
+
+  private inferFlagsFromEmployeeType(employeeType: any): { isApmosysProduct: boolean; isConsultant: boolean } {
+    const type = String(employeeType ?? '').trim();
+    if (!type) {
+      return { isApmosysProduct: false, isConsultant: false };
+    }
+    if (/apmosys\s*product\s*consultant/i.test(type)) {
+      return { isApmosysProduct: true, isConsultant: true };
+    }
+    if (/apmosys\s*product/i.test(type) || type === 'ApmosysProduct') {
+      return { isApmosysProduct: true, isConsultant: false };
+    }
+    if (/^consultant$/i.test(type)) {
+      return { isApmosysProduct: false, isConsultant: true };
+    }
+    return { isApmosysProduct: false, isConsultant: false };
+  }
+
+  private needsReformatForEmployeeType(prefixedId: string, employeeType: any): boolean {
+    const type = String(employeeType ?? '').trim();
+    if (/apmosys\s*product\s*consultant/i.test(type)) {
+      return !prefixedId.toUpperCase().startsWith(EmployeeIdUtilService.PREFIX_APMOSYS_PRODUCT_CONSULTANT);
+    }
+    return false;
   }
 
   applyEmployeeDisplayFields(emp: any): void {
@@ -162,15 +188,30 @@ export class EmployeeIdUtilService {
   generateEmploymentId(
     id: any,
     isApmosysProduct: any,
-    isConsultant: any
+    isConsultant: any,
+    employeeType?: any
   ): string | null {
     if (id == null || id === '') {
       return null;
     }
-    const numericId = typeof id === 'string' && id.includes('-')
-      ? this.extractNumericId(id) ?? id
-      : String(id);
-    return `${this.resolvePrefix(isApmosysProduct, isConsultant)}${numericId}`;
+    const str = String(id).trim();
+    if (
+      EmployeeIdUtilService.EMPLOYMENT_ID_PREFIX_PATTERN.test(str)
+      && !this.needsReformatForEmployeeType(str, employeeType)
+    ) {
+      return str;
+    }
+    let ap = isApmosysProduct;
+    let cs = isConsultant;
+    if (!this.isTrue(ap) && !this.isTrue(cs) && employeeType) {
+      const inferred = this.inferFlagsFromEmployeeType(employeeType);
+      ap = inferred.isApmosysProduct;
+      cs = inferred.isConsultant;
+    }
+    const numericId = str.includes('-')
+      ? this.extractNumericId(str) ?? str
+      : str;
+    return `${this.resolvePrefix(ap, cs)}${numericId}`;
   }
 
 }
