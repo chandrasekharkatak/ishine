@@ -1270,8 +1270,8 @@ storePreviousStatus(){
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         this.applyEmployeeTypeFromFlags(this.employeeObj);
-        this.employeeIdUtilService.applyEmployeeDisplayFields(this.employeeObj);
-        this.employeeObj.employeementId = this.employeeObj.employmentIdAcToET ?? this.employeeObj.employeementId;
+        // this.employeeIdUtilService.applyEmployeeDisplayFields(this.employeeObj);
+        this.employeeObj.employeementId = this.employeeObj.employeementId ?? this.employeeObj.employeementId;
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
