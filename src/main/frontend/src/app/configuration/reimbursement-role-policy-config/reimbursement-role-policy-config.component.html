@@ -187,6 +187,22 @@
           </div>
         </div>
 
+        <div class="row mb-3" *ngIf="hasFoodAmountLimit()">
+          <div class="col-md-6 mb-2">
+            <label class="small">Team meal / working lunch max per member per day (₹)</label>
+            <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-sm rmb-amount-input"
+              [ngModel]="amountLimits[foodTeamMealLimitKey]"
+              (ngModelChange)="onPositiveAmountFieldChange(amountLimits, foodTeamMealLimitKey, $event)"
+              (keydown)="onPositiveAmountKeyDown($event)"
+              (keypress)="onPositiveAmountKeyPress($event)"
+              (paste)="onPositiveAmountPaste($event, amountLimits, foodTeamMealLimitKey)"
+              placeholder="No limit" />
+            <small class="text-muted d-block mt-1">
+              Used only for <strong>Team meal</strong> / <strong>Working lunch</strong> food allowance types. Regular Food cap remains shared across non-team meals.
+            </small>
+          </div>
+        </div>
+
         <hr />
         <h5 class="mb-2">Travel mode — per-day limits &amp; eligibility</h5>
         <p class="text-muted small mb-2">

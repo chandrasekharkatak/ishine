@@ -135,6 +135,13 @@ export class RmgProjectTableComponent implements OnInit, OnChanges {
     if (this.filterStateService.projectReportFilters) {
       this.isProjectSearchEnabled = true;
       this.projectFilters = this.filterStateService.projectReportFilters;
+      if (this.projectFilters && Object.keys(this.projectFilters).length > 0) {
+        this.columns.forEach(column => {
+          if (this.projectFilters.hasOwnProperty(column.key)) {
+            column.searchValue = this.projectFilters[column.key] ?? '';
+          }
+        });
+      }
     }
     await this.loadProjectData();
   }
@@ -338,9 +345,10 @@ export class RmgProjectTableComponent implements OnInit, OnChanges {
   // Projects Table APIs & Methods Start
   onProjectSearch(column: any) {
     this.projectPage = 1;
-    this.projectFilters = this.projectFilters = {
-      ...this.projectFilters, [column.key]: column.searchValue
-    };
+    this.projectFilters = this.columns
+      ?.filter(c => this.validationService.validateNullUndefinedEmptyStringTrim(c.searchValue))
+      ?.reduce((acc, column) => {  acc[column.key] = column.searchValue; return acc;
+      }, {} as Record<string, string>);
     this.filterStateService.projectReportFilters = this.projectFilters;
     this.getProjectDetailsList(false);
   }

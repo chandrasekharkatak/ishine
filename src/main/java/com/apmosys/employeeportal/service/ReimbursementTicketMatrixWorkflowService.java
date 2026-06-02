@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -122,7 +121,7 @@ public class ReimbursementTicketMatrixWorkflowService {
 		case "HOD_SUBMITTER_DEPT":
 			return ticket.getHodEmpId() != null && actorId.equals(ticket.getHodEmpId().longValue());
 		case "SPECIFIC_IN_SCOPE":
-			return level.getAssigneeEmployeeId() != null && level.getAssigneeEmployeeId().equals(actorId);
+			return specificAssigneeEmpIds(level).contains(actorId);
 		case "POOL_ANY_IN_SCOPE":
 			return poolMemberEmpIds(level).contains(actorId);
 		default:
@@ -161,7 +160,9 @@ public class ReimbursementTicketMatrixWorkflowService {
 			emails.add(ticket.getHodEmail().trim().toLowerCase(Locale.ROOT));
 		}
 		if ("SPECIFIC_IN_SCOPE".equals(routing) && level.getAssigneeEmployeeId() != null) {
-			addEmployeeEmail(emails, level.getAssigneeEmployeeId());
+			for (Long id : specificAssigneeEmpIds(level)) {
+				addEmployeeEmail(emails, id);
+			}
 		}
 		if ("POOL_ANY_IN_SCOPE".equals(routing)) {
 			for (Long id : poolMemberEmpIds(level)) {
@@ -375,7 +376,10 @@ public class ReimbursementTicketMatrixWorkflowService {
 			assignee = ticket.getHodEmpId() != null ? ticket.getHodEmpId().longValue() : null;
 			break;
 		case "SPECIFIC_IN_SCOPE":
-			assignee = level.getAssigneeEmployeeId();
+			// Multiple named approvers are allowed. If exactly one is configured, assign it for display.
+			// Otherwise keep null so any configured approver may act.
+			List<Long> ids = new ArrayList<>(specificAssigneeEmpIds(level));
+			assignee = ids.size() == 1 ? ids.get(0) : null;
 			break;
 		case "POOL_ANY_IN_SCOPE":
 			assignee = null;
@@ -384,6 +388,47 @@ public class ReimbursementTicketMatrixWorkflowService {
 			break;
 		}
 		ticket.setCurrentAssigneeEmpId(assignee);
+	}
+
+	private Set<Long> specificAssigneeEmpIds(ReimbursementApprovalMatrixLevelDTO level) {
+		if (level == null) {
+			return Collections.emptySet();
+		}
+		Set<Long> out = new HashSet<>();
+		if (level.getAssigneeEmployeeIds() != null) {
+			for (Long id : level.getAssigneeEmployeeIds()) {
+				if (id != null) {
+					out.add(id);
+				}
+			}
+		}
+		if (out.isEmpty() && level.getAssigneeEmployeeId() != null) {
+			out.add(level.getAssigneeEmployeeId());
+		}
+		return out;
+	}
+
+	private String specificAssigneeNamesDisplay(ReimbursementApprovalMatrixLevelDTO lvl) {
+		Set<Long> ids = specificAssigneeEmpIds(lvl);
+		if (ids.isEmpty()) {
+			return "—";
+		}
+		List<String> names = new ArrayList<>();
+		for (Long id : ids) {
+			if (id == null) {
+				continue;
+			}
+			Employee e = employeeRepository.findByEmpId(id);
+			String nm = e != null && StringUtils.hasText(e.getName()) ? e.getName().trim() : null;
+			if (StringUtils.hasText(nm)) {
+				names.add(nm);
+			}
+		}
+		if (names.isEmpty()) {
+			return "—";
+		}
+		names = names.stream().distinct().sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.toList());
+		return String.join(" / ", names);
 	}
 
 	private Long resolveReportingManagerEmpId(ReimbursementTicket ticket) {
@@ -473,11 +518,16 @@ public class ReimbursementTicketMatrixWorkflowService {
 		if ("HOD_SUBMITTER_DEPT".equals(routing)) {
 			return t.getHodName();
 		}
-		if (lvl.getAssigneeEmployeeId() != null) {
-			Employee assignee = employeeRepository.findByEmpId(lvl.getAssigneeEmployeeId());
-			if (assignee != null && StringUtils.hasText(assignee.getName())) {
-				return assignee.getName();
+		Set<Long> specificIds = specificAssigneeEmpIds(lvl);
+		if (!specificIds.isEmpty()) {
+			if (specificIds.size() == 1) {
+				Long only = specificIds.iterator().next();
+				Employee assignee = employeeRepository.findByEmpId(only);
+				if (assignee != null && StringUtils.hasText(assignee.getName())) {
+					return assignee.getName();
+				}
 			}
+			return specificAssigneeNamesDisplay(lvl);
 		}
 		if ("POOL_ANY_IN_SCOPE".equals(routing)) {
 			return "Approver pool";

@@ -27,6 +27,7 @@ import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixAppDept;
 import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixAppRole;
 import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixLevel;
 import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixLevelDept;
+import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixLevelEmp;
 import com.apmosys.employeeportal.model.ReimbursementApprovalMatrixLevelRole;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.EmployeeRepository;
@@ -34,6 +35,7 @@ import com.apmosys.employeeportal.repository.JobRoleRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixAppDeptRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixAppRoleRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixLevelDeptRepository;
+import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixLevelEmpRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixLevelRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixLevelRoleRepository;
 import com.apmosys.employeeportal.repository.ReimbursementApprovalMatrixRepository;
@@ -59,6 +61,9 @@ public class ReimbursementApprovalMatrixService {
 
 	@Autowired
 	private ReimbursementApprovalMatrixLevelRoleRepository levelRoleRepository;
+
+	@Autowired
+	private ReimbursementApprovalMatrixLevelEmpRepository levelEmpRepository;
 
 	@Autowired
 	private EmployeeRepository employeeRepository;
@@ -425,12 +430,18 @@ public class ReimbursementApprovalMatrixService {
 			if (lvl == null) {
 				continue;
 			}
+			List<Long> assignees = resolveAssigneeList(lvl);
 			ReimbursementApprovalMatrixLevel level = new ReimbursementApprovalMatrixLevel();
 			level.setMatrixId(matrixId);
 			level.setLevelOrder(lvl.getOrder() != null ? lvl.getOrder() : order);
 			level.setRoutingMode(lvl.getRouting() != null ? lvl.getRouting().trim() : "REPORTING_MANAGER");
-			level.setSpecificEmployeeId(lvl.getAssigneeEmployeeId());
+			level.setSpecificEmployeeId(!assignees.isEmpty() ? assignees.get(0) : null);
 			level = levelRepository.save(level);
+
+			levelEmpRepository.deleteByLevelId(level.getLevelId());
+			for (Long empId : distinctLongs(assignees)) {
+				levelEmpRepository.save(new ReimbursementApprovalMatrixLevelEmp(level.getLevelId(), empId));
+			}
 
 			if (lvl.getDepartmentIds() != null) {
 				for (Long deptId : distinctLongs(lvl.getDepartmentIds())) {
@@ -471,6 +482,11 @@ public class ReimbursementApprovalMatrixService {
 			lvl.setOrder(level.getLevelOrder());
 			lvl.setRouting(level.getRoutingMode());
 			lvl.setAssigneeEmployeeId(level.getSpecificEmployeeId());
+			lvl.setAssigneeEmployeeIds(levelEmpRepository.findByLevelId(level.getLevelId()).stream()
+					.map(ReimbursementApprovalMatrixLevelEmp::getEmpId)
+					.filter(Objects::nonNull)
+					.distinct()
+					.collect(Collectors.toList()));
 			lvl.setDepartmentIds(
 					levelDeptRepository.findByLevelId(level.getLevelId()).stream().map(ReimbursementApprovalMatrixLevelDept::getDeptId)
 							.collect(Collectors.toList()));
@@ -481,6 +497,20 @@ public class ReimbursementApprovalMatrixService {
 		}
 		dto.setLevels(levels);
 		return dto;
+	}
+
+	/** Accept new list field if present; otherwise fall back to legacy single. */
+	private List<Long> resolveAssigneeList(ReimbursementApprovalMatrixLevelDTO lvl) {
+		if (lvl == null) {
+			return Collections.emptyList();
+		}
+		if (lvl.getAssigneeEmployeeIds() != null && !lvl.getAssigneeEmployeeIds().isEmpty()) {
+			return lvl.getAssigneeEmployeeIds().stream().filter(Objects::nonNull).collect(Collectors.toList());
+		}
+		if (lvl.getAssigneeEmployeeId() != null) {
+			return java.util.Arrays.asList(lvl.getAssigneeEmployeeId());
+		}
+		return Collections.emptyList();
 	}
 
 	private List<Long> distinctLongs(List<Long> ids) {
