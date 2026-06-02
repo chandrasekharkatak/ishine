@@ -33,7 +33,7 @@ export interface RmbRsLevelDraft {
   /** System mode: reporting manager, HOD, pool, or specific person in scope. */
   routingMode: string;
   /** Empty = any one in pool (where applicable). */
-  specificEmployeeId: string;
+  specificEmployeeIds: string[];
   /** Populated from {@code api/getAllEmployeesByDepartmentIds} for this level’s department selection. */
   _employeesInDepts?: RmbRsEmpRow[];
   employeesLoading?: boolean;
@@ -232,12 +232,17 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
       levels: (row.levels ?? []).map((l: any) => {
         const levelDeptIds = (l.departmentIds ?? []).map((id: unknown) => this.normId(id));
         const levelRoleIds = (l.jobRoleIds ?? []).map((id: unknown) => this.normId(id));
+        const assigneeIdsRaw = Array.isArray(l.assigneeEmployeeIds)
+          ? l.assigneeEmployeeIds
+          : l.assigneeEmployeeId != null
+            ? [l.assigneeEmployeeId]
+            : [];
         return {
           order: Number(l.order) || 1,
           departmentIds: levelDeptIds,
           jobRoleIds: this.collapseRepresentativeJobRoleIds(levelRoleIds, levelDeptIds),
           routingMode: l.routing ?? 'REPORTING_MANAGER',
-          specificEmployeeId: l.assigneeEmployeeId != null ? this.normId(l.assigneeEmployeeId) : '',
+          specificEmployeeIds: assigneeIdsRaw.map((x: unknown) => this.normId(x)).filter(Boolean),
           _employeesInDepts: [],
           employeesLoading: false
         };
@@ -529,7 +534,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
         departmentIds: l.departmentIds ?? [],
         jobRoleIds: l.jobRoleIds ?? [],
         routingMode: l.routingMode,
-        specificEmployeeId: l.specificEmployeeId ?? ''
+        specificEmployeeIds: [...(l.specificEmployeeIds ?? [])]
       })),
       finance: { ...rs.finance }
     });
@@ -547,7 +552,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
         departmentIds: [...(l.departmentIds ?? [])],
         jobRoleIds: [...(l.jobRoleIds ?? [])],
         routingMode: l.routingMode,
-        specificEmployeeId: l.specificEmployeeId ?? '',
+        specificEmployeeIds: [...(l.specificEmployeeIds ?? [])],
         _employeesInDepts: [],
         employeesLoading: false
       })),
@@ -620,7 +625,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
       departmentIds: [],
       jobRoleIds: [],
       routingMode: 'REPORTING_MANAGER',
-      specificEmployeeId: '',
+      specificEmployeeIds: [],
       _employeesInDepts: [],
       employeesLoading: false
     };
@@ -684,7 +689,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
     const ok = this.routingOptions.some((o) => o.value === level.routingMode);
     if (!ok) {
       level.routingMode = 'REPORTING_MANAGER';
-      level.specificEmployeeId = '';
+      level.specificEmployeeIds = [];
     }
   }
 
@@ -712,7 +717,7 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
   onRoutingChange(level: RmbRsLevelDraft): void {
     this.normalizeLevelRouting(level);
     if (level.routingMode !== 'POOL_ANY_IN_SCOPE' && level.routingMode !== 'SPECIFIC_IN_SCOPE') {
-      level.specificEmployeeId = '';
+      level.specificEmployeeIds = [];
     }
     if (level.routingMode === 'SPECIFIC_IN_SCOPE') {
       level.jobRoleIds = [];
@@ -859,10 +864,8 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
   private syncSpecificEmployee(level: RmbRsLevelDraft): void {
     const pool = this.assigneeOptionsForLevel(level);
     const ids = new Set(pool.map((e) => e.empId));
-    const cur = this.normId(level.specificEmployeeId);
-    if (cur && !ids.has(cur)) {
-      level.specificEmployeeId = '';
-    }
+    const kept = (level.specificEmployeeIds ?? []).map((x) => this.normId(x)).filter(Boolean).filter((id) => ids.has(id));
+    level.specificEmployeeIds = kept;
   }
 
   onFinanceDepartmentChange(rs: RmbRsRuleSetDraft): void {
@@ -929,7 +932,9 @@ export class ReimbursementRuleSetConfigComponent implements OnInit {
           .map((id) => Number(id))
           .filter((n) => !Number.isNaN(n)),
         routing: l.routingMode,
-        assigneeEmployeeId: l.specificEmployeeId ? Number(l.specificEmployeeId) : null
+        assigneeEmployeeIds: (l.specificEmployeeIds ?? [])
+          .map((id) => Number(id))
+          .filter((n) => !Number.isNaN(n))
       })),
       finance: {
         departmentId: rs.finance.departmentId ? Number(rs.finance.departmentId) : null,

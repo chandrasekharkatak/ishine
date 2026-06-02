@@ -61,3 +61,12 @@ CREATE TABLE IF NOT EXISTS reimbursement_approval_matrix_level_role (
   CONSTRAINT fk_rmb_appr_lvl_role_level FOREIGN KEY (level_id)
     REFERENCES reimbursement_approval_matrix_level (level_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Multiple named approvers per level (optional).
+CREATE TABLE IF NOT EXISTS reimbursement_approval_matrix_level_emp (
+  level_id BIGINT NOT NULL,
+  emp_id BIGINT NOT NULL,
+  PRIMARY KEY (level_id, emp_id),
+  CONSTRAINT fk_rmb_appr_lvl_emp_level FOREIGN KEY (level_id)
+    REFERENCES reimbursement_approval_matrix_level (level_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

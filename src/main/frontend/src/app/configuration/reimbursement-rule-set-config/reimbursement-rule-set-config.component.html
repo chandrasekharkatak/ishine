@@ -277,10 +277,17 @@
               <span class="text-muted font-weight-normal" *ngIf="level.routingMode === 'POOL_ANY_IN_SCOPE'">(optional)</span>
               <span class="text-danger" *ngIf="assigneeRequired(level)">*</span>
             </label>
-            <select class="form-control" [id]="'assign-' + rs.id + '-' + level.order" [(ngModel)]="level.specificEmployeeId" [disabled]="assigneeSelectDisabled(level)">
-              <option [ngValue]="''">— Any one in pool may approve —</option>
-              <option *ngFor="let e of assigneeOptionsForLevel(level)" [ngValue]="e.empId">{{ e.name }}</option>
-            </select>
+            <app-my-select
+              class="skill-matrix-master-config__search-select rmb-rs-my-select"
+              [multiple]="true"
+              [options]="assigneeOptionsForLevel(level)"
+              displayKey="name"
+              valueKey="empId"
+              [placeholder]="level.routingMode === 'POOL_ANY_IN_SCOPE' ? 'Search or select approvers (optional)' : 'Search or select approvers'"
+              [(ngModel)]="level.specificEmployeeIds"
+              [name]="'rmbRsAssignee-' + rs.id + '-' + level.order"
+              [disabled]="assigneeSelectDisabled(level)"
+            ></app-my-select>
             <small class="form-text text-muted d-block mt-2" *ngIf="level.employeesLoading">
               <i class="fa-solid fa-spinner fa-spin mr-1" aria-hidden="true"></i> Loading employees…
             </small>
