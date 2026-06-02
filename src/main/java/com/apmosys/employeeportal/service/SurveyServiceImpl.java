@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.LockStatusDTO;
@@ -913,13 +915,8 @@ public class SurveyServiceImpl implements SurveyService {
 					    String isApmosysProduct = dto.getIsApmosysProduct();
 
 					    if (employmentId != null) {
-					        if ("true".equalsIgnoreCase(isConsultant)) {
-					            dto.setEmploymentIdAccToET("CS-" + employmentId);
-					        } else if ("true".equalsIgnoreCase(isApmosysProduct)) {
-					            dto.setEmploymentIdAccToET("AP-" + employmentId);
-					        } else {
-					            dto.setEmploymentIdAccToET("A-" + employmentId);
-					        }
+					        dto.setEmploymentIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+					                isConsultant, isApmosysProduct));
 					    }
 						
 						dtoList.add(dto);

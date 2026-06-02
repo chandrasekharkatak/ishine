@@ -420,6 +420,8 @@ this.user.otp = encryptedOtp;
     this.user.maritalStatus = user.maritalStatus;
     this.user.jobRoleName = user.jobRoleName;
     this.user.isApmosysProduct = user.isApmosysProduct;
+    this.user.isConsultant = user.isConsultant;
+    this.user.isApprenticeship = user.isApprenticeship;
     this.user.trainingLockStatus = user.trainingLockStatus;
 
     sessionStorage.setItem('FirstTimeLogin', user.isNew == "true" ? "true" : "false");

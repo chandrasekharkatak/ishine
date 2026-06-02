@@ -1322,7 +1322,7 @@ fieldRestictCharacterForLeaveAccToDifferntEmployeeType(event) {
   }
 
 
-  const prefixMatch = value.match(/^(A-|CS-|AP-)/);
+  const prefixMatch = value.match(/^(A-|CS-|AP-|APCS-)/);
   const digitsPart = prefixMatch ? value.replace(prefixMatch[0], '') : value;
 
 
@@ -1340,31 +1340,39 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   const value = input.value;
   const key = event.key;
 
-
   // if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(key)) return;
 
+  const validPrefix = value.startsWith('A-') ||
+                      value.startsWith('AP-') ||
+                      value.startsWith('CS-') ||
+                      value.startsWith('APCS-');
 
-  const validPrefix = value.startsWith('A-') || value.startsWith('AP-');
-  const digitsOnly = value.replace(/^A-|^AP-/, '');
+  const digitsOnly = value.replace(/^(A-|CS-|AP-|APCS-)/, '');
 
-  if (!validPrefix && value.length < 3) {
+  if (!validPrefix) {
 
-    if (value === '' && key === 'A') return;
-    if (value === 'A' && key === 'P') return;
-    if (value === 'A' && key === '-') return;
-    if (value === 'AP' && key === '-') return;
+    if (value === '' && (key === 'A' || key === 'C')) return;
+
+    if (value === 'A' && (key === 'P' || key === '-')) return;
+
+    if (value === 'AP' && (key === 'C' || key === '-')) return;
+
+    if (value === 'APC' && key === 'S') return;
+
+    if (value === 'APCS' && key === '-') return;
+
+    if (value === 'C' && key === 'S') return;
+
+    if (value === 'CS' && key === '-') return;
+
     event.preventDefault();
     return;
   }
 
-
   if (validPrefix) {
-
     if (!/^\d$/.test(key) || digitsOnly.length >= 6) {
       event.preventDefault();
     }
-  } else {
-    event.preventDefault();
   }
 }
 
@@ -1395,18 +1403,27 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
   }
 
 
- if (empIdInput.startsWith('AP-')) {
+ if (empIdInput.startsWith('APCS-')) {
+    leaveObj.employeeType = "ApMoSys Product Consultant";
+    leaveObj.isApmosysProduct = 'true';
+    leaveObj.isConsultant = 'true';
+  } else if (empIdInput.startsWith('AP-')) {
     leaveObj.employeeType = "Apmosys Product";
-    leaveObj.employeementId = empIdInput.substring(3);
+    leaveObj.isApmosysProduct = 'true';
+    leaveObj.isConsultant = 'false';
+  } else if (empIdInput.startsWith('CS-')) {
+    leaveObj.isConsultant = 'true';
+    leaveObj.isApmosysProduct = 'false';
+    leaveObj.employeeType = "Consultant";
   } else if (empIdInput.startsWith('A-')) {
     leaveObj.employeeType = "Other";
-    leaveObj.employeementId = empIdInput.substring(2);
   } else {
     this.alertMessage = "Please enter valid Employee ID !!";
     this.openAlertMod(template, this.alertMessage);
     return false;
   }
 
+  leaveObj.employeementId = this.utilityService.stripEmploymentIdPrefix(empIdInput);
 
     if (!this.validationService.validateEmployeementId(leaveObj.employeementId)) {
       this.alertMessage = "Please enter valid Employee ID !!";
@@ -1460,7 +1477,7 @@ fieldRestrictCharacterForEmployeeId(event: KeyboardEvent) {
     //console.log("manage Leave Balance :", this.leaveBalanceObj);
 
     // let empIdInput = this.leaveBalanceObj.employeementId;
- this.leaveBalanceObj.employeementId = this.leaveBalanceObj.employeementId?.replace(/^(A-|CS-|AP-)/, '');
+ this.leaveBalanceObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.leaveBalanceObj.employeementId);
   // this.leaveBalanceObj.employeementId = empIdInput;
     this.leaveService.updateLeavesByEmpId(this.leaveBalanceObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

@@ -8,6 +8,7 @@ import { AppComponent } from '../app.component';
 import { SortPipe } from '../sort.pipe';
 import { of } from 'rxjs/internal/observable/of';
 import { Observable } from 'rxjs';
+import { EmployeeIdUtilService } from './employee-id-util.service';
 
 @Injectable({
   providedIn: 'root'
@@ -20,27 +21,88 @@ export class UtilityService {
   allEmployeeList360: any[] = [];
 
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private employeeIdUtil: EmployeeIdUtilService) { }
 
-  appendEmployeementid(isConsultant,emp): string {
-    if(isConsultant == "true"){
-      return "A-".concat(emp);
-    }
-    // else if(isApmosysProduct){
-    //   return emp;
-    // }
-    else 
-      return "A-".concat(emp);
+  appendEmployeementid(isConsultant: any, emp: any, isApmosysProduct?: any): string {
+    const numeric = this.employeeIdUtil.extractNumericId(String(emp)) ?? String(emp);
+    return this.employeeIdUtil.generateEmploymentId(numeric, isApmosysProduct, isConsultant) ?? `A-${numeric}`;
   }
 
   getFormattedEmployeeId(empObj: any): string {
-    return this.appendEmployeementid(
-      empObj.isConsultant,
-      empObj.employeementId
-    );
+    return this.employeeIdUtil.formatEmploymentIdForDisplay(empObj) ?? '';
   }
 
-  substringEmployeementid(isConsultant,emp): string {
+  applyEmployeeDisplayFields(emp: any, options?: { regularLabel?: string }): void {
+    this.employeeIdUtil.applyEmployeeDisplayFields(emp);
+    if (options?.regularLabel && emp?.employeeType === 'Regular') {
+      emp.employeeType = options.regularLabel;
+    }
+  }
+
+  applyEmployeeDisplayFieldsToList(list: any[], options?: { regularLabel?: string }): void {
+    if (list == null || !Array.isArray(list)) {
+      return;
+    }
+    list.forEach((emp) => this.applyEmployeeDisplayFields(emp, options));
+  }
+
+  resolveEmployeeTypeLabel(emp: any): string {
+    return this.employeeIdUtil.formatEmployeeTypeLabel(emp);
+  }
+
+  /** Leave balance API employeeType (must match backend lookup labels). */
+  resolveEmployeeTypeForLeaveApi(emp: any): string {
+    const type = this.employeeIdUtil.resolveEmployeeType(
+      emp?.isApmosysProduct, emp?.isConsultant, emp?.isApprenticeship);
+    if (type === 'Apmosys Product Consultant') {
+      return 'ApMoSys Product Consultant';
+    }
+    if (type === 'Apmosys Product') {
+      return 'Apmosys Product';
+    }
+    if (type === 'Consultant') {
+      return 'Consultant';
+    }
+    return 'Other';
+  }
+
+  /** Sets employment id, status, type, and flags for getMyLeaveBalancesByEmpId. */
+  applyLeaveBalanceRequestFields(leaveObj: any, emp: any): void {
+    if (!leaveObj || !emp) {
+      return;
+    }
+    leaveObj.employeementId = emp.employeementId;
+    leaveObj.empId = emp.empId;
+    leaveObj.employmentStatus = emp.employmentstatus ?? emp.employmentStatus;
+    leaveObj.isConsultant = emp.isConsultant;
+    leaveObj.isApmosysProduct = emp.isApmosysProduct;
+    leaveObj.isApprenticeship = emp.isApprenticeship;
+    leaveObj.employeeType = this.resolveEmployeeTypeForLeaveApi(emp);
+  }
+
+  formatNaEmployeementPlaceholder(emp: any): string {
+    const formatted = this.getFormattedEmployeeId(emp);
+    return formatted ? `NA (${formatted})` : 'NA';
+  }
+
+  hasEmploymentIdPrefix(value: string): boolean {
+    return /^(A-|CS-|AP-|APCS-)/i.test(String(value ?? '').trim());
+  }
+
+  stripEmploymentIdPrefix(id: any): number | string | null {
+    return this.employeeIdUtil.toApiEmploymentId(id);
+  }
+
+  formatEmploymentIdForExport(emp: any): string {
+    return this.employeeIdUtil.formatEmploymentIdForDisplay(emp)
+      ?? String(emp?.employeementId ?? emp?.employmentIdAcToET ?? '');
+  }
+
+  substringEmployeementid(isConsultant, emp): string {
+    const numeric = this.employeeIdUtil.toApiEmploymentId(emp);
+    if (numeric != null) {
+      return String(numeric);
+    }
     if(isConsultant == "true"){
       if (emp.startsWith("A-")) {
         return emp.substring(2); 
@@ -67,17 +129,12 @@ export class UtilityService {
     );
   }
 
-  substringEmploymentId2(isConsultant: string,  emp: string): string {
-      if (emp.startsWith("A-")) {
-        return emp.substring(2);
-      } else if (emp.startsWith("A-")) {
-        return emp.substring(2);
-      } else if (emp.startsWith("A-")) {
-        return emp.substring(2); // Regular employees
-      } else {
-        console.error("Invalid regular employee ID format");
-        return emp; // Return as-is if format is invalid
-      }
+  substringEmploymentId2(isConsultant: string, emp: string): string {
+    const numeric = this.employeeIdUtil.toApiEmploymentId(emp);
+    if (numeric != null) {
+      return String(numeric);
+    }
+    return emp;
   }
 
   getEmployeeIdSubstring2(empObj: any): string {  
@@ -153,19 +210,11 @@ export class UtilityService {
           
           // Perform necessary formatting and data transformations
           allEmployeeList360.forEach(employeeObj => {
-            employeeObj.employeementId = this.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+            this.applyEmployeeDisplayFields(employeeObj);
             employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
             employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  
-            if (employeeObj.isConsultant === 'true') {
-              employeeObj.employeeType = 'Consultant';
-            } else if (employeeObj.isApprenticeship === 'true') {
-              employeeObj.employeeType = 'Apprentice';
-            } else {
-              employeeObj.employeeType = 'Regular';
-            }
           });
   
           // Return an observable that waits for the next data load
@@ -190,19 +239,11 @@ export class UtilityService {
           
           // Perform necessary formatting and data transformations
          
-            employeeObj.employeementId = this.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+            this.applyEmployeeDisplayFields(employeeObj);
             employeeObj.dateOfJoining = employeeObj.dateOfJoining ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.dateOfRelieving = employeeObj.dateOfRelieving ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
             employeeObj.updatedOn = employeeObj.updatedOn ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
             employeeObj.createdOn = employeeObj.createdOn ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
-  
-            if (employeeObj.isConsultant === 'true') {
-              employeeObj.employeeType = 'Consultant';
-            } else if (employeeObj.isApprenticeship === 'true') {
-              employeeObj.employeeType = 'Apprentice';
-            } else {
-              employeeObj.employeeType = 'Regular';
-            }
           return of(employeeObj);  // Using 'of' to wrap the sorted result in an observable
         } else {
           alert(response.serviceResponse);

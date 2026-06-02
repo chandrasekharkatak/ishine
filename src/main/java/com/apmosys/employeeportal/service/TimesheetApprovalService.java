@@ -1,4 +1,5 @@
 	package com.apmosys.employeeportal.service;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 	
 	import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -1196,13 +1197,10 @@ import com.apmosys.employeeportal.repository.TimesheetRejectionReasonsMasterRepo
 	        
 	        String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 	        String isApmosysProduct = dto.getIsApmosysProduct();
+	        String isConsultant = dto.getIsConsultant();
 	        if (employmentId != null) {
-	            if ("true".equalsIgnoreCase(isApmosysProduct)) {
-	                dto.setEmploymentIdAcToET("AP-" + employmentId);
-	            } else {
-	                dto.setEmploymentIdAcToET("A-" + employmentId);
-	            }
-	        }
+                dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId, isConsultant, isApmosysProduct));
+            }
 	        
 	        dto.setClientInTime(object[20] != null ? ((java.sql.Timestamp) object[20]).toLocalDateTime() : null);
 	        dto.setClientOutTime(object[21] != null ? ((java.sql.Timestamp) object[21]).toLocalDateTime() : null);

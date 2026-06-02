@@ -29,6 +29,7 @@ import com.apmosys.employeeportal.model.Designation;
 import com.apmosys.employeeportal.model.Employee;
 import com.apmosys.employeeportal.model.FieldAlteration;
 import com.apmosys.employeeportal.model.JobRole;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.repository.CustomQueryDetailsRepository;
 import com.apmosys.employeeportal.repository.DepartmentRepository;
 import com.apmosys.employeeportal.repository.DesignationDepartmentMapRepository;
@@ -414,16 +415,26 @@ public class CustomQueryDetailsService {
 	
 	
 	private Long resolveEmployeeId(String empIdentifier) {
-	    if (empIdentifier.startsWith("A-")) {
-	        String idNum = empIdentifier.substring(2);
-	        Employee emp = employeeRepository.findByEmployeementIdForOthers(Long.valueOf(idNum));
-	        return emp != null ? emp.getEmpId() : null;
-	    } else if (empIdentifier.startsWith("AP-")) {
-	        String idNum = empIdentifier.substring(3);
-	        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
-	        return emp != null ? emp.getEmpId() : null;
+	    if (empIdentifier == null || empIdentifier.isBlank()) {
+	        return null;
 	    }
-	    return null;
+	    String numericId = EmployeeEmploymentIdUtil.extractNumericIdFromPrefixed(empIdentifier);
+	    if (numericId == null || numericId.isBlank()) {
+	        return null;
+	    }
+	    Long employmentId = Long.valueOf(numericId);
+	    String employeeType = EmployeeEmploymentIdUtil.resolveEmployeeTypeFromPrefixedId(empIdentifier);
+	    Employee emp;
+	    if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(employeeType)) {
+	        emp = employeeRepository.findByEmployeementIdForApmosysProductConsultant(employmentId);
+	    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(employeeType)) {
+	        emp = employeeRepository.findByEmployeementIdForApmosysProduct(employmentId);
+	    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(employeeType)) {
+	        emp = employeeRepository.findByEmployeementIdForConsultant(employmentId);
+	    } else {
+	        emp = employeeRepository.findByEmployeementIdForOthers(employmentId);
+	    }
+	    return emp != null ? emp.getEmpId() : null;
 	}
 	
 	private String getCellValueAsString(Cell cell) {

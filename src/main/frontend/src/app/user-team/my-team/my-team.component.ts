@@ -189,6 +189,13 @@ selectedRejectionIds: number[] = [];
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
 
+  private findEmployeeIn360ByEmploymentId(employmentId: any): any {
+    const numeric = String(this.utilityService.stripEmploymentIdPrefix(employmentId) ?? '');
+    return this.allEmployeeList360.find(emp =>
+      String(this.utilityService.stripEmploymentIdPrefix(emp.employeementId) ?? '') === numeric
+    );
+  }
+
   // ngOnInit(): void {
   //   // Dynamic Subfeature Flags
   //   let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -665,7 +672,7 @@ ngOnDestroy(): void {
             if (revokeExpireDate > dateToday) {
               leaveHistory.isExpire = "true";
             }
-            leaveHistory.employeementId = 'A-'.concat(leaveHistory.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(leaveHistory);
             leaveHistory.fromDate = (leaveHistory.fromDate)? moment(leaveHistory.fromDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.toDate = (leaveHistory.toDate)? moment(leaveHistory.toDate).format(AppComponent.DATE_FORMAT) : null,
             leaveHistory.createdOn = (leaveHistory.createdOn)? moment(leaveHistory.createdOn).format(AppComponent.DATE_FORMAT) : null
@@ -890,7 +897,7 @@ ngOnDestroy(): void {
                       this.leaveApplicationList.forEach((leaveApplication) => {
                         this.leaveObj2.leaveId = leaveApplication.leaveId;
                         this.leaveObj2.currentUserEmpId = this.currentUser.empId
-                        let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
+                        let matchingEmployee = this.findEmployeeIn360ByEmploymentId(leaveApplication.employeementId);
                         //console.log('matches++',matchingEmployee);
                         leaveApplication.emp360 = leaveApplication.empId;
                         leaveApplication.emp360AppLev1 = leaveApplication.level1ApproverId;
@@ -938,7 +945,7 @@ ngOnDestroy(): void {
                           this.leaveApplicationList.forEach((leaveApplication) => {
                             // this.leaveObj2.leaveId = leaveApplication.leaveId;
                             // this.leaveObj2.currentUserEmpId = this.currentUser.empId
-                            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + leaveApplication.employeementId));
+                            let matchingEmployee = this.findEmployeeIn360ByEmploymentId(leaveApplication.employeementId);
                             //console.log('matches++',matchingEmployee);
                             leaveApplication.emp360 = matchingEmployee ? matchingEmployee : {};
                             leaveApplication.emp360CreateBy = leaveApplication.empId;
@@ -1192,17 +1199,8 @@ ngOnDestroy(): void {
 
   navigateToAssetConsent(teamView:any){
 
-    if (teamView.employeementId.startsWith('A-')) {
-      let employmentId = teamView.employeementId?.substring(2);
-      this.router.navigate(['/user-exit/my-resignation', employmentId]);
-    }else if(teamView.employeementId.startsWith('AP-')){
-      let employmentId = teamView.employeementId?.substring(3);
-      this.router.navigate(['/user-exit/my-resignation', employmentId]);
-    }
-     else {
-      let employmentId = teamView.employeementId;
-     this.router.navigate(['/user-exit/my-resignation', employmentId]);
-    }
+    const employmentId = this.utilityService.stripEmploymentIdPrefix(teamView.employeementId);
+    this.router.navigate(['/user-exit/my-resignation', employmentId]);
   }
 
 
@@ -1378,21 +1376,14 @@ ngOnDestroy(): void {
     this.selectedDataIndex = 0;
 
     let employee = Object.assign({}, employeeObj);
-   if (employee.employeementId &&
-    typeof employee.employeementId === 'string' &&
-    employee.employeementId.startsWith("A-") ) {
-    employee.employeementId = employee.employeementId.substring(2);
-}
-else if(employee.employeementId &&
-    typeof employee.employeementId === 'string' && employee.employeementId.startsWith('AP-')){
-    employee.employeementId = employee.employeementId.substring(3);
-}
+    employee.employeementId = this.utilityService.stripEmploymentIdPrefix(employee.employeementId);
 
     this.employeeService.getHierarchyByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
         for(let teamMember of this.teamViewList){
-          teamMember.employeementId = "A-".concat(teamMember.employeementId);
+          this.utilityService.applyEmployeeDisplayFields(teamMember);
+          teamMember.employeementId = teamMember.employmentIdAcToET;
           teamMember.emp360 = teamMember.empId;
     teamMember.emp360Mng = teamMember.managerId;
     // teamMember.isHierarchy = false;
@@ -1450,8 +1441,9 @@ else if(employee.employeementId &&
     this.employeeService.getHierarchyChartByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.teamViewList = response.serviceResponse;
-        for(let teamMember of this.teamViewList){
-          teamMember.employeementId = "A-".concat(teamMember.employeementId);
+        for (let teamMember of this.teamViewList) {
+          this.utilityService.applyEmployeeDisplayFields(teamMember);
+          teamMember.employeementId = teamMember.employmentIdAcToET ?? teamMember.employeementId;
         }
         //console.log("teamViewList : ", this.teamViewList);
 
@@ -2196,7 +2188,7 @@ else if(employee.employeementId &&
            y.emp360 = y.empId;
           }
           for(let y of this.departmentLeaveHistoryList){
-            let matchingEmployee = this.allEmployeeList360.find(emp => emp.employeementId === ('A-' + y.employeementId));
+            let matchingEmployee = this.findEmployeeIn360ByEmploymentId(y.employeementId);
             console.log('matches++',matchingEmployee);
             y.emp360 = matchingEmployee ? matchingEmployee : {};
             y.emp360AppLev1 =  y.approverId;
@@ -2216,15 +2208,7 @@ else if(employee.employeementId &&
     employee.isTimesheetLockCheckEnable = status;
     employee.updatedBy = this.currentUser.empId;
 
-    if(employee.employeementId.startsWith('A-')){
-      employee.employeementId  = employee.employeementId.substring(2);
-    }else if(employee.employeementId.startsWith('AP-'))
-    {
-      employee.employeementId  = employee.employeementId.substring(3);
-    }
-    else {
-      employee.employeementId  = employee.employeementId
-    }
+    employee.employeementId = this.utilityService.stripEmploymentIdPrefix(employee.employeementId);
 
     //console.log("updateTimesheetLockCheck : ", employee);
     this.employeeService.updateTimesheetLockCheck(employee).pipe(first()).subscribe((response: any) => {
@@ -2285,12 +2269,7 @@ canShowFilterBar(): boolean {
 
       if (leaveObj.employeementId) {
     const empIdStr = String(leaveObj.employeementId);
-    if (empIdStr.startsWith('A-') ) {
-        leaveObj.employeementId = empIdStr.substring(2);}
-    else if(empIdStr.startsWith('AP-'))
-    {
-      leaveObj.employeementId = empIdStr.substring(3);
-    }
+    leaveObj.employeementId = this.utilityService.stripEmploymentIdPrefix(empIdStr);
 
 }
       this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).subscribe((response: any) => {
@@ -2481,15 +2460,7 @@ canShowFilterBar(): boolean {
   onRevokeAccount(template :TemplateRef<any>) {
     this.cancelRequest();
 
-   if (this.employeeObj.employeementId &&
-    typeof this.employeeObj.employeementId === 'string' &&
-    this.employeeObj.employeementId.startsWith("A-") ) {
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-}
-else if(this.employeeObj.employeementId &&
-    typeof this.employeeObj.employeementId === 'string' && this.employeeObj.employeementId.startsWith('AP-')){
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(3);
-}
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj.employeementId);
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
        this.openAlertMod(template, response.serviceResponse);

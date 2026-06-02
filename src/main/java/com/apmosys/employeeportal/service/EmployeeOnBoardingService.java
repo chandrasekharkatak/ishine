@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.apmosys.employeeportal.dto.EmployeeDTO;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.dto.AssetDTO;
 import com.apmosys.employeeportal.dto.EmployeeAssetMapDTO;
 import com.apmosys.employeeportal.dto.LogDTO;
@@ -79,10 +80,15 @@ public class EmployeeOnBoardingService {
 	
 		try {
 			Employee empObj;
-			if("Apmosys Product".equalsIgnoreCase(assetDTO.getEmployeeType())){
-			empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());	
-			}else {
-			empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());			
+			if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT
+					.equalsIgnoreCase(assetDTO.getEmployeeType())) {
+				empObj = employeeRepository.findByEmployeementIdForApmosysProductConsultant(assetDTO.getEmployeementId());
+			} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(assetDTO.getEmployeeType())) {
+				empObj = employeeRepository.findByEmployeementIdForApmosysProduct(assetDTO.getEmployeementId());
+			} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(assetDTO.getEmployeeType())) {
+				empObj = employeeRepository.findByEmployeementIdForConsultant(assetDTO.getEmployeementId());
+			} else {
+				empObj = employeeRepository.findByEmployeementIdForOthers(assetDTO.getEmployeementId());
 			}
 			
 //			Employee empObj = employeeRepository.findByEmployeementId(assetDTO.getEmployeementId());

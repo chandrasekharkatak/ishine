@@ -106,6 +106,54 @@ public class PerformanceService {
 
 	@Autowired
 	ProjectInsightResponseRepository projectInsightResponseRepository;
+
+	private static String trimRating(Object rating) {
+		if (rating == null) {
+			return null;
+		}
+		String s = rating.toString().trim();
+		return s.isEmpty() ? null : s;
+	}
+
+	/**
+	 * Persist evaluated rating for the acting role only (manager_rating / hod_rating / hr_rating), then
+	 * recalculate final_rating from the approval chain (HR, else HOD, else Manager).
+	 */
+	private void persistRoleRating(EmployeePerformance ep, String role, String evaluatedRating) {
+		if (ep == null) {
+			return;
+		}
+		String rating = trimRating(evaluatedRating);
+		if (rating != null) {
+			if ("RM".equalsIgnoreCase(role) || "MANAGER".equalsIgnoreCase(role)) {
+				ep.setManager_rating(rating);
+			} else if ("HOD".equalsIgnoreCase(role)) {
+				ep.setHod_rating(rating);
+			} else if ("HR".equalsIgnoreCase(role)) {
+				ep.setHr_rating(rating);
+			}
+		}
+		recalculateFinalRating(ep);
+	}
+
+	/**
+	 * Official final_rating: latest decision in workflow (HR > HOD > Manager). Matches table/grid display.
+	 */
+	private void recalculateFinalRating(EmployeePerformance ep) {
+		if (ep == null) {
+			return;
+		}
+		String resolved = trimRating(ep.getHr_rating());
+		if (resolved == null) {
+			resolved = trimRating(ep.getHod_rating());
+		}
+		if (resolved == null) {
+			resolved = trimRating(ep.getManager_rating());
+		}
+		if (resolved != null) {
+			ep.setFinal_rating(resolved);
+		}
+	}
 	
 	@Autowired
 	QuaterCycleExcludedEmployeesMapRepo quaterCycleExcludedEmployeesMapRepo;
@@ -755,14 +803,13 @@ public class PerformanceService {
 				employeePerformance.setQuarterId(quarterId);
 			}
 
-			employeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
-
 			if ("RM".equals(actionBy)) {
 				// Manager / Reporting Manager submit: set manager fields
 				Long submitterId = employeePerformanceDTO.getHodId(); // current user (submitter)
 				employeePerformance.setManager_id(submitterId);
 				employeePerformance.setManager_remarks(employeePerformanceDTO.getHodRemarks());
 				employeePerformance.setManager_review_date(LocalDateTime.now());
+				persistRoleRating(employeePerformance, "RM", employeePerformanceDTO.getFinalRating());
 				employeePerformance.setCompletion_status("Ongoing");
 				// When Manager and HOD are the same person: auto-complete HOD step so one submit clears both
 				Long employeeDeptHodId = departmentRepository.findHodIdByEmpId(empId);
@@ -771,12 +818,14 @@ public class PerformanceService {
 					employeePerformance.setHod_approval_date(LocalDateTime.now());
 					employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks() != null
 							? employeePerformanceDTO.getHodRemarks() : employeePerformance.getManager_remarks());
+					persistRoleRating(employeePerformance, "HOD", employeePerformanceDTO.getFinalRating());
 				}
 			} else {
 				// HOD submit: set HOD fields. Completed only after HR accepts (see submitEmployeePerformanceHR).
 				employeePerformance.setHod_id(employeePerformanceDTO.getHodId());
 				employeePerformance.setHod_remarks(employeePerformanceDTO.getHodRemarks());
 				employeePerformance.setHod_approval_date(LocalDateTime.now());
+				persistRoleRating(employeePerformance, "HOD", employeePerformanceDTO.getFinalRating());
 				employeePerformance.setCompletion_status("Pending");
 			}
 
@@ -823,15 +872,16 @@ public class PerformanceService {
 				optionalEmployeePerformance.setHr_id(employeePerformanceDTO.getHrId());
 				optionalEmployeePerformance.setHr_remarks(employeePerformanceDTO.getHrRemark());
 				optionalEmployeePerformance.setHr_review_status(employeePerformanceDTO.getHrReviewStatus());
+				optionalEmployeePerformance.setHr_review_date(LocalDateTime.now());
 
 				if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Accepted")) {
 					optionalEmployeePerformance.setCompletion_status("Completed");
-					optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
+					persistRoleRating(optionalEmployeePerformance, "HR", employeePerformanceDTO.getFinalRating());
 				} else if (employeePerformanceDTO.getHrReviewStatus().equalsIgnoreCase("Rejected")) {
 					optionalEmployeePerformance.setCompletion_status("Rejected");
 					optionalEmployeePerformance.setRejectStatus(true);
 					// Persist edited rating even when HR rejects
-					optionalEmployeePerformance.setFinal_rating(employeePerformanceDTO.getFinalRating());
+					persistRoleRating(optionalEmployeePerformance, "HR", employeePerformanceDTO.getFinalRating());
 				}
 
 				savedEmployeePerformanceHR = employeePerformanceRepository.save(optionalEmployeePerformance);
@@ -895,7 +945,7 @@ public class PerformanceService {
 				ep.setCompletion_status("Ongoing");
 				// Persist HOD-updated final rating and criteria ratings on accept/reject
 				if (dto.getFinalRating() != null) {
-					ep.setFinal_rating(dto.getFinalRating());
+					persistRoleRating(ep, "HOD", dto.getFinalRating());
 				}
 				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
 					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
@@ -917,7 +967,7 @@ public class PerformanceService {
 				ep.setRejectStatus(true);
 				// Persist HOD-edited final rating/criteria even on rejection
 				if (dto.getFinalRating() != null) {
-					ep.setFinal_rating(dto.getFinalRating());
+					persistRoleRating(ep, "HOD", dto.getFinalRating());
 				}
 				if (dto.getPerformanceRatings() != null && !dto.getPerformanceRatings().isEmpty()) {
 					for (PerformanceRatingDTO ratingDTO : dto.getPerformanceRatings()) {
@@ -1156,31 +1206,32 @@ public class PerformanceService {
 				return response;
 			}
 			Object[] row = rows.get(0);
-			// Index: 0 manager_id, 1 manager_remarks, 2 final_rating, 3 manager_name, 4 manager_employment_id,
-			// 5 hod_id, 6 hod_remarks, 7 hod_name, 8 hod_employment_id, 9 hr_id, 10 hr_remarks, 11 hr_name, 12 hr_employment_id
+			// Index: 0 manager_id, 1 manager_remarks, 2 final_rating, 3 manager_rating, 4 hod_rating, 5 hr_rating,
+			// 6 manager_name, 7 manager_employment_id, 8 hod_id, 9 hod_remarks, 10 hod_name, 11 hod_employment_id,
+			// 12 hr_id, 13 hr_remarks, 14 hr_name, 15 hr_employment_id
 			Map<String, Object> result = new HashMap<>();
 			Map<String, Object> manager = new HashMap<>();
-			manager.put("name", row[3] != null ? row[3].toString() : null);
+			manager.put("name", row[6] != null ? row[6].toString() : null);
 			manager.put("id", row[0] != null ? Long.parseLong(row[0].toString()) : null);
-			manager.put("employmentId", row[4] != null ? row[4].toString() : null);
-			manager.put("rating", row[2] != null ? row[2].toString() : null);
+			manager.put("employmentId", row[7] != null ? row[7].toString() : null);
+			manager.put("rating", trimRating(row[3]));
 			manager.put("feedback", row[1] != null ? row[1].toString() : null);
 			manager.put("history", new ArrayList<Map<String, Object>>());
 			result.put("manager", manager);
 			Map<String, Object> hod = new HashMap<>();
-			hod.put("name", row[7] != null ? row[7].toString() : null);
-			hod.put("id", row[5] != null ? Long.parseLong(row[5].toString()) : null);
-			hod.put("employmentId", row[8] != null ? row[8].toString() : null);
-			hod.put("rating", row[2] != null ? row[2].toString() : null);
-			hod.put("feedback", row[6] != null ? row[6].toString() : null);
+			hod.put("name", row[10] != null ? row[10].toString() : null);
+			hod.put("id", row[8] != null ? Long.parseLong(row[8].toString()) : null);
+			hod.put("employmentId", row[11] != null ? row[11].toString() : null);
+			hod.put("rating", trimRating(row[4]));
+			hod.put("feedback", row[9] != null ? row[9].toString() : null);
 			hod.put("history", new ArrayList<Map<String, Object>>());
 			result.put("hod", hod);
 			Map<String, Object> hr = new HashMap<>();
-			hr.put("name", row[11] != null ? row[11].toString() : null);
-			hr.put("id", row[9] != null ? Long.parseLong(row[9].toString()) : null);
-			hr.put("employmentId", row[12] != null ? row[12].toString() : null);
-			hr.put("rating", row[2] != null ? row[2].toString() : null);
-			hr.put("feedback", row[10] != null ? row[10].toString() : null);
+			hr.put("name", row[14] != null ? row[14].toString() : null);
+			hr.put("id", row[12] != null ? Long.parseLong(row[12].toString()) : null);
+			hr.put("employmentId", row[15] != null ? row[15].toString() : null);
+			hr.put("rating", trimRating(row[5]));
+			hr.put("feedback", row[13] != null ? row[13].toString() : null);
 			hr.put("history", new ArrayList<Map<String, Object>>());
 			result.put("hr", hr);
 
@@ -1193,62 +1244,67 @@ public class PerformanceService {
 				Map<String, List<Double>> fyToRatings = new HashMap<>();
 				Map<String, List<String>> fyToManagers = new HashMap<>();
 				for (Object[] h : historyRows) {
+					// Index: 0 performance_id, 1 final_rating, 2 manager_rating, 3 hod_rating, 4 hr_rating,
+					// 5 quarter_id, 6 financial_year, 7 quarter_cycle,
+					// 8 manager_id, 9 manager_remarks, 10 manager_review_date, 11 manager_name, 12 manager_employment_id,
+					// 13 hod_id, 14 hod_remarks, 15 hod_approval_date, 16 hod_rejected_date, 17 hod_name, 18 hod_employment_id,
+					// 19 hr_id, 20 hr_remarks, 21 hr_review_date, 22 hr_review_status, 23 hr_name, 24 hr_employment_id
 					String finalRating = h[1] != null ? h[1].toString() : null;
-					String fy = h[3] != null ? h[3].toString() : "N/A";
-					String quarterCycle = h[4] != null ? h[4].toString() : "N/A";
+					String fy = h[6] != null ? h[6].toString() : "N/A";
+					String quarterCycle = h[7] != null ? h[7].toString() : "N/A";
 					if (finalRating != null && !finalRating.isEmpty()) {
 						try {
 							fyToRatings.computeIfAbsent(fy, k -> new ArrayList<>()).add(Double.parseDouble(finalRating));
 						} catch (Exception ignored) {
 						}
 					}
-					if (h[8] != null) {
-						fyToManagers.computeIfAbsent(fy, k -> new ArrayList<>()).add(h[8].toString());
+					if (h[11] != null) {
+						fyToManagers.computeIfAbsent(fy, k -> new ArrayList<>()).add(h[11].toString());
 					}
-					// manager: 5 id,6 remarks,7 date,8 name,9 employmentId
-					if (h[5] != null && (h[6] != null || h[7] != null)) {
+					// manager: 8 id,9 remarks,10 date,11 name,12 employmentId
+					if (h[8] != null && (h[9] != null || h[10] != null)) {
 						Map<String, Object> entry = new HashMap<>();
-						entry.put("name", h[8] != null ? h[8].toString() : null);
-						entry.put("id", Long.parseLong(h[5].toString()));
-						entry.put("employmentId", h[9] != null ? h[9].toString() : null);
-						entry.put("feedback", h[6] != null ? h[6].toString() : null);
-						entry.put("rating", finalRating);
-						entry.put("status", h[7] != null ? "Submitted" : "Pending");
-						entry.put("actionDate", h[7] != null ? h[7].toString() : null);
+						entry.put("name", h[11] != null ? h[11].toString() : null);
+						entry.put("id", Long.parseLong(h[8].toString()));
+						entry.put("employmentId", h[12] != null ? h[12].toString() : null);
+						entry.put("feedback", h[9] != null ? h[9].toString() : null);
+						entry.put("rating", trimRating(h[2]) != null ? h[2].toString() : finalRating);
+						entry.put("status", h[10] != null ? "Submitted" : "Pending");
+						entry.put("actionDate", h[10] != null ? h[10].toString() : null);
 						entry.put("financialYear", fy);
 						entry.put("quarterCycle", quarterCycle);
-						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						entry.put("managerName", h[11] != null ? h[11].toString() : null);
 						managerHistory.add(entry);
 					}
-					// hod: 10 id,11 remarks,12 approval date,13 rejected date,14 name,15 employmentId
-					if (h[10] != null && (h[11] != null || h[12] != null || h[13] != null)) {
+					// hod: 13 id,14 remarks,15 approval date,16 rejected date,17 name,18 employmentId
+					if (h[13] != null && (h[14] != null || h[15] != null || h[16] != null)) {
 						Map<String, Object> entry = new HashMap<>();
-						entry.put("name", h[14] != null ? h[14].toString() : null);
-						entry.put("id", Long.parseLong(h[10].toString()));
-						entry.put("employmentId", h[15] != null ? h[15].toString() : null);
-						entry.put("feedback", h[11] != null ? h[11].toString() : null);
-						entry.put("rating", finalRating);
-						String hodStatus = h[12] != null ? "Accepted" : (h[13] != null ? "Rejected" : "Pending");
+						entry.put("name", h[17] != null ? h[17].toString() : null);
+						entry.put("id", Long.parseLong(h[13].toString()));
+						entry.put("employmentId", h[18] != null ? h[18].toString() : null);
+						entry.put("feedback", h[14] != null ? h[14].toString() : null);
+						entry.put("rating", trimRating(h[3]) != null ? h[3].toString() : finalRating);
+						String hodStatus = h[15] != null ? "Accepted" : (h[16] != null ? "Rejected" : "Pending");
 						entry.put("status", hodStatus);
-						entry.put("actionDate", h[12] != null ? h[12].toString() : (h[13] != null ? h[13].toString() : null));
+						entry.put("actionDate", h[15] != null ? h[15].toString() : (h[16] != null ? h[16].toString() : null));
 						entry.put("financialYear", fy);
 						entry.put("quarterCycle", quarterCycle);
-						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						entry.put("managerName", h[11] != null ? h[11].toString() : null);
 						hodHistory.add(entry);
 					}
-					// hr: 16 id,17 remarks,18 date,19 status,20 name,21 employmentId
-					if (h[16] != null && (h[17] != null || h[18] != null || h[19] != null)) {
+					// hr: 19 id,20 remarks,21 date,22 status,23 name,24 employmentId
+					if (h[19] != null && (h[20] != null || h[21] != null || h[22] != null)) {
 						Map<String, Object> entry = new HashMap<>();
-						entry.put("name", h[20] != null ? h[20].toString() : null);
-						entry.put("id", Long.parseLong(h[16].toString()));
-						entry.put("employmentId", h[21] != null ? h[21].toString() : null);
-						entry.put("feedback", h[17] != null ? h[17].toString() : null);
-						entry.put("rating", finalRating);
-						entry.put("status", h[19] != null ? h[19].toString() : "Pending");
-						entry.put("actionDate", h[18] != null ? h[18].toString() : null);
+						entry.put("name", h[23] != null ? h[23].toString() : null);
+						entry.put("id", Long.parseLong(h[19].toString()));
+						entry.put("employmentId", h[24] != null ? h[24].toString() : null);
+						entry.put("feedback", h[20] != null ? h[20].toString() : null);
+						entry.put("rating", trimRating(h[4]) != null ? h[4].toString() : finalRating);
+						entry.put("status", h[22] != null ? h[22].toString() : "Pending");
+						entry.put("actionDate", h[21] != null ? h[21].toString() : null);
 						entry.put("financialYear", fy);
 						entry.put("quarterCycle", quarterCycle);
-						entry.put("managerName", h[8] != null ? h[8].toString() : null);
+						entry.put("managerName", h[11] != null ? h[11].toString() : null);
 						hrHistory.add(entry);
 					}
 				}

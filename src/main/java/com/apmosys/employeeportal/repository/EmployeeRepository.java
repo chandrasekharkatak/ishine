@@ -268,6 +268,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	               "e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product, " +
 	               "GROUP_CONCAT(DISTINCT ecsm.client_side_id ORDER BY ecsm.client_side_id SEPARATOR ', ') AS client_side_ids, " +
 	               "CASE " +
+	               "  WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) " +
 	               "  WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) " +
 	               "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
 	               "  ELSE CONCAT('A-', e.employeement_id) " +
@@ -1064,7 +1065,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     
     @Query(value=" SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n"
     		+ "            CASE  \n"
-    		+ "              WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n"
+    		+ "              WHEN e.isConsultant = 'true' AND e.isApmosysProduct = 'true' THEN CONCAT('APCS-', e.employeementId)  \n"
+    		+ "              WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n"
+    		+ "              WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n"
     		+ "              ELSE CONCAT('A-', e.employeementId)  \n"
     		+ "            END)  \n"
     		+ "            FROM Employee e  \n"
@@ -1166,7 +1169,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
             "AND d.deptId = :deptId")
      List<EmployeeDTO> findAllEmployeesWithoutBillableInDeptId(@Param("deptId") Long deptId);
     
-    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type,e.is_apmosys_product,e.is_apprenticeship from employee e \n"
+    @Query(value ="select e.emp_id,e.employeement_id,e.email,e.employmentstatus,e.mobile_no,e.manager_id,em.name as managerName,jr.name as jobrole,d.name as departmentName,e.name,e.billable_type,e.is_apmosys_product,e.is_consultant,e.is_apprenticeship from employee e \n"
     		+ "inner join job_role jr on jr.job_role_id = e.job_role_id\n"
     		+ "inner join department d on d.dept_id = jr.dept_id\n"
     		+ "LEFT JOIN \n"
@@ -2126,14 +2129,16 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	
 	
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true'")
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND e.isConsultant = 'true'")
+	Employee findByEmployeementIdForApmosysProductConsultant(@Param("empId") Long empId);
+
+	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApmosysProduct = 'true' AND (e.isConsultant IS NULL OR e.isConsultant = 'false')")
 	Employee findByEmployeementIdForApmosysProduct(@Param("empId") Long empId);
-	
-	
+
 	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isApmosysProduct IS NULL OR e.isApmosysProduct = 'false') AND (e.isConsultant IS NULL OR e.isConsultant = 'false') ")
 	Employee findByEmployeementIdForOthers(@Param("empId") Long empId);
 	
-	@Query("Select e from Employee e where e.employeementId = :empId AND e.isConsultant = 'true'")
+	@Query("Select e from Employee e where e.employeementId = :empId AND (e.isConsultant = 'true' AND e.isApmosysProduct = 'false')")
 	Employee findByEmployeementIdForConsultant(@Param("empId") Long empId);
 	
 	@Query("Select e from Employee e where e.employeementId = :empId AND e.isApprenticeship = 'true'")
@@ -2147,6 +2152,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	@Query("SELECT e.email FROM Employee e WHERE e.empId = :empId")
     String findEmailByEmpId(Long empId);
 	@Query("SELECT CASE " +
+	       " WHEN e.isConsultant = 'true' AND e.isApmosysProduct = 'true' THEN CONCAT('APCS-', e.employeementId) " +
 	       " WHEN e.isConsultant = 'true' THEN CONCAT('CS-', e.employeementId) " +
 	       " WHEN e.isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId) " +
 	       " ELSE CONCAT('A-', e.employeementId) " +
@@ -3156,6 +3162,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        		+ "SELECT e.emp_id,\n"
 		        		+ "       e.name,\n"
 		        		+ "       CASE\n"
+		        		+ "           WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id)\n"
+		        		+ "           WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 		        		+ "           WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 		        		+ "           ELSE CONCAT('A-', e.employeement_id)\n"
 		        		+ "       END AS employeementId\n"
@@ -3201,6 +3209,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 		        		+ "    e.emp_id,\n"
 		        		+ "    e.name,\n"
 		        		+ "    CASE \n"
+		        		+ "        WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id)\n"
+		        		+ "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
 		        		+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 		        		+ "        ELSE CONCAT('A-', e.employeement_id)\n"
 		        		+ "    END AS employeementId\n"
@@ -4146,8 +4156,9 @@ List<Object[]> getEmployeeListByProjectIdForDate(
                "END AS Reporting_Manager, " +
                "d.name AS department_name, " +
                "CASE " +
-               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', CAST(e.employeement_id AS CHAR)) " +
                "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
                "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "END AS prefixed_id, " +
                "e.employeement_id, e.email, " +
@@ -4198,8 +4209,9 @@ List<Object[]> getEmployeeListByProjectIdForDate(
 
 	@Query(value = "SELECT DISTINCT " +
                "CASE " +
-               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', CAST(e.employeement_id AS CHAR)) " +
                "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
                "    ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "END AS prefixed_id " +
                "FROM employee e " +
@@ -4211,8 +4223,9 @@ List<Object[]> getEmployeeListByProjectIdForDate(
                "AND (:employeeName IS NULL OR LOWER(e.name) LIKE LOWER(CONCAT('%', :employeeName, '%'))) " +
                "AND (:employeeCode IS NULL OR " +
                "    CASE " +
-               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', CAST(e.employeement_id AS CHAR)) " +
                "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', CAST(e.employeement_id AS CHAR)) " +
+               "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', CAST(e.employeement_id AS CHAR)) " +
                "        ELSE CONCAT('A-', CAST(e.employeement_id AS CHAR)) " +
                "    END LIKE CONCAT('%', :employeeCode, '%')) " +
                "AND (:departmentName IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :departmentName, '%'))) " +
@@ -4347,6 +4360,7 @@ List<Object[]> getEmployeeListByProjectIdForDate(
 
 		@Query(value = "SELECT new com.apmosys.employeeportal.dto.GetEmployeeByNameAndEmpldDTO(e.empId, e.name,  \n " +
 				"CASE  \n " +
+				"  WHEN e.isConsultant = 'true' AND e.isApmosysProduct = 'true' THEN CONCAT('APCS-', e.employeementId)  \n " +
 				"  WHEN isConsultant = 'true' THEN CONCAT('CS-', e.employeementId)  \n " +
 				"  WHEN isApmosysProduct = 'true' THEN CONCAT('AP-', e.employeementId)  \n " +
 				"  ELSE CONCAT('A-', e.employeementId)  \n " +
@@ -4580,8 +4594,9 @@ public List<Object[]> fetchInActivePOListOfProject(
 	+ "    d.name AS departmentName, \n"
 	+ "    emp_proj_client.po_project_type, \n"
 	+ "    CASE\n"
-	+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
+	+ "        WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id)\n"
 	+ "        WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
+	+ "        WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
 	+ "        ELSE CONCAT('A-', e.employeement_id)\n"
 	+ "    END AS prefixed_employeementId \n"
 	+ "FROM employee e\n"
@@ -4850,6 +4865,7 @@ public List<Object[]> fetchInActivePOListOfProject(
 	               "e.date_of_joining, e.probation_period, e.is_consultant, e.is_apprenticeship, e.is_apmosys_product, " +
 	               "GROUP_CONCAT(DISTINCT ecsm.client_side_id ORDER BY ecsm.client_side_id SEPARATOR ', ') AS client_side_ids, " +
 	               "CASE " +
+	               "  WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) " +
 	               "  WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) " +
 	               "  WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) " +
 	               "  ELSE CONCAT('A-', e.employeement_id) " +

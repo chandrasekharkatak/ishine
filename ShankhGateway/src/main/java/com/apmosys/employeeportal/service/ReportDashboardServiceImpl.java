@@ -61,6 +61,7 @@ import com.apmosys.employeeportal.repository.ReportDashboardRepository;
 import com.apmosys.employeeportal.repository.TimesheetActivityMapRepository;
 import com.apmosys.employeeportal.repository.TimesheetsRepository;
 import com.apmosys.employeeportal.serviceInterface.ReportDashboardService;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import org.springframework.data.domain.Sort;
@@ -143,20 +144,8 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 					dto.setEmpId(object[11] != null ? Long.parseLong(object[11].toString()) : null);
 					dto.setManagerId(object[12] != null ? Integer.parseInt(object[12].toString()) : null);
 					dto.setIsApmosysProduct(object[13] != null ? object[13].toString() : null);
-					
-					String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-//				    String isConsultant = timesheetDto.getIsConsultant();
-				    String isApmosysProduct = dto.getIsApmosysProduct();
+					applyLeaveEmployeeDisplay(dto);
 
-				    if (employmentId != null) {
-				        if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				        	dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-				        	dto.setEmploymentIdAcToET("A-" + employmentId);
-				        }
-				    }
-
-					
 					dtoList.add(dto);
 				});
 
@@ -767,12 +756,18 @@ public class ReportDashboardServiceImpl implements ReportDashboardService {
 	            reportDto.setConsultantCountDisplay(count[40] != null ? Long.parseLong(count[40].toString()) : 0L);
 	            reportDto.setRegularCountDisplay(count[41] != null ? Long.parseLong(count[41].toString()) : 0L);
 	            reportDto.setApmosysProductDisplay(count[42] != null ? Long.parseLong(count[42].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantCountDisplay(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
 	            
-	            reportDto.setApmosysProductYear0to1(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
-	            reportDto.setApmosysProductYear1to2(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
-	            reportDto.setApmosysProductYear2to5(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
-	            reportDto.setApmosysProductYear5to10(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
-	            reportDto.setApmosysProductYearAbove10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	            reportDto.setApmosysProductYear0to1(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
+	            reportDto.setApmosysProductYear1to2(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
+	            reportDto.setApmosysProductYear2to5(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
+	            reportDto.setApmosysProductYear5to10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	            reportDto.setApmosysProductYearAbove10(count[48] != null ? Long.parseLong(count[48].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear0to1(count[49] != null ? Long.parseLong(count[49].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear1to2(count[50] != null ? Long.parseLong(count[50].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear2to5(count[51] != null ? Long.parseLong(count[51].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYear5to10(count[52] != null ? Long.parseLong(count[52].toString()) : 0L);
+	            reportDto.setApmosysProductConsultantYearAbove10(count[53] != null ? Long.parseLong(count[53].toString()) : 0L);
 	            dtoList.add(reportDto);
 	        });
 	        
@@ -937,7 +932,8 @@ try {
     		dto.setConsultantCount(object[3] != null ? Long.parseLong(object[3].toString()): null);
     		dto.setRegularCount(object[4] != null ? Long.parseLong(object[4].toString()): null);
     		dto.setApmosysProductCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
-    		dto.setResignCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+    		dto.setApmosysProductConsultantCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+    		dto.setResignCount(object[7] != null ? Long.parseLong(object[7].toString()): null);
     		dtoList.add(dto);
     	});
 
@@ -1371,9 +1367,10 @@ try {
 		    StringBuilder logBuilder = new StringBuilder();
 
 		    try {
+		        String kycStatusFilter = normalizeKycStatusFilter(request.getIsUserInfoUpdated());
 		        List<Object[]> employeeDetails = reportDashboardRepository.findEmployeesByDepartmentAndKyc(
 		            request.getDeptId(),
-		            request.getIsUserInfoUpdated()
+		            kycStatusFilter
 		        );
 
 		        if (employeeDetails != null && !employeeDetails.isEmpty()) {
@@ -1382,30 +1379,29 @@ try {
 		            employeeDetails.forEach((object) -> {
 		                ReportListDTO dto = new ReportListDTO();
 
-		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);        // EMP_ID
-		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);          // EMPLOYMENT_TYPE
-		                dto.setName(object[2] != null ? object[2].toString() : null);                  // NAME
-		                dto.setExperience(object[3] != null ? object[3].toString() : null);            // EXPERIENCE
-		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);        // DEPARTMENT_NAME
-		                dto.setEmail(object[5] != null ? object[5].toString() : null);                 // EMAIL_ID
-		                dto.setManagerName(object[6] != null ? object[6].toString() : null);           // MANAGER_NAME
-		                dto.setBillable(object[7] != null ? object[7].toString() : null);              // BILLABLE
-		                dto.setBillableType(object[8] != null ? object[8].toString() : null);          // BILLABLE_TYPE
-		                dto.setProjectName(object[9] != null ? object[9].toString() : null);           // PROJECT_NAMES
-		                dto.setClientName(object[10] != null ? object[10].toString() : null);          // CLIENT_NAMES
-		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);       // DATE_OF_JOINING
-		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);            // MOBILE_NO
-		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);    // STATUS
-		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);     // TOTAL_EXPERIENCE
-		                dto.setGender(object[15] != null ? object[15].toString() : null);              // GENDER
-		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);        // WORK_LOCATION
-		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null); // age
-		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);    // KYC
-		                
-		                // These fields are no longer available in the query result, set to null or remove if not needed
-		                dto.setManagerId(null);  // MANAGER_ID was removed from query
-		                dto.setEmpId(null);      // EMP_ID was removed from query (the formatted EMP_ID is in employeementId)
-		                
+		                dto.setEmployeementId(object[0] != null ? object[0].toString() : null);
+		                dto.setEmployeeType(object[1] != null ? object[1].toString() : null);
+		                normalizeReportListEmploymentFromType(dto);
+		                dto.setName(object[2] != null ? object[2].toString() : null);
+		                dto.setExperience(object[3] != null ? object[3].toString() : null);
+		                dto.setDepartmentName(object[4] != null ? object[4].toString() : null);
+		                dto.setEmail(object[5] != null ? object[5].toString() : null);
+		                dto.setManagerName(object[6] != null ? object[6].toString() : null);
+		                dto.setBillable(object[7] != null ? object[7].toString() : null);
+		                dto.setBillableType(object[8] != null ? object[8].toString() : null);
+		                dto.setProjectName(object[9] != null ? object[9].toString() : null);
+		                dto.setClientName(object[10] != null ? object[10].toString() : null);
+		                dto.setDateOfJoining(object[11] != null ? object[11].toString() : null);
+		                dto.setMobileNo(object[12] != null ? object[12].toString() : null);
+		                dto.setEmploymentstatus(object[13] != null ? object[13].toString() : null);
+		                dto.setTotalExperience(object[14] != null ? object[14].toString() : null);
+		                dto.setGender(object[15] != null ? object[15].toString() : null);
+		                dto.setWorkLocation(object[16] != null ? object[16].toString() : null);
+		                dto.setAge(object[17] != null ? Integer.parseInt(object[17].toString()) : null);
+		                dto.setProfileKycStatus(object[18] != null ? object[18].toString() : null);
+		                dto.setManagerId(object.length > 19 && object[19] != null ? Long.parseLong(object[19].toString()) : null);
+		                dto.setEmpId(object.length > 20 && object[20] != null ? Long.parseLong(object[20].toString()) : null);
+
 		                dtoList.add(dto);
 		            });
 
@@ -1872,12 +1868,18 @@ try {
 	                    reportDto.setConsultantCountDisplay(count[40] != null ? Long.parseLong(count[40].toString()) : 0L);
 	                    reportDto.setRegularCountDisplay(count[41] != null ? Long.parseLong(count[41].toString()) : 0L);
 	                    reportDto.setApmosysProductDisplay(count[42] != null ? Long.parseLong(count[42].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantCountDisplay(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
 	                    
-	                    reportDto.setApmosysProductYear0to1(count[43] != null ? Long.parseLong(count[43].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear1to2(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear2to5(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
-	    	            reportDto.setApmosysProductYear5to10(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
-	    	            reportDto.setApmosysProductYearAbove10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	                    reportDto.setApmosysProductYear0to1(count[44] != null ? Long.parseLong(count[44].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear1to2(count[45] != null ? Long.parseLong(count[45].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear2to5(count[46] != null ? Long.parseLong(count[46].toString()) : 0L);
+	    	            reportDto.setApmosysProductYear5to10(count[47] != null ? Long.parseLong(count[47].toString()) : 0L);
+	    	            reportDto.setApmosysProductYearAbove10(count[48] != null ? Long.parseLong(count[48].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear0to1(count[49] != null ? Long.parseLong(count[49].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear1to2(count[50] != null ? Long.parseLong(count[50].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear2to5(count[51] != null ? Long.parseLong(count[51].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYear5to10(count[52] != null ? Long.parseLong(count[52].toString()) : 0L);
+	                    reportDto.setApmosysProductConsultantYearAbove10(count[53] != null ? Long.parseLong(count[53].toString()) : 0L);
 	                    dtoList.add(reportDto);
 	                });
 	            }
@@ -1992,7 +1994,8 @@ try {
 	                    dto.setConsultantCount(object[3] != null ? Long.parseLong(object[3].toString()) : null);
 	                    dto.setRegularCount(object[4] != null ? Long.parseLong(object[4].toString()) : null);
 	                    dto.setApmosysProductCount(object[5] != null ? Long.parseLong(object[5].toString()): null);
-	                    dto.setResignCount(object[6] != null ? Long.parseLong(object[6].toString()) : null);
+	                    dto.setApmosysProductConsultantCount(object[6] != null ? Long.parseLong(object[6].toString()): null);
+	                    dto.setResignCount(object[7] != null ? Long.parseLong(object[7].toString()) : null);
 	                    dtoList.add(dto);
 	                });
 	                response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
@@ -2104,6 +2107,67 @@ try {
 		    
 		    
 	  }
+
+	private String normalizeKycStatusFilter(String isUserInfoUpdated) {
+		if (isUserInfoUpdated == null || isUserInfoUpdated.isBlank()) {
+			return "false";
+		}
+		String v = isUserInfoUpdated.trim();
+		return "true".equalsIgnoreCase(v) || "1".equals(v) ? "true" : "false";
+	}
+
+	private void normalizeReportListEmploymentFromType(ReportListDTO dto) {
+		if (dto == null || dto.getEmployeementId() == null || dto.getEmployeeType() == null) {
+			return;
+		}
+		String type = dto.getEmployeeType().trim();
+		String isConsultant = "false";
+		String isApmosysProduct = "false";
+		if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(type)) {
+			isConsultant = "true";
+			isApmosysProduct = "true";
+		} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(type)) {
+			isConsultant = "true";
+		} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(type)) {
+			isApmosysProduct = "true";
+		} else {
+			normalizeApcsEmploymentIdForReportList(dto);
+			return;
+		}
+		String numericId = dto.getEmployeementId().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+		dto.setEmployeementId(EmployeeEmploymentIdUtil.formatEmploymentId(numericId, isConsultant, isApmosysProduct));
+	}
+
+	private void normalizeApcsEmploymentIdForReportList(ReportListDTO dto) {
+		if (dto == null || dto.getEmployeementId() == null || dto.getEmployeeType() == null) {
+			return;
+		}
+		if (!EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(dto.getEmployeeType())) {
+			return;
+		}
+		String employmentId = dto.getEmployeementId();
+		if (employmentId.toUpperCase().startsWith(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT.toUpperCase())) {
+			return;
+		}
+		String numeric = employmentId.replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+		dto.setEmployeementId(EmployeeEmploymentIdUtil.PREFIX_APMOSYS_PRODUCT_CONSULTANT + numeric);
+	}
+
+	private void applyLeaveEmployeeDisplay(LeaveDTO dto) {
+		if (dto == null) {
+			return;
+		}
+		String isConsultant = dto.getIsConsultant();
+		String isApmosysProduct = dto.getIsApmosysProduct();
+		String isApprenticeship = dto.getIsApprenticeship();
+		dto.setEmployeeType(
+				EmployeeEmploymentIdUtil.resolveEmployeeType(isConsultant, isApmosysProduct, isApprenticeship));
+		if (dto.getEmployeementId() != null) {
+			String numericId = dto.getEmployeementId().toString().replaceFirst("(?i)^(APCS-|AP-|CS-|A-)", "");
+			dto.setEmploymentIdAcToET(
+					EmployeeEmploymentIdUtil.formatEmploymentId(numericId, isConsultant, isApmosysProduct));
+		}
+	}
 	}
 
 	

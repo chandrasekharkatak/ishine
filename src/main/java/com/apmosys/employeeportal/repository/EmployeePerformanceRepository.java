@@ -60,8 +60,9 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	@Query(nativeQuery = true, value = "SELECT * FROM employee_performance ep WHERE ep.emp_id = :empId AND ep.quarter_id = :quarterId ORDER BY ep.employee_performance_id DESC LIMIT 1")
 	List<EmployeePerformance> findLatestByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
 
-	/** Approval details for popup: manager/HOD/HR name, employment id, final rating, remarks. Latest performance row per emp and quarter. */
-	@Query(nativeQuery = true, value = "SELECT ep.manager_id, ep.manager_remarks, ep.final_rating, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
+	/** Approval details for popup: manager/HOD/HR name, employment id, role-wise ratings, remarks. Latest performance row per emp and quarter. */
+	@Query(nativeQuery = true, value = "SELECT ep.manager_id, ep.manager_remarks, ep.final_rating, ep.manager_rating, ep.hod_rating, ep.hr_rating, "
+			+ "e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
 			+ "ep.hod_id, ep.hod_remarks, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
 			+ "ep.hr_id, ep.hr_remarks, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
 			+ "FROM employee_performance ep "
@@ -73,7 +74,7 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	List<Object[]> findApprovalDetailsByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
 
 	/** Approval audit history rows for popup (all records in quarter, latest first). */
-	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, "
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, ep.manager_rating, ep.hod_rating, ep.hr_rating, "
 			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
 			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
 			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "
@@ -86,7 +87,8 @@ public interface EmployeePerformanceRepository extends JpaRepository<EmployeePer
 	List<Object[]> findApprovalAuditHistoryByEmpIdAndQuarterId(@Param("empId") Long empId, @Param("quarterId") Long quarterId);
 
 	/** Approval audit history rows across all years (for year-wise summary in popup). */
-	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, ep.quarter_id, qc.financial_year, qc.quarter_cycle, "
+	@Query(nativeQuery = true, value = "SELECT ep.employee_performance_id, ep.final_rating, ep.manager_rating, ep.hod_rating, ep.hr_rating, "
+			+ "ep.quarter_id, qc.financial_year, qc.quarter_cycle, "
 			+ "ep.manager_id, ep.manager_remarks, ep.manager_review_date, e_m.name AS manager_name, e_m.employeement_id AS manager_employment_id, "
 			+ "ep.hod_id, ep.hod_remarks, ep.hod_approval_date, ep.hod_rejected_date, e_h.name AS hod_name, e_h.employeement_id AS hod_employment_id, "
 			+ "ep.hr_id, ep.hr_remarks, ep.hr_review_date, ep.hr_review_status, e_hr.name AS hr_name, e_hr.employeement_id AS hr_employment_id "

@@ -13,6 +13,7 @@ import { LocationStrategy } from '@angular/common';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { AppComponent } from 'src/app/app.component';
+import { UtilityService } from 'src/app/services/utility.service';
 import * as moment from 'moment';
 import { Sort } from '@angular/material/sort';
 
@@ -103,7 +104,8 @@ export class ProjectConfigComponent implements OnInit {
     public validationService: ValidationService,
     private exportExcelService: ExportExcelService,
     private locationStrategy: LocationStrategy,
-    private authenticationService:AuthenticationService
+    private authenticationService:AuthenticationService,
+    private utilityService: UtilityService,
   ) {this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
@@ -242,7 +244,7 @@ export class ProjectConfigComponent implements OnInit {
     this.managerList = [];
 
     this.employeeObj.role = "Manager";
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj.employeementId)
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.managerList = response.serviceResponse;

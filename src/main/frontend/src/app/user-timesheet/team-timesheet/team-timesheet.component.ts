@@ -1947,7 +1947,8 @@ sortData(sort: Sort) {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet" + index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          this.utilityService.applyEmployeeDisplayFields(timesheet);
+          timesheet.employeementId = timesheet.employmentIdAcToET ?? timesheet.employeementId;
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;
@@ -1981,7 +1982,8 @@ sortData(sort: Sort) {
         this.allTeamTimesheetRequests = response.serviceResponse;
         this.allTeamTimesheetRequests.forEach((timesheet, index) => {
           timesheet.checkId = "timesheet" + index;
-          timesheet.employeementId = "A-".concat(timesheet.employeementId);
+          this.utilityService.applyEmployeeDisplayFields(timesheet);
+          timesheet.employeementId = timesheet.employmentIdAcToET ?? timesheet.employeementId;
           timesheet.date = (timesheet.date) ? moment(timesheet.date).format(AppComponent.DATE_FORMAT) : null;
           timesheet.officeInTime = (timesheet.officeInTime) ? moment(timesheet.officeInTime).format(AppComponent.DATETIME_FORMAT) : null;
           timesheet.officeOutTime = (timesheet.officeOutTime) ? moment(timesheet.officeOutTime).format(AppComponent.DATETIME_FORMAT) : null;

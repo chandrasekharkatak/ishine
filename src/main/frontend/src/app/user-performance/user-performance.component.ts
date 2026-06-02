@@ -353,12 +353,9 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
 
   /** Strips A-/AP- prefix from employeementId before POST (same as My Team hierarchy). */
   private stripEmployeementIdForHierarchyApi(employee: Employee): void {
-    if (employee.employeementId != null && typeof employee.employeementId === 'string') {
-      if (employee.employeementId.startsWith('A-')) {
-        employee.employeementId = employee.employeementId.substring(2);
-      } else if (employee.employeementId.startsWith('AP-')) {
-        employee.employeementId = employee.employeementId.substring(3);
-      }
+    const numeric = this.utilityService.stripEmploymentIdPrefix(employee.employeementId);
+    if (numeric != null) {
+      employee.employeementId = String(numeric);
     }
   }
 
@@ -511,7 +508,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     if (!merged.employmentIdAcToET && merged.employeementId != null && merged.employeementId !== '') {
       merged.employmentIdAcToET = this.utilityService.appendEmployeementid(
         merged.isConsultant,
-        String(merged.employeementId)
+        String(merged.employeementId),
+        merged.isApmosysProduct
       );
     }
 
@@ -556,7 +554,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     );
     out.employmentIdAcToET = this.coalesceNonEmpty(row.employmentIdAcToET, detail.employmentIdAcToET);
     if (!out.employmentIdAcToET && out.employeementId != null && String(out.employeementId).trim() !== '') {
-      out.employmentIdAcToET = this.utilityService.appendEmployeementid(out.isConsultant, String(out.employeementId));
+      out.employmentIdAcToET = this.utilityService.appendEmployeementid(
+        out.isConsultant, String(out.employeementId), out.isApmosysProduct);
     }
     if (out.dateOfJoining && (out.calculatedExperience == null || out.calculatedExperience === '')) {
       out.calculatedExperience = this.calculateExperienceFromDOJ(String(out.dateOfJoining));
@@ -1211,7 +1210,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   exportToExcel(): void {
     const list = this.getExportList();
     const onlySpecificDataArr = list.map((x: any) => ({
-      "EmployeeId": (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + (x.employeementId ?? x.employmentIdAcToET ?? ''),
+      "EmployeeId": this.utilityService.formatEmploymentIdForExport(x),
       "Full Name": x.name,
       "EmailId": x.email ?? '',
       "Employment Status": x.employmentstatus ?? '',
@@ -1269,12 +1268,8 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
             this.openAlertMod(this.alertTemplate, "No Data found")
           }
           this.eligibleEmployees.forEach(employee => {
-            if (employee.isConsultant == 'true') {
-              employee.employeementId = "A-".concat(employee.employeementId);
-            } else {
-              employee.employeementId = "A-CS-".concat(employee.employeementId);
-            }
-            // employee.employeementId = "A-".concat(employee.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(employee);
+            employee.employeementId = employee.employmentIdAcToET;
             employee.dateOfBirth = (employee.dateOfBirth) ? moment(employee.dateOfBirth).format(AppComponent.DATE_FORMAT) : null;
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;

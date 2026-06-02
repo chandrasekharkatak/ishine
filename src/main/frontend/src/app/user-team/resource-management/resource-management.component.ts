@@ -936,36 +936,17 @@ export class ResourceManagementComponent implements OnInit {
     let reqObj = { ...this.employeeObj };
     reqObj.role = "Manager";
     if (reqObj.employeementId) {
-      reqObj.employeementId = reqObj.employeementId.substring(2);
+      reqObj.employeementId = this.utilityService.stripEmploymentIdPrefix(reqObj.employeementId);
     }
     this.employeeObj.role = "Manager";
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj.employeementId);
     try {
       const response: any = await this.employeeService.getAllEmployeesByRole(reqObj).pipe(first()).toPromise();
       if (response.serviceStatus === "Success") {
         this.managerList = JSON.parse(JSON.stringify(response.serviceResponse));
         this.overheadList = JSON.parse(JSON.stringify(response.serviceResponse));
-        this.managerList.forEach((emp) => {
-          if (emp.employeementId) {
-            let idStr = String(emp.employeementId); // Force convert to String
-            if (!idStr.startsWith("A-")) {
-              emp.employeementId = "A-" + idStr;
-            } else {
-              emp.employeementId = idStr;
-            }
-          }
-        });
-
-        this.overheadList.forEach((emp) => {
-          if (emp.employeementId) {
-            let idStr = String(emp.employeementId);
-            if (!idStr.startsWith("A-")) {
-              emp.employeementId = "A-" + idStr;
-            } else {
-              emp.employeementId = idStr;
-            }
-          }
-        });
+        this.managerList.forEach((emp) => this.utilityService.applyEmployeeDisplayFields(emp));
+        this.overheadList.forEach((emp) => this.utilityService.applyEmployeeDisplayFields(emp));
         this.filteredManagerList = [...this.managerList];
         this.filteredOverheadList = [...this.overheadList];
       } else {
@@ -2145,7 +2126,7 @@ export class ResourceManagementComponent implements OnInit {
     const reqObj = {
       ...this.employeeObj,
       role: 'Manager',
-      employeementId: this.employeeObj?.employeementId?.substring(2)
+      employeementId: this.utilityService.stripEmploymentIdPrefix(this.employeeObj?.employeementId)
     };
 
     return this.employeeService.getAllEmployeesByRole(reqObj).pipe(
@@ -2174,7 +2155,8 @@ export class ResourceManagementComponent implements OnInit {
       return;
     }
     employeeList.forEach((emp) => {
-      emp.employeementId = "A-".concat(emp.employeementId);
+      this.utilityService.applyEmployeeDisplayFields(emp);
+      emp.employeementId = emp.employmentIdAcToET ?? emp.employeementId;
     });
   }
 

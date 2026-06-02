@@ -74,4 +74,6 @@ export class User{
 	pipFlag : any;
 	pipId: any;
     isApmosysProduct: any;
+    isConsultant: any;
+    isApprenticeship: any;
 }

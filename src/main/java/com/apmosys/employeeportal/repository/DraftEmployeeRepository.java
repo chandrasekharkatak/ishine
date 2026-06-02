@@ -21,9 +21,10 @@ public interface DraftEmployeeRepository extends JpaRepository<DraftEmployee,Lon
 	@Query("SELECT d FROM DraftEmployee d " +
 		       "WHERE d.employeementId = :employeementId " +
 		       "AND ( " +
-		       "     (:employeeType = 'Apmosys Product' AND d.isApmosysProduct = 'true') " +
+		       "     (:employeeType = 'Apmosys Product Consultant' AND d.isApmosysProduct = 'true' AND d.isConsultant = 'true') " +
+		       "  OR (:employeeType = 'Apmosys Product' AND d.isApmosysProduct = 'true' AND (d.isConsultant IS NULL OR d.isConsultant = 'false')) " +
 		       "  OR (:employeeType = 'Apprentice' AND d.isApprenticeship = 'true') " +
-		       "  OR (:employeeType = 'Consultant' AND d.isConsultant = 'true') " +
+		       "  OR (:employeeType = 'Consultant' AND d.isConsultant = 'true' AND (d.isApmosysProduct IS NULL OR d.isApmosysProduct = 'false')) " +
 		       "  OR (:employeeType = 'Regular' AND ( " +
 		       "        COALESCE(d.isApmosysProduct, 'false') = 'false' " +
 		       "    AND COALESCE(d.isApprenticeship, 'false') = 'false' " +

@@ -28,6 +28,12 @@ public class EmployeePerformance {
 	private String completion_status;
 	private Long emp_id;
 	private String final_rating;
+	/** Rating snapshot when manager submits (not overwritten by HOD/HR). */
+	private String manager_rating;
+	/** Rating snapshot when HOD accepts/rejects. */
+	private String hod_rating;
+	/** Rating snapshot when HR accepts/rejects. */
+	private String hr_rating;
 	private Long manager_id;
 	private String manager_remarks;
 	private LocalDateTime manager_review_date;

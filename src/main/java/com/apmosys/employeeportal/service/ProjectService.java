@@ -40,6 +40,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.apmosys.employeeportal.dto.ClientIdAndName;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.dto.ClientProjectReportDTO;
 import com.apmosys.employeeportal.dto.ClientsDTO;
 import com.apmosys.employeeportal.dto.DeletedPoSyncDTO;
@@ -2422,11 +2423,9 @@ public class ProjectService {
             query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, 	GROUP_CONCAT(DISTINCT ep.name order by ppd.po_start_date , ppd.po_id SEPARATOR ', ') as projManager, ")
                  .append("GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_no, p.po_project_type, GROUP_CONCAT(DISTINCT ppd.po_start_date ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_start_date, GROUP_CONCAT(DISTINCT ppd.po_end_date ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_end_date, GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS apmosysrm , ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
-                 .append("e.billable, e.mobile_no, e.email, CASE \n"
-                 		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-                 		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
-                 		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) ")
+                 .append("e.billable, e.mobile_no, e.email, ")
+                 .append(EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id"))
+                 .append(" AS prefixed_employeementId, e.experience, date(e.date_of_joining) ")
                  .append("FROM projects p  LEFT JOIN project_po_details ppd \n"
 						 + " ON ppd.project_id = p.project_id and ppd.active = true\n " )
                  .append(buildPoJoinCondition(flag))
@@ -2471,11 +2470,9 @@ public class ProjectService {
                  .append("emp_proj_client.po_no, emp_proj_client.client_name, emp_proj_client.client_location, e.work_location, ")
                  .append("e.total_experience, d.dept_id, d.name as departmentName, emp_proj_client.po_project_type, j.name as jobrole, ")
                  .append("emp_proj_client.po_project_id, eppm.primary_project_name, eppm.primary_project_id, emp_proj_client.clientrm, ")
-                 .append("emp_proj_client.apmosysrm, date(emp_proj_client.effective_start_date), date(emp_proj_client.effective_end_date), CASE \n"
-                 		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-                 		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
-                 		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-                 		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
+                 .append("emp_proj_client.apmosysrm, date(emp_proj_client.effective_start_date), date(emp_proj_client.effective_end_date), ")
+                 .append(EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id"))
+                 .append(" AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN job_role j ON j.job_role_id = e.job_role_id ")
                  .append("INNER JOIN department d ON d.dept_id = j.dept_id ")
                  .append("INNER JOIN employee m ON e.manager_id = m.emp_id ")
@@ -2534,11 +2531,9 @@ public class ProjectService {
 	             .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, c.client_name, cl.client_location, e.work_location, ")
 	             .append("e.total_experience, d.dept_id, d.name as departmentName, p.po_project_type, j.name as jobrole, ")
 	             .append("p.po_project_id, eppm.primary_project_name, eppm.primary_project_id, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, ")
-	             .append("GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, CASE \n"
-	             		+ "    WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id)\n"
-	             		+ "    WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id)\n"
-	             		+ "    ELSE CONCAT('A-', e.employeement_id)\n"
-	             		+ "  END AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
+	             .append("GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm, date(etm.start_date) as effective_start_date, date(etm.end_date) as effective_end_date, ")
+	             .append(EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id"))
+	             .append(" AS prefixed_employeementId, e.experience, date(e.date_of_joining) FROM employee e ")
                  .append("INNER JOIN employee_team_mapping etm ON etm.emp_id = e.emp_id ")
                  .append("LEFT JOIN teams t ON t.team_id = etm.team_id ")
                  .append("LEFT JOIN projects p ON p.project_id = t.project_id \n "

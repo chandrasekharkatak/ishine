@@ -85,4 +85,6 @@ public class TimesheetFilterCriteria {
                 .search(payload.getSearch())
                 .build();
     }
+
+	private Boolean isNightShift;
 }

@@ -26,7 +26,13 @@ public class ReimbursementApprovalMatrixDTO {
 		private List<Long> departmentIds = new ArrayList<>();
 		private List<Long> jobRoleIds = new ArrayList<>();
 		private String routing;
+		/**
+		 * Legacy single assignee field (kept for backward compatibility).
+		 * New UI uses {@link #assigneeEmployeeIds}.
+		 */
 		private Long assigneeEmployeeId;
+		/** Multiple named approvers for this level (optional). */
+		private List<Long> assigneeEmployeeIds = new ArrayList<>();
 	}
 
 	@Data

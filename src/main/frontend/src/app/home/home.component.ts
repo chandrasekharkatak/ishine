@@ -939,7 +939,7 @@ resetRejectModalData() {
     timesheetObj.timesheetId = timesheet.timesheetId;
     timesheetObj.email = timesheet.email;
     timesheetObj.rejectReason = timesheet.rejectReason?.trim();
-    timesheetObj.employeementId = timesheet.employeementId.substring(2);
+    timesheetObj.employeementId = this.utilityService.stripEmploymentIdPrefix(timesheet.employeementId);
     timesheetObj.employeeName = timesheet.employeeName;
     timesheetObj.managerId = this.currentUser.empId;
     timesheetObj.managerEmail = this.currentUser.email;
@@ -1059,14 +1059,7 @@ resetRejectModalData() {
 
 
     let leaveObj = new Leave();
-    leaveObj.employeementId = this.currentUser.employeementId;
-    leaveObj.empId = this.currentUser.empId;
-    leaveObj.employmentStatus = this.currentUser.employmentstatus;
-    if(this.currentUser.isApmosysProduct === 'true'){
-      leaveObj.employeeType = 'Apmosys Product';
-    }else{
-       leaveObj.employeeType = 'Other';
-    }
+    this.utilityService.applyLeaveBalanceRequestFields(leaveObj, this.currentUser);
 
     console.log("sdnkvsvns" + leaveObj.employmentStatus);
     let leaveBalanceResponse: any = await this.leaveService.getMyLeaveBalancesByEmpId(leaveObj).pipe(first()).toPromise();
@@ -2092,7 +2085,7 @@ private roundToTwo(num: number): number {
     timesheetObj.status = "Approved"
 
     timesheetObj.bulkApprovedList.forEach((x) => {
-      x.employeementId = x.employeementId.substring(2);
+      x.employeementId = this.utilityService.stripEmploymentIdPrefix(x.employeementId);
       x.updatedBy = this.currentUser.empId;
 
     })
@@ -2128,7 +2121,7 @@ private roundToTwo(num: number): number {
     timesheetObj.rejectionId = this.selectedRejectReason;
     //console.log("For Bulk Update : ", timesheetObj);
     timesheetObj.bulkRejectList.forEach((item) => {
-      item.employeementId = item.employeementId.substring(2);
+      item.employeementId = this.utilityService.stripEmploymentIdPrefix(item.employeementId);
     })
     this.timesheetService.bulkRejectTimesheetRequest(timesheetObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {

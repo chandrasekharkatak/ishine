@@ -1,4 +1,5 @@
 package com.apmosys.employeeportal.service;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 import java.sql.Timestamp;
 import java.time.LocalDate;
@@ -1391,11 +1392,8 @@ public class TeamsService {
 					String isApmosysProduct = dto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
-							dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-							dto.setEmploymentIdAcToET("A-" + employmentId);
-						}
+						dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+								dto.getIsConsultant(), isApmosysProduct));
 					}
 
 					
@@ -1576,11 +1574,8 @@ public class TeamsService {
 		String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
 		String isApmosysProduct = dto.getIsApmosysProduct();
 		if (employmentId != null) {
-			if ("true".equalsIgnoreCase(isApmosysProduct)) {
-				dto.setEmploymentIdAcToET("AP-" + employmentId);
-			} else {
-				dto.setEmploymentIdAcToET("A-" + employmentId);
-			}
+			dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+					dto.getIsConsultant(), isApmosysProduct));
 		}
 
 		// Date of relieving check
@@ -1726,11 +1721,8 @@ public class TeamsService {
 					String isApmosysProduct = dto.getIsApmosysProduct();
 
 					if (employmentId != null) {
-						if ("true".equalsIgnoreCase(isApmosysProduct)) {
-							dto.setEmploymentIdAcToET("AP-" + employmentId);
-				        }else {
-							dto.setEmploymentIdAcToET("A-" + employmentId);
-						}
+						dto.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+								dto.getIsConsultant(), isApmosysProduct));
 					}
 
 					dto.setClientSideId(object[24] != null ? object[24].toString() : null);
@@ -5901,14 +5893,8 @@ public class TeamsService {
         if (employee.getEmployeementId() == null) {
             return employee.getEmpId() != null ? "EMP-" + employee.getEmpId() : "--";
         }
-        String employmentId = String.valueOf(employee.getEmployeementId());
-        if (isTruthyFlag(employee.getIsConsultant())) {
-            return "CS-" + employmentId;
-        }
-        if (isTruthyFlag(employee.getIsApmosysProduct())) {
-            return "AP-" + employmentId;
-        }
-        return "A-" + employmentId;
+        return com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.formatEmploymentId(
+                employee.getEmployeementId(), employee.getIsConsultant(), employee.getIsApmosysProduct());
     }
 
     private boolean isTruthyFlag(String value) {

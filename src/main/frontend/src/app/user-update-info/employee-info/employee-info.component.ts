@@ -11,6 +11,7 @@ import { AuthenticationService } from 'src/app/services/authentication.service';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { UpdateUserInfoService } from 'src/app/services/updateUserInfo.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 
 @Component({
   standalone: false,
@@ -50,12 +51,21 @@ export class EmployeeInfoComponent implements OnInit{
     private modalService: NgbModal,
     private updateUserInfoService: UpdateUserInfoService,
     private authenticationService: AuthenticationService,
+    private employeeIdUtilService: EmployeeIdUtilService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
 
     this.updateUserInfoService.updateduserInfoObj.subscribe((employee:Employee)=>{
       this.sectionViewInit(employee);
     });
+  }
+
+  displayEmploymentId(employee: Employee): string {
+    return this.employeeIdUtilService.generateEmploymentId(
+      employee?.employeementId,
+      employee?.isApmosysProduct,
+      employee?.isConsultant
+    ) ?? '';
   }
 
   ngOnInit(): void {

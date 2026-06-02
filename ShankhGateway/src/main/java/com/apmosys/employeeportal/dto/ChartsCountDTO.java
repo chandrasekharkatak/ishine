@@ -19,6 +19,7 @@ public class ChartsCountDTO {
     private Long consultantCount;
     private Long regularCount;
     private Long apmosysProductCount;
+    private Long apmosysProductConsultantCount;
     
 	
 }

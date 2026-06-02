@@ -31,6 +31,7 @@ import { DatePipe } from '@angular/common';
 import { EmployeeService } from 'src/app/services/employee.service';
 import { Router } from '@angular/router';
 import { ExcelDownloadService } from 'src/app/services/excel-download-service';
+import { UtilityService } from 'src/app/services/utility.service';
 // import { map } from 'highcharts';
 
 @Component({
@@ -181,7 +182,8 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     private datePipe: DatePipe,
     private router: Router,
     private employeeService: EmployeeService,
-    private excelDownloadService: ExcelDownloadService) { 
+    private excelDownloadService: ExcelDownloadService,
+    private utilityService: UtilityService) { 
       // ✅ CRITICAL FIX: Properly unsubscribe on destroy
       this.authenticationService.currentUser
         .pipe(takeUntil(this.destroy$))
@@ -874,10 +876,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
    * Get formatted employee ID placeholder for client side ID input
    */
   get formattedEmployeeId(): string {
-    if (this.currentUser.isApmosysProduct) {
-      return `NA (AP-${this.currentUser.employeementId})`;
-    }
-    return `NA (A-${this.currentUser.employeementId})`;
+    return this.utilityService.formatNaEmployeementPlaceholder(this.currentUser);
   }
 
   /**

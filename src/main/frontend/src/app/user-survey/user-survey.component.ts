@@ -13,6 +13,7 @@ import { AuthenticationService } from '../services/authentication.service';
 import { SurveyService } from '../services/survey.service';
 import { ValidationService } from '../services/validation.service';
 import { PortalService } from '../services/portal.service';
+import { EmployeeIdUtilService } from '../services/employee-id-util.service';
 
 @Component({
   standalone: false,
@@ -71,6 +72,7 @@ export class UserSurveyComponent implements OnInit {
     private route: ActivatedRoute,
     private router : Router,
     private portalService: PortalService,
+    private employeeIdUtil: EmployeeIdUtilService,
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -259,12 +261,13 @@ onTakeSurvey(surveyObj: Survey) {
 
       this.portalService.getAllEmployeeForPortalConfig().pipe(first()).subscribe((empResponse: any) => {
         if (empResponse.serviceStatus === "Success") {
-          this.allEmployeeList = empResponse.serviceResponse.map(emp => ({
-            ...emp,
-            employeementId: emp.isApmosysProduct === "true"
-              ? "AP-" + emp.employeementId
-              : "A-" + emp.employeementId
-          }));
+          this.allEmployeeList = empResponse.serviceResponse.map(emp => {
+            this.employeeIdUtil.applyEmployeeDisplayFields(emp);
+            return {
+              ...emp,
+              employeementId: emp.employmentIdAcToET ?? emp.employeementId
+            };
+          });
 
           const surveyQuestionsTemplate: string = this.createTemplate();
           const formStart = `<form id="surveyForm">`;
@@ -526,7 +529,8 @@ createTemplate(): string {
         this.allEmployeeList = response.serviceResponse;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
-          employee.employeementId = "A-".concat(employee.employeementId)
+          this.employeeIdUtil.applyEmployeeDisplayFields(employee);
+          employee.employeementId = employee.employmentIdAcToET ?? employee.employeementId;
         });
         //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {

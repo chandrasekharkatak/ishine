@@ -19,6 +19,7 @@ import { ValidationService } from '../services/validation.service';
 import { Skills } from '../models/skills';
 import { Certificate } from '../models/certificate';
 import { UpdateUserInfoService } from '../services/updateUserInfo.service';
+import { EmployeeIdUtilService } from '../services/employee-id-util.service';
 @Component({
   standalone: false,
   selector: 'app-user-profile',
@@ -73,9 +74,18 @@ export class UserProfileComponent implements OnInit {
     private locationStrategy: LocationStrategy,
     private domainService: DomainService,
     private onBoardingService: OnBoardingService,
-    private updateUserInfoService: UpdateUserInfoService
+    private updateUserInfoService: UpdateUserInfoService,
+    private employeeIdUtilService: EmployeeIdUtilService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
+  }
+
+  displayEmploymentId(employee: Employee): string {
+    return this.employeeIdUtilService.generateEmploymentId(
+      employee?.employeementId,
+      employee?.isApmosysProduct,
+      employee?.isConsultant
+    ) ?? '';
   }
 
   ngOnInit(): void {

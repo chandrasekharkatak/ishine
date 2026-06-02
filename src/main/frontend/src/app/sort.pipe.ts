@@ -60,12 +60,10 @@ export class SortPipe implements PipeTransform {
       } else if (sortFieldType == "empId") {
         const sa = a[sortField] ?? '';
         const sb = b[sortField] ?? '';
-        if (typeof sa === 'string' && sa.startsWith("A-") && typeof sb === 'string' && sb.startsWith("A-")) {
-          const empIdA = +sa.substring(2) || 0;
-          const empIdB = +sb.substring(2) || 0;
-          if (empIdA < empIdB) return -1 * multiplier;
-          if (empIdA > empIdB) return 1 * multiplier;
-        }
+        const empIdA = SortPipe.numericFromPrefixedId(sa);
+        const empIdB = SortPipe.numericFromPrefixedId(sb);
+        if (empIdA < empIdB) return -1 * multiplier;
+        if (empIdA > empIdB) return 1 * multiplier;
         const va = String(sa).toLowerCase();
         const vb = String(sb).toLowerCase();
         if (va < vb) return -1 * multiplier;
@@ -96,6 +94,23 @@ export class SortPipe implements PipeTransform {
       }
     });
     return valueCopy;
+  }
+
+  private static numericFromPrefixedId(id: any): number {
+    const s = String(id ?? '');
+    if (s.startsWith('APCS-')) {
+      return +s.substring(5) || 0;
+    }
+    if (s.startsWith('AP-')) {
+      return +s.substring(3) || 0;
+    }
+    if (s.startsWith('CS-')) {
+      return +s.substring(3) || 0;
+    }
+    if (s.startsWith('A-')) {
+      return +s.substring(2) || 0;
+    }
+    return +s || 0;
   }
 
 }

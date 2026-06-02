@@ -219,6 +219,7 @@ import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
 import com.apmosys.employeeportal.utility.StringToDateTimeParser;
 import com.apmosys.employeeportal.utility.TypeConversionUtil;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 
 import de.danielbechler.diff.ObjectDifferBuilder;
 import de.danielbechler.diff.node.DiffNode;
@@ -489,6 +490,13 @@ public class EmployeeService {
 		StringBuilder logBuilder = new StringBuilder();
 		logBuilder.append("employeementId : " + employeedto.getEmployeementId()+ "jobRoleId : " +employeedto.getJobRoleId()+ "createdBy : " +employeedto.getCreatedBy());
 		try {
+
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
 
 			ServiceResponse employeementIdExists = checkEmployeementId(employeedto);
 
@@ -1258,16 +1266,8 @@ public class EmployeeService {
 					String employmentId = empDTO.getEmployeementId().toString();
 
 					if (employmentId != null) {
-
-					    String prefix = "A-"; 
-
-					    if ("true".equalsIgnoreCase(empDTO.getIsApmosysProduct())) {
-					        prefix = "AP-";
-					    } else if ("true".equalsIgnoreCase(empDTO.getIsConsultant())) {
-					        prefix = "CS-";
-					    }
-
-					    empDTO.setEmployeementIdAccToET(prefix + employmentId);
+					    empDTO.setEmployeementIdAccToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+					            Long.valueOf(employmentId), empDTO.getIsConsultant(), empDTO.getIsApmosysProduct()));
 					}
                     empDTO.setOnRollDate(object[77]!=null ? format.format(format.parse(object[77].toString())) : null);
 					if (object[42] != null) {
@@ -2294,6 +2294,13 @@ public class EmployeeService {
 		List<Employee> listOfEmp = new ArrayList<>();
 //		System.out.println("listOfEmp : "+listOfEmp);		
 		try {
+			ServiceResponse apcsEmailValidation = validateApcsEmailIfRequired(employeedto);
+			if (apcsEmailValidation != null) {
+				apiLogInfo.setApiResponse(String.valueOf(apcsEmailValidation.getServiceResponse()));
+				apiLogInfo.setApiStatus(ServiceResponse.STATUS_FAIL);
+				return apcsEmailValidation;
+			}
+
 			Optional<Employee> employeeObject = employeeRepository.findById(employeedto.getEmpId());
 			
 			if (employeeObject.isPresent()) {
@@ -3510,13 +3517,10 @@ public class EmployeeService {
 	                    EmployeeDTO empDTO = new EmployeeDTO(empProj);
 	                    empDTO.setFailedAttempt(failedAttempt);
 	                    if (empProj.getEmployeementId() != null) {
-	                        empDTO.setEmploymentIdAcToET(
-	                            "true".equalsIgnoreCase(empProj.getIsApmosysProduct())
-	                                ? "AP-" + empProj.getEmployeementId()
-	                                : "true".equalsIgnoreCase(empProj.getIsConsultant())
-	                                    ? "CS-" + empProj.getEmployeementId()
-	                                    : "A-" + empProj.getEmployeementId()
-	                        );
+	                        empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+	                            empProj.getEmployeementId(),
+	                            empProj.getIsConsultant(),
+	                            empProj.getIsApmosysProduct()));
 	                    }
 
 	                    if (empProj.getProjectIds() != null && empProj.getProjectName() != null) {
@@ -3983,17 +3987,10 @@ public class EmployeeService {
 
 	            // Employment ID Formatting
 	            if (empDTO.getEmployeementId() != null) {
-
-	                String prefix =
-	                        "true".equalsIgnoreCase(
-	                                empDTO.getIsApmosysProduct()
-	                        )
-	                                ? "AP-"
-	                                : "A-";
-
-	                empDTO.setEmploymentIdAcToET(
-	                        prefix + empDTO.getEmployeementId()
-	                );
+	                empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(
+	                        empDTO.getEmployeementId(),
+	                        empDTO.getIsConsultant(),
+	                        empDTO.getIsApmosysProduct()));
 	            }
 
 	            // Performance Status Calculation
@@ -4182,13 +4179,8 @@ public class EmployeeService {
 		            String isApmosysProduct = empDTO.getIsApmosysProduct();
 
 		            if (employmentId != null) {
-		                  if ("true".equalsIgnoreCase(isApmosysProduct)) {
-		                	  empDTO.setEmploymentIdAcToET("AP-" + employmentId);                	  
-//		                    newDto.setEmployeementIdAccToET("AP-" + employmentId);
-		                } else {
-		                	empDTO.setEmploymentIdAcToET("A-" + employmentId); 
-//		                    newDto.setEmployeementIdAccToET("A-" + employmentId);
-		                }
+		            	empDTO.setEmploymentIdAcToET(EmployeeEmploymentIdUtil.formatEmploymentId(employmentId,
+		            			isConsultant, isApmosysProduct));
 		            }
 				    
 				    if (object[87] != null && object[72] != null) {
@@ -5404,18 +5396,16 @@ public class EmployeeService {
 		logBuilder.append("email : " + employeedto.getEmail());
 
 		try {
-			String employeeType = employeedto.getEmployeeType();
+			String employeeType = EmployeeEmploymentIdUtil.resolveEmployeeTypeFromDto(employeedto.getEmployeeType(),
+					employeedto.getIsConsultant(), employeedto.getIsApmosysProduct(), employeedto.getIsApprenticeship());
 			Employee checkEmployeementId;
-			if ("Apmosys Product".equalsIgnoreCase(employeeType)) {
+			if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(employeeType)) {
+				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProductConsultant(employeedto.getEmployeementId());
+			} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForApmosysProduct(employeedto.getEmployeementId());
-			} else if("Consultant".equalsIgnoreCase(employeeType)) {
+			} else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(employeeType)) {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForConsultant(employeedto.getEmployeementId());
-//			}
-//			else if("Apprentice".equalsIgnoreCase(employeeType)) {
-//				checkEmployeementId = employeeRepository.findByEmployeementIdForApprentice(employeedto.getEmployeementId());
-//				
-			}
-			else {
+			} else {
 				checkEmployeementId = employeeRepository.findByEmployeementIdForOthers(employeedto.getEmployeementId());
 			}
 //			Employee checkEmployeementId = employeeRepository.findByEmployeementId(employeedto.getEmployeementId());
@@ -5720,7 +5710,9 @@ public class EmployeeService {
 					employee.setMaritalStatus(object[26] != null ? object[26].toString() : null);
 					employee.setJobRoleName(object[27] != null ? object[27].toString() : null);
 					employee.setIsApmosysProduct(object[28] != null ? object[28].toString() : null)	;
-					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);	
+					employee.setJobRoleId(object[29] != null ? Long.parseLong(object[29].toString()) : null);
+					employee.setIsConsultant(object[30] != null ? object[30].toString() : null);
+					employee.setIsApprenticeship(object[31] != null ? object[31].toString() : null);
 					});
 				
 				//Check if all Policy read.
@@ -10428,7 +10420,9 @@ public ServiceResponse fetchInactivePOListOfEmployee(GetEmployeeProjectReportPay
                     employeeDetails.setClientLocation(object[7] != null ? object[7].toString() : null);
                     employeeDetails.setDepartmentName(object[8] != null ? object[8].toString() : null);
                     employeeDetails.setPoProjectType(object[9] != null ? object[9].toString() : null);
-                    employeeDetails.setEmployeementIdAccToET(object[10] != null ? object[10].toString() : null);
+                    String prefixedId = object[10] != null ? object[10].toString() : null;
+                    employeeDetails.setEmployeementIdAccToET(prefixedId);
+                    employeeDetails.setEmploymentIdAcToET(prefixedId);
                     countOfInActivePoEmployeeWise.add(employeeDetails);
                 }
 
@@ -12248,16 +12242,26 @@ private LocalDate parseDate(String dateStr, int rowNum, List<String> errorMessag
 
 
 private Long resolveEmployeeId(String empIdentifier) {
-    if (empIdentifier.startsWith("A-")) {
-        String idNum = empIdentifier.substring(2);
-        Employee emp = employeeRepository.findByEmployeementIdForOthers(Long.valueOf(idNum));
-        return emp != null ? emp.getEmpId() : null;
-    } else if (empIdentifier.startsWith("AP-")) {
-        String idNum = empIdentifier.substring(3);
-        Employee emp = employeeRepository.findByEmployeementIdForApmosysProduct(Long.valueOf(idNum));
-        return emp != null ? emp.getEmpId() : null;
+    if (empIdentifier == null || empIdentifier.isBlank()) {
+        return null;
     }
-    return null;
+    String numericId = EmployeeEmploymentIdUtil.extractNumericIdFromPrefixed(empIdentifier);
+    if (numericId == null || numericId.isBlank()) {
+        return null;
+    }
+    Long employmentId = Long.valueOf(numericId);
+    String employeeType = EmployeeEmploymentIdUtil.resolveEmployeeTypeFromPrefixedId(empIdentifier);
+    Employee emp;
+    if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForApmosysProductConsultant(employmentId);
+    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForApmosysProduct(employmentId);
+    } else if (EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_CONSULTANT.equalsIgnoreCase(employeeType)) {
+        emp = employeeRepository.findByEmployeementIdForConsultant(employmentId);
+    } else {
+        emp = employeeRepository.findByEmployeementIdForOthers(employmentId);
+    }
+    return emp != null ? emp.getEmpId() : null;
 }
 
 private String normalizeName(String name) {
@@ -12357,7 +12361,7 @@ private List<SearchEmployeeDTO> fetchEmployees(SearchEmpPayloadDTO payload) {
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -12594,7 +12598,7 @@ private PageResponseDTO<SearchEmployeeDTO> fetchEmployeesSSV(SearchEmpPayloadDTO
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -12882,7 +12886,7 @@ private List<SearchEmployeeDTO> fetchEmployeesNotInSearch(SearchEmpPayloadDTO pa
 
     
     StringBuilder dataSql = new StringBuilder();
-    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
+    dataSql.append("SELECT e.emp_id,CASE WHEN e.is_apmosys_product = 'true' AND e.is_consultant = 'true' THEN CONCAT('APCS-', e.employeement_id) WHEN e.is_consultant = 'true' THEN CONCAT('CS-', e.employeement_id) WHEN e.is_apmosys_product = 'true' THEN CONCAT('AP-', e.employeement_id) ELSE CONCAT('A-', e.employeement_id) END AS formatted_emp_id ,e.name AS employee_name, e.email, ")
            .append("jr.job_role_id, jr.name AS job_role, d.dept_id, d.name AS dept_name, ")
            .append("s.emp_skill_id, s.skill_id, ps.skill_name, s.additional_skill, ")
            .append("s.proficiency_id, p.proficiency_name, ")
@@ -13102,6 +13106,20 @@ public ServiceResponse getPoRequirementDataByTeamAndPoId(Long teamId, Long poId)
 		}
 		return response;
 	}
+
+private ServiceResponse validateApcsEmailIfRequired(EmployeeDTO employeedto) {
+	if (!EmployeeEmploymentIdUtil.requiresAp2lEmailDomain(employeedto.getIsConsultant(),
+			employeedto.getIsApmosysProduct())) {
+		return null;
+	}
+	if (!EmployeeEmploymentIdUtil.hasAp2lEmailDomain(employeedto.getEmail())) {
+		ServiceResponse response = new ServiceResponse();
+		response.setServiceStatus(ServiceResponse.STATUS_FAIL);
+		response.setServiceResponse(EmployeeEmploymentIdUtil.APCS_EMAIL_DOMAIN_REQUIRED_MESSAGE);
+		return response;
+	}
+	return null;
+}
 
 private ServiceResponse buildFailureResponse(ServiceResponse response,
                                              LogDTO apiLogInfo,

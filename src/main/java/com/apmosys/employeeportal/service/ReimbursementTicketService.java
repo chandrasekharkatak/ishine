@@ -56,6 +56,7 @@ import com.apmosys.employeeportal.dto.ProjectIdNameClientDTO;
 import com.apmosys.employeeportal.dto.ReimbursementTicketSubmitRequestDTO;
 import com.apmosys.employeeportal.model.Department;
 import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil;
 import com.apmosys.employeeportal.model.Client;
 import com.apmosys.employeeportal.model.ExpenditureType;
 import com.apmosys.employeeportal.model.EmpPrimaryProjectMapping;
@@ -1899,6 +1900,9 @@ public class ReimbursementTicketService {
 	private static String resolveConfiguredEmployeeType(Employee e) {
 		if (e == null) {
 			return null;
+		}
+		if (EmployeeEmploymentIdUtil.isApmosysProductConsultant(e.getIsConsultant(), e.getIsApmosysProduct())) {
+			return EmployeeEmploymentIdUtil.EMPLOYEE_TYPE_APMOSYS_PRODUCT_CONSULTANT;
 		}
 		String isApmosysProduct = e.getIsApmosysProduct();
 		if (StringUtils.hasText(isApmosysProduct) && "true".equalsIgnoreCase(isApmosysProduct.trim())) {

@@ -46,6 +46,7 @@ const Accessibility = require('highcharts/modules/accessibility');
 Accessibility(Highcharts);
 import * as Highcharts from 'highcharts';
 import { UtilityService } from 'src/app/services/utility.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 import { Feature } from 'src/app/models/feature';
 import { Employee360Service } from 'src/app/services/employee360.service';
 import { SortPipe } from 'src/app/sort.pipe';
@@ -159,6 +160,7 @@ export class ReportDashboardComponent implements OnInit {
   consultantCountForDisplay = 0;
   regularCountForDisplay = 0;
   apmosysProductCountForDisplay = 0;
+  apmosysProductConsultantCountForDisplay = 0;
   allResignEmployee: any;
 
   filterData: any = new FilterData();
@@ -220,6 +222,11 @@ export class ReportDashboardComponent implements OnInit {
   experienceCountBetween2and5ApmosysProduct = 0;
   experienceCountBetween5and10ApmosysProduct = 0;
   experienceCountAbove10ApmosysProduct = 0;
+  experienceCountBetween0and1ApmosysProductConsultant = 0;
+  experienceCountBetween1and2ApmosysProductConsultant = 0;
+  experienceCountBetween2and5ApmosysProductConsultant = 0;
+  experienceCountBetween5and10ApmosysProductConsultant = 0;
+  experienceCountAbove10ApmosysProductConsultant = 0;
 
   leaveSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Leave Type', 'Department', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'No. of Days', 'Reason', 'Status', 'Manager Name', 'Created On', 'Updated On', 'Updated By'];
   timesheetSummaryColumns: any[] = ['Employee Id', 'employeeType', 'Full Name', 'Department', 'Date', 'Day Type', 'Status', 'Total Working Hour', 'Team Name', 'Project Name', 'Client Name', 'From Date', 'To Date', 'Created On', 'Updated On', 'Updated By'];
@@ -293,8 +300,57 @@ export class ReportDashboardComponent implements OnInit {
     private domainService: DomainService,
     private authenticationService: AuthenticationService,
     public utilityService: UtilityService,
+    private employeeIdUtilService: EmployeeIdUtilService,
     public route: Router
   ) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+
+  private displayEmploymentId(emp: any): string {
+    return this.employeeIdUtilService.generateEmploymentId(
+      emp?.employeementId ?? emp?.employmentIdAcToET,
+      emp?.isApmosysProduct,
+      emp?.isConsultant,
+      emp?.employeeType
+    ) ?? emp?.employeementId;
+  }
+
+  private displayEmployeeType(emp: any): string {
+    if (emp?.employeeType) {
+      return emp.employeeType;
+    }
+    return this.employeeIdUtilService.resolveEmployeeType(
+      emp?.isApmosysProduct,
+      emp?.isConsultant,
+      emp?.isApprenticeship
+    );
+  }
+
+  private formatLeaveSummaryEmployeeFields(leave: any): void {
+    if (!leave) {
+      return;
+    }
+    if (leave.fromDateDayType != null) {
+      leave.fromDateDayType = leave.fromDateDayType === 0 ? 'Full Day' : 'Half Day';
+    }
+    if (leave.toDateDayType != null) {
+      leave.toDateDayType = leave.toDateDayType === 0 ? 'Full Day' : 'Half Day';
+    }
+    if (leave.employeeType) {
+      leave.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(leave.employeeType);
+    } else {
+      leave.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(
+        this.displayEmployeeType(leave)
+      );
+    }
+    const formattedId = this.employeeIdUtilService.generateEmploymentId(
+      leave.employmentIdAcToET ?? leave.employeementId,
+      leave.isApmosysProduct,
+      leave.isConsultant,
+      leave.employeeType
+    );
+    if (formattedId) {
+      leave.employmentIdAcToET = formattedId;
+    }
+  }
 
   ngOnInit(): void {
     let featureMap: Feature = this.currentUser.userMapping.find(userMap => userMap.featureName == this.feature);
@@ -324,6 +380,7 @@ export class ReportDashboardComponent implements OnInit {
     const joiningConsultant = Array(12).fill(0);
     const resigning = Array(12).fill(0);
     const joiningApmosysProduct = Array(12).fill(0);
+    const joiningApmosysProductConsultant = Array(12).fill(0);
 
     const monthIndexMap: { [key: string]: number } = {
       January: 0, February: 1, March: 2, April: 3, May: 4, June: 5,
@@ -338,6 +395,7 @@ export class ReportDashboardComponent implements OnInit {
         joiningConsultant[idx] = item.consultantCount || 0;
         resigning[idx] = item.resignCount || 0;
         joiningApmosysProduct[idx] = item.apmosysProductCount || 0;
+        joiningApmosysProductConsultant[idx] = item.apmosysProductConsultantCount || 0;
       }
     });
 
@@ -345,8 +403,9 @@ export class ReportDashboardComponent implements OnInit {
       { name: 'Regular', data: joiningRegular, stack: 'joined', color: '#1f77b4' },
       { name: 'apprenticeship', data: joiningApprentice, stack: 'joined', color: '#ff7f0e' },
       { name: 'consultant', data: joiningConsultant, stack: 'joined', color: '#2ca02c' },
-      { name: 'resign', data: resigning, stack: 'resigned', color: '#d62728' },
-      { name: 'Apmosys Product', data: joiningApmosysProduct, stack: 'joined', color: '#9467bd' }
+      { name: 'Apmosys Product Consultant', data: joiningApmosysProductConsultant, stack: 'joined', color: '#9b59b6' },
+      { name: 'Apmosys Product', data: joiningApmosysProduct, stack: 'joined', color: '#D288A2' },
+      { name: 'resign', data: resigning, stack: 'resigned', color: '#d62728' }
     ];
 
     this.renderMultiBarChart('Employee Join VS Resign', 'employeeJoinAndResign', chartData, 'Employee', this.openEmployeeJoinResignModalTable.bind(this));
@@ -560,12 +619,12 @@ onFilterChange(filter: CustomFilter): void {
       this.experienceCountBetween0and1 = 0; this.experienceCountBetween1and2 = 0; this.experienceCountBetween2and5 = 0; this.experienceCountBetween5and10 = 0; this.experienceCountAbove10 = 0;
       this.experienceCountBetween0and1Apprentice = 0; this.experienceCountBetween1and2Apprentice = 0; this.experienceCountBetween2and5Apprentice = 0; this.experienceCountBetween5and10Apprentice = 0; this.experienceCountAbove10Apprentice = 0;
       this.experienceCountBetween0and1Consultant = 0; this.experienceCountBetween1and2Consultant = 0; this.experienceCountBetween2and5Consultant = 0; this.experienceCountBetween5and10Consultant = 0; this.experienceCountAbove10Consultant = 0;
-      this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0; this.apmosysProductCountForDisplay = 0;
+      this.countOfAllEmployees = 0; this.employeeInProbationAfter6MonthsCount = 0; this.apprenticeCountForDisplay = 0; this.consultantCountForDisplay = 0; this.regularCountForDisplay = 0; this.apmosysProductCountForDisplay = 0; this.apmosysProductConsultantCountForDisplay = 0;
 
       this.renderPlaceholderChart('Employee Status Summary', 'employeeStatus');
       this.renderPlaceholderChart('Gender Summary', 'genderSummary');
       this.renderPlaceholderChart('Age Summary', 'employeeAgeSummary');
-      this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [],[], this.openEmployeeExperienceModalTable.bind(this));
+      this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', [], [], [], [], [], [], this.openEmployeeExperienceModalTable.bind(this));
       this.renderPlaceholderChart('Fresher - Lateral Summary', 'fresherLateralChart');
       this.renderPlaceholderChart('Billable Employee Summary', 'billableChart');
       this.renderPlaceholderChart('Employee Billable/Non-Billable Summary', 'billableChartByDepartment');
@@ -618,12 +677,18 @@ onFilterChange(filter: CustomFilter): void {
     this.consultantCountForDisplay = data.consultantCountDisplay || 0;
     this.regularCountForDisplay = data.regularCountDisplay || 0;
     this.apmosysProductCountForDisplay = data.apmosysProductDisplay || 0;
+    this.apmosysProductConsultantCountForDisplay = data.apmosysProductConsultantCountDisplay || 0;
 
     this.experienceCountBetween0and1ApmosysProduct = data.apmosysProductYear0to1 || 0;
     this.experienceCountBetween1and2ApmosysProduct = data.apmosysProductYear1to2 || 0;
     this.experienceCountBetween2and5ApmosysProduct = data.apmosysProductYear2to5 || 0;
     this.experienceCountBetween5and10ApmosysProduct = data.apmosysProductYear5to10 || 0;
     this.experienceCountAbove10ApmosysProduct = data.apmosysProductYearAbove10 || 0;
+    this.experienceCountBetween0and1ApmosysProductConsultant = data.apmosysProductConsultantYear0to1 || 0;
+    this.experienceCountBetween1and2ApmosysProductConsultant = data.apmosysProductConsultantYear1to2 || 0;
+    this.experienceCountBetween2and5ApmosysProductConsultant = data.apmosysProductConsultantYear2to5 || 0;
+    this.experienceCountBetween5and10ApmosysProductConsultant = data.apmosysProductConsultantYear5to10 || 0;
+    this.experienceCountAbove10ApmosysProductConsultant = data.apmosysProductConsultantYearAbove10 || 0;
     // --- Now build and render the charts with the sanitized data ---
 
     // Employee Status Chart
@@ -666,18 +731,19 @@ onFilterChange(filter: CustomFilter): void {
 
     // Experience Chart
     const experienceData = [
-      { name: "0 to 1", employeeCount: this.experienceCountBetween0and1, apprenticeCount: this.experienceCountBetween0and1Apprentice, consultantCount: this.experienceCountBetween0and1Consultant , apmosysProductCount: this.experienceCountBetween0and1ApmosysProduct },
-      { name: "1 to 2", employeeCount: this.experienceCountBetween1and2, apprenticeCount: this.experienceCountBetween1and2Apprentice, consultantCount: this.experienceCountBetween1and2Consultant , apmosysProductCount: this.experienceCountBetween1and2ApmosysProduct },
-      { name: "2 to 5", employeeCount: this.experienceCountBetween2and5, apprenticeCount: this.experienceCountBetween2and5Apprentice, consultantCount: this.experienceCountBetween2and5Consultant , apmosysProductCount: this.experienceCountBetween2and5ApmosysProduct },
-      { name: "5 to 10", employeeCount: this.experienceCountBetween5and10, apprenticeCount: this.experienceCountBetween5and10Apprentice, consultantCount: this.experienceCountBetween5and10Consultant , apmosysProductCount: this.experienceCountBetween5and10ApmosysProduct },
-      { name: "10+", employeeCount: this.experienceCountAbove10, apprenticeCount: this.experienceCountAbove10Apprentice, consultantCount: this.experienceCountAbove10Consultant , apmosysProductCount: this.experienceCountAbove10ApmosysProduct },
+      { name: "0 to 1", employeeCount: this.experienceCountBetween0and1, apprenticeCount: this.experienceCountBetween0and1Apprentice, consultantCount: this.experienceCountBetween0and1Consultant, apmosysProductConsultantCount: this.experienceCountBetween0and1ApmosysProductConsultant, apmosysProductCount: this.experienceCountBetween0and1ApmosysProduct },
+      { name: "1 to 2", employeeCount: this.experienceCountBetween1and2, apprenticeCount: this.experienceCountBetween1and2Apprentice, consultantCount: this.experienceCountBetween1and2Consultant, apmosysProductConsultantCount: this.experienceCountBetween1and2ApmosysProductConsultant, apmosysProductCount: this.experienceCountBetween1and2ApmosysProduct },
+      { name: "2 to 5", employeeCount: this.experienceCountBetween2and5, apprenticeCount: this.experienceCountBetween2and5Apprentice, consultantCount: this.experienceCountBetween2and5Consultant, apmosysProductConsultantCount: this.experienceCountBetween2and5ApmosysProductConsultant, apmosysProductCount: this.experienceCountBetween2and5ApmosysProduct },
+      { name: "5 to 10", employeeCount: this.experienceCountBetween5and10, apprenticeCount: this.experienceCountBetween5and10Apprentice, consultantCount: this.experienceCountBetween5and10Consultant, apmosysProductConsultantCount: this.experienceCountBetween5and10ApmosysProductConsultant, apmosysProductCount: this.experienceCountBetween5and10ApmosysProduct },
+      { name: "10+", employeeCount: this.experienceCountAbove10, apprenticeCount: this.experienceCountAbove10Apprentice, consultantCount: this.experienceCountAbove10Consultant, apmosysProductConsultantCount: this.experienceCountAbove10ApmosysProductConsultant, apmosysProductCount: this.experienceCountAbove10ApmosysProduct },
     ];
     const totalExperienceCategories = experienceData.map(exp => exp.name);
     const employeeSeries = experienceData.map(exp => exp.employeeCount);
     const apprenticeSeries = experienceData.map(exp => exp.apprenticeCount);
     const consultantSeries = experienceData.map(exp => exp.consultantCount);
+    const apmosysProductConsultantSeries = experienceData.map(exp => exp.apmosysProductConsultantCount);
     const apmosysProductSeries = experienceData.map(exp => exp.apmosysProductCount);
-    this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductSeries, this.openEmployeeExperienceModalTable.bind(this));
+    this.plotEmployeeExperienceColumnGraph('Employee Experience', 'employeeExperienceSummary', totalExperienceCategories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductConsultantSeries, apmosysProductSeries, this.openEmployeeExperienceModalTable.bind(this));
 
     // Fresher/Lateral Chart
     const fresherLateralData = [
@@ -774,22 +840,16 @@ onFilterChange(filter: CustomFilter): void {
         this.totalResignEmployees = response.serviceResponse.totalElements;
         this.totalPages = response.serviceResponse.totalPages;
         this.allResignEmployee.forEach(employee => {
-          if (employee.isApmosysProduct == 'true') {
-            employee.employeementId = "AP-".concat(employee.employeementId);
-          } else {
-            employee.employeementId = "A-".concat(employee.employeementId);
-
-          }
-
-          if (employee.isConsultant == 'true') {
-            employee.employeeType = "Consultant"
-          } else if (employee.isApprenticeship == 'true') {
-            employee.employeeType = "Apprentice"
-          } else if (employee.isApmosysProduct == 'true') {
-            employee.employeeType = "Apmosys Product"
-          } else {
-            employee.employeeType = "On roll"
-          }
+          employee.employeementId = this.displayEmploymentId(employee);
+          employee.employeeType = employee.isApprenticeship === 'true'
+            ? 'Apprentice'
+            : this.employeeIdUtilService.resolveEmployeeType(
+              employee.isApmosysProduct,
+              employee.isConsultant,
+              employee.isApprenticeship
+            ) === 'Regular'
+              ? 'On roll'
+              : this.displayEmployeeType(employee);
           employee.dateOfRelieving = (employee.dateOfResign) ? moment(employee.dateOfResign).add(employee.noticePeriod, 'days') : null;
 
           employee.dateOfResign = (employee.dateOfResign) ? moment(employee.dateOfResign).format(AppComponent.DATE_FORMAT) : null;
@@ -832,17 +892,12 @@ onFilterChange(filter: CustomFilter): void {
       if (response.serviceStatus == "Success") {
         this.leaveSumarryList = response.serviceResponse;
 
-        this.leaveSumarryList.forEach((leave) => {
-          if (leave.fromDateDayType != null) {
-            leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
-          }
-          if (leave.toDateDayType != null) {
-            leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
-          }
-          leave.emp360Manager = leave.managerId;
-        });
+            this.leaveSumarryList.forEach((leave) => {
+              this.formatLeaveSummaryEmployeeFields(leave);
+              leave.emp360Manager = leave.managerId;
+            });
 
-        this.extractLeaveReportData();
+            this.extractLeaveReportData();
       } else {
         console.error(response.serviceResponse);
       }
@@ -906,12 +961,7 @@ onFilterChange(filter: CustomFilter): void {
           this.leaveSumarryList = response.serviceResponse;
 
           this.leaveSumarryList.forEach((leave) => {
-            if (leave.fromDateDayType != null) {
-              leave.fromDateDayType = leave.fromDateDayType === 0 ? "Full Day" : "Half Day";
-            }
-            if (leave.toDateDayType != null) {
-              leave.toDateDayType = leave.toDateDayType === 0 ? "Full Day" : "Half Day";
-            }
+            this.formatLeaveSummaryEmployeeFields(leave);
           });
 
           this.extractLeaveReportData();
@@ -1172,9 +1222,10 @@ onFilterChange(filter: CustomFilter): void {
             //   data.employeementId = "A-".concat(data.employeementId);
             // }
             if (!data.employeeType) {
-              if (data.isConsultant === 'true') data.employeeType = "Consultant";
-              else if (data.isApprenticeship === 'true') data.employeeType = "Apprentice";
-              else data.employeeType = "Regular";
+              data.employeeType = this.displayEmployeeType(data);
+            }
+            if (data.employeementId) {
+              data.employeementId = this.displayEmploymentId(data);
             }
           });
 
@@ -1254,12 +1305,12 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
 
     this.modalTitle = "Employee(s) with KYC " + status;
 
-    let isUserInfoUpdated = null;
+    let isUserInfoUpdated: string | null = null;
 
     if (status === 'Pending') {
-        isUserInfoUpdated = false;
+        isUserInfoUpdated = 'false';
     } else if (status === 'Completed') {
-        isUserInfoUpdated = true;
+        isUserInfoUpdated = 'true';
     }
 
     const requestParams = {
@@ -1276,7 +1327,22 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-                emp.totalExperience,emp.dateOfJoining);
+                emp.totalExperience, emp.dateOfJoining);
+              if (emp.employeeType) {
+                emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+              }
+              const formattedId = this.employeeIdUtilService.generateEmploymentId(
+                emp.employeementId,
+                emp.isApmosysProduct,
+                emp.isConsultant,
+                emp.employeeType
+              );
+              if (formattedId) {
+                emp.employeementId = formattedId;
+              }
+              if (emp.dateOfJoining) {
+                emp.dateOfJoining = moment(emp.dateOfJoining).format(AppComponent.DATE_FORMAT);
+              }
             });
 
             console.log(`Filtered count for department "${deptName}" with KYC status "${status}":`, this.modalSummaryList.length);
@@ -1284,11 +1350,6 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
             if (this.modalSummaryList.length > 0) {
                 console.log("Sample filtered employee:", this.modalSummaryList[0]);
             }
-
-            this.modalSummaryList.forEach((employee) => {
-                employee.dateOfJoining = employee.dateOfJoining ?
-                    moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
-            });
 
             this.modalTitle = `Employee(s) with KYC ${status} in ${deptName} (${this.modalSummaryList.length})`;
 
@@ -1635,7 +1696,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     const employeeCounts = chartData.map((dept: any) => dept.data[0]);
     const apprenticeCounts = chartData.map((dept: any) => dept.data[1]);
     const consultantCounts = chartData.map((dept: any) => dept.data[2]);
-    const apmosysProductCounts = chartData.map((dept: any) => dept.data[3] || 0);
+    const apmosysProductConsultantCounts = chartData.map((dept: any) => dept.data[3] || 0);
+    const apmosysProductCounts = chartData.map((dept: any) => dept.data[4] || 0);
 
     (Highcharts as any).chart(chartId, {
       chart: {
@@ -1716,6 +1778,11 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
           color: '#2234bd',
         },
         {
+          name: 'Apmosys Product Consultant',
+          data: apmosysProductConsultantCounts,
+          color: '#9b59b6',
+        },
+        {
           name: 'Apmosys Product',
           data: apmosysProductCounts,
           color: '#f1c40f',
@@ -1724,7 +1791,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     });
   }
 
-  plotEmployeeExperienceColumnGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductSeries, openMod) {
+  plotEmployeeExperienceColumnGraph(chartName, chartId, categories, employeeSeries, apprenticeSeries, consultantSeries, apmosysProductConsultantSeries, apmosysProductSeries, openMod) {
     (Highcharts as any).chart(chartId, {
       chart: {
         type: 'column',
@@ -1810,8 +1877,9 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
                   openMod(clickedCategory, 'apprentice');
                 } else if (clickedSeries === 'Consultant') {
                   openMod(clickedCategory, 'consultant');
-                }
-                else if (clickedSeries === 'Apmosys Product') {
+                } else if (clickedSeries === 'Apmosys Product Consultant') {
+                  openMod(clickedCategory, 'apmosysProductConsultant');
+                } else if (clickedSeries === 'Apmosys Product') {
                   openMod(clickedCategory, 'apmosysProduct');
                 }
               },
@@ -1833,7 +1901,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         symbolWidth: 12,
         symbolRadius: 3,
       },
-      colors: ['#176fc2', '#faa614', '#89fc72', '#e74c3c'],
+      colors: ['#176fc2', '#faa614', '#89fc72', '#9b59b6', '#e74c3c'],
       series: [
         {
           name: 'Employees',
@@ -1846,6 +1914,10 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
         {
           name: 'Consultant',
           data: consultantSeries,
+        },
+        {
+          name: 'Apmosys Product Consultant',
+          data: apmosysProductConsultantSeries,
         },
         {
           name: 'Apmosys Product',
@@ -2259,15 +2331,17 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelLeaveSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Emp ID": x.employmentIdAcToET ?? this.displayEmploymentId(x),
+        "Employee Type": this.employeeIdUtilService.formatEmployeeTypeLabel(x.employeeType ?? this.displayEmployeeType(x)),
         "Name": x.employeeName,
         "Department Name": x.departmentName,
+        "Manager Name": x.managerName,
         "From Date": (x.fromDate) ? moment(x.fromDate).format(AppComponent.DATE_FORMAT) : null,
         "To Date": (x.toDate) ? moment(x.toDate).format(AppComponent.DATE_FORMAT) : null,
         "From Date Day Type": x.fromDateDayType,
         "To Date Day Type": x.toDateDayType,
-        "Status": x.status
+        "Status": x.status,
+        "Type of Leave": x.leaveType
       })
     )
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.modalTitle.concat(".xlsx"))
@@ -2276,8 +2350,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelTimesheetSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Emp ID": this.displayEmploymentId(x),
+        "Employee Type": this.displayEmployeeType(x),
         "Name": x.employeeName,
         "Department Name": x.departmentName,
         "Timesheet Date": (x.date) ? moment(x.date).format(AppComponent.DATE_FORMAT) : null,
@@ -2296,8 +2370,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelEODSegregation(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": "A-".concat(x.employeementId),
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Emp ID": this.displayEmploymentId(x),
+        "Employee Type": this.displayEmployeeType(x),
         "Name": x.employeeName,
         "Department Name": x.departmentName,
         "Email Id": x.email,
@@ -2314,8 +2388,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelEmployeeSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId,
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Emp ID": x.employeementId ?? this.displayEmploymentId(x),
+        "Employee Type": this.employeeIdUtilService.formatEmployeeTypeLabel(x.employeeType ?? this.displayEmployeeType(x)),
         "Name": x.name,
         "Department Name": x.departmentName,
         "Experience": x.experience,
@@ -2343,8 +2417,8 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
   exportToExcelWorkLocationSummary(): void {
     const onlySpecificDataArr = this.modalSummaryList.map(
       x => ({
-        "Emp ID": x.employeementId,
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Emp ID": this.displayEmploymentId(x),
+        "Employee Type": this.displayEmployeeType(x),
         "Employee Name": x.name,
         "Project Name": x.projectName,
         "Client Name": x.clientName,
@@ -2402,7 +2476,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     const onlySpecificDataArr = this.allResignEmployee.map(
       x => ({
         "Emp ID": x.employeementId,
-        "Employee Type": ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+        "Employee Type": this.displayEmployeeType(x),
         "Employee Name": x.name,
         "Department": x.departmentName,
         "Date Of Resign": (x.dateOfResign) ? moment(x.dateOfResign).format(AppComponent.DATE_FORMAT) : null,
@@ -2490,7 +2564,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
     this.modalTitle = statusName + " Leave Summary";
     this.modalSummaryList = modalTableList.filter(x => x.status == statusName);
     this.modalSummaryList.forEach(x => {
-      x.employeeType = ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular'))
+      this.formatLeaveSummaryEmployeeFields(x);
     });
     this.modalSummaryList.forEach(y => {
       y.emp360 = y.empId;
@@ -2517,7 +2591,7 @@ openDepartmentWiseEmployeeKycModalTable(deptName: any, status: any) {
       if (!this.countByLegend.find(employee => employee.employmentIdAcToET == x.employmentIdAcToET)) {
         this.countByLegend.push({
           employmentIdAcToET: x.employmentIdAcToET,
-          employeeType: ((x.isApprenticeship === 'true') ? 'Apprentice' : ((x.isConsultant === 'true') ? 'Consultant' : 'Regular')),
+          employeeType: this.displayEmployeeType(x),
           employeeName: x.employeeName,
           departmentName: x.departmentName,
           email: x.email,
@@ -2734,6 +2808,7 @@ openTotalCountModal(title: any) {
       apprentice: false,
       consultant: false,
       regular: false,
+      apmosysProductConsultant: false,
       probation: false,
       allEmp: false,
       isApmosysProduct: 'false',
@@ -2758,6 +2833,9 @@ openTotalCountModal(title: any) {
       case 'Apmosys Product Count':
         requestBody.isApmosysProduct = 'true';
         break;
+      case 'APMOSYS Product Consultant Count':
+        requestBody.apmosysProductConsultant = true;
+        break;
       default:
         requestBody.allEmp = true;
     }
@@ -2777,7 +2855,15 @@ openTotalCountModal(title: any) {
           this.modalSummaryList = response.serviceResponse;
           this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-            emp.totalExperience,emp.dateOfJoining);
+            emp.totalExperience, emp.dateOfJoining);
+          if (!emp.employeeType) {
+            emp.employeeType = this.displayEmployeeType(emp);
+          } else {
+            emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+          }
+          if (emp.employeementId) {
+            emp.employeementId = this.displayEmploymentId(emp);
+          }
         });
           this.modalTitle = `${title} (${this.modalSummaryList.length} records)`;
         } else {
@@ -3014,16 +3100,16 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
 
     let employeeType = null;
 
-
     if (seriesName === 'Employee') {
         employeeType = 'regular';
-
     } else if (seriesName === 'Apprentice') {
         employeeType = 'apprentice';
-
     } else if (seriesName === 'Consultant') {
         employeeType = 'consultant';
-
+    } else if (seriesName === 'Apmosys Product Consultant') {
+        employeeType = 'apmosys_product_consultant';
+    } else if (seriesName === 'Apmosys Product') {
+        employeeType = 'apmosys_product';
     }
 
     const requestParams = {
@@ -3040,7 +3126,15 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
             this.modalSummaryList = response.serviceResponse;
             this.modalSummaryList.forEach((emp: any) => {
               emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-                emp.totalExperience,emp.dateOfJoining);
+                emp.totalExperience, emp.dateOfJoining);
+              if (emp.employeementId) {
+                emp.employeementId = this.displayEmploymentId(emp);
+              }
+              if (emp.employeeType) {
+                emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+              } else {
+                emp.employeeType = this.displayEmployeeType(emp);
+              }
             });
 
             console.log(`Filtered count for department "${pointName}" and series "${seriesName}":`, this.modalSummaryList.length);
@@ -3109,6 +3203,7 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
   else if (type === 'apprentice') employeeType = 'apprentice';
   else if (type === 'consultant') employeeType = 'consultant';
   else if (type === 'apmosysProduct') employeeType = 'apmosys_product';
+  else if (type === 'apmosysProductConsultant') employeeType = 'apmosys_product_consultant';
 
   const payload = {
     employeeType: employeeType,
@@ -3124,11 +3219,18 @@ openDepartmentWiseEmployeeModalTable(pointName: any, seriesName: any) {
       this.modalSummaryList = response.serviceResponse;
       this.modalSummaryList.forEach((emp: any) => {
           emp.totalCurrentExperience = this.employeeService.calculateTotalExperience(
-            emp.totalExperience,emp.dateOfJoining);
+            emp.totalExperience, emp.dateOfJoining);
+          if (emp.employeementId) {
+            emp.employeementId = this.displayEmploymentId(emp);
+          }
+          if (emp.employeeType) {
+            emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+          }
         });
 
       this.page = 1;
-      this.modalTitle = `${this.capitalizeFirstLetter(type)}(s) with ${pointName} YOE`;
+      const typeLabel = type === 'apmosysProductConsultant' ? 'Apmosys Product Consultant' : this.capitalizeFirstLetter(type);
+      this.modalTitle = `${typeLabel}(s) with ${pointName} YOE`;
 
       this.modalRef = this.modalService.open(this.employeeSummaryTemplate, { modalDialogClass: 'modal-xl' });
       }
@@ -3229,7 +3331,7 @@ capitalizeFirstLetter(text: string) {
         this.page = 1;
         this.modalTitle = `Employee(s) ${name} in ${category} ${this.selectedYear}`;
 
-        if (name === 'Resigned') {
+        if (name === 'Resigned' || name === 'resign') {
           modalTableList = modalTableList.filter(emp => emp.employmentstatus === 'InActive');
         }
 
@@ -3567,6 +3669,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
               employeeCount: 0,
               apprenticeCount: 0,
               consultantCount: 0,
+              ApmosysProductConsultantCount: 0,
               ApmosysProductCount: 0
             };
           }
@@ -3577,6 +3680,8 @@ private getDepartmentIdsByName(deptName: string): number[] {
             departmentMap[departmentName].apprenticeCount += count;
           } else if (type === "Consultant") {
             departmentMap[departmentName].consultantCount += count;
+          } else if (type === "ApmosysProductConsultant") {
+            departmentMap[departmentName].ApmosysProductConsultantCount += count;
           } else if (type === "ApmosysProduct") {
             departmentMap[departmentName].ApmosysProductCount += count;
           }
@@ -3592,6 +3697,7 @@ private getDepartmentIdsByName(deptName: string): number[] {
             dept.employeeCount,
             dept.apprenticeCount,
             dept.consultantCount,
+            dept.ApmosysProductConsultantCount,
             dept.ApmosysProductCount
           ]
         }));
@@ -3977,6 +4083,11 @@ openLeaveAnalysisTableModel(date: string, leaveType: string, value: number) {
 
                 this.modalTitle = `${leaveType} Details - ${moment(date, 'MMM DD').format('MMM DD, YYYY')}`;
                 this.modalSummaryList = detailedLeaveData;
+                this.modalSummaryList.forEach((emp: any) => {
+                  if (emp.employeeType) {
+                    emp.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(emp.employeeType);
+                  }
+                });
 
                 this.modalRef = this.modalService.open(this.leaveSummaryTemplate, { modalDialogClass: 'modal-xl' });
             } else {

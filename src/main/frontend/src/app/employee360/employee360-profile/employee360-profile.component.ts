@@ -37,6 +37,7 @@ import { Skills } from 'src/app/models/skills';
 import { Certificate } from 'src/app/models/certificate';
 import { EncryptionService } from 'src/app/services/EncryptionService';
 import { ExportExcelService } from 'src/app/services/export-excel.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 @Component({
   standalone: false,
   selector: 'app-employee360-profile',
@@ -139,6 +140,7 @@ export class Employee360ProfileComponent implements OnInit {
     private cdr: ChangeDetectorRef,
     private encryptionService: EncryptionService,
     private exportExcelService: ExportExcelService,
+    private employeeIdUtilService: EmployeeIdUtilService,
 
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
@@ -271,9 +273,13 @@ export class Employee360ProfileComponent implements OnInit {
 
   getEmpIdPrefix(employeeType: string): string {
     switch (employeeType) {
+      case 'Apmosys Product Consultant':
+      case 'ApMoSys Product Consultant':
+        return 'APCS-';
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
+      case 'ApMoSys Product':
         return 'AP-';
       default:
         return 'A-';
@@ -925,7 +931,8 @@ export class Employee360ProfileComponent implements OnInit {
     this.updatedPreviousEmployment = [];
 
     // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
-    employee.employeementId = this.employeeData.employeementId?.substring(2);
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(
+      employee.employeementId ?? this.employeeData.employeementId);
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -943,14 +950,11 @@ export class Employee360ProfileComponent implements OnInit {
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isConsultant == 'true')
-          this.employeeObj.employeeType = 'Consultant';
-        else if (this.employeeObj.isApprenticeship == 'true')
-          this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true')
-          this.employeeObj.employeeType = 'Apmosys Product'
-        else
-          this.employeeObj.employeeType = 'Regular';
+        this.employeeObj.employeeType = this.employeeIdUtilService.resolveEmployeeType(
+          this.employeeObj.isApmosysProduct, this.employeeObj.isConsultant, this.employeeObj.isApprenticeship);
+        this.employeeObj.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(this.employeeObj.employeeType);
+        this.employeeIdUtilService.applyEmployeeDisplayFields(this.employeeObj);
+        this.employeeObj.employeementId = this.employeeObj.employmentIdAcToET ?? this.employeeObj.employeementId;
 
         console.log("employee :", this.employeeObj);
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
@@ -972,19 +976,41 @@ export class Employee360ProfileComponent implements OnInit {
       case 'Regular':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Consultant':
         this.employeeObj.isConsultant = 'true';
         this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'false';
         break;
       case 'Apprentice':
         this.employeeObj.isConsultant = 'false';
         this.employeeObj.isApprenticeship = 'true';
+        this.employeeObj.isApmosysProduct = 'false';
+        break;
+      case 'Apmosys Product':
+        this.employeeObj.isConsultant = 'false';
+        this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'true';
+        break;
+      case 'Apmosys Product Consultant':
+        this.employeeObj.isConsultant = 'true';
+        this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'true';
         break;
       default:
         this.employeeObj.isConsultant = null;
         this.employeeObj.isApprenticeship = null;
+        this.employeeObj.isApmosysProduct = null;
     }
+  }
+
+  displayEmploymentId(employee: Employee): string {
+    return this.employeeIdUtilService.generateEmploymentId(
+      employee?.employeementId,
+      employee?.isApmosysProduct,
+      employee?.isConsultant
+    ) ?? '';
   }
 
 
@@ -1021,50 +1047,26 @@ export class Employee360ProfileComponent implements OnInit {
     let employee = new Employee();
     employee.empId = this.employeeObj.empId;
     employee.email = this.employeeObj.email;
+    employee.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj.employeementId);
 
-    console.log("employeeid with space", this.employeeObj.employeementId);
-
-    if (this.employeeObj.employeementId.startsWith('A-')) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        // this.employeeObj.employeementId = 'A-'+this.employeeObj.employeementId;
-        return false;
-      }
-      // employee.employeementId  = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
-    } else if (this.employeeObj.employeementId.startsWith('A-')) {
-      if (!this.validationService.validateNullUndefinedEmptyString(this.employeeObj.employeementId)) {
-        this.alertMessage = "Please enter Employee ID !!"
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-      employee.employeementId = this.employeeObj.employeementId.substring(2);
-      console.log("Employee :", this.employeeObj);
+    if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
+      this.alertMessage = "Please enter Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
-    else {
-      employee.employeementId = this.employeeObj.employeementId
-      if (!this.validationService.validateNullUndefinedEmptyString(employee.employeementId)) {
-        this.alertMessage = "Please enter Employment ID !!";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
-
-      if (!this.validationService.validateEmployeementId(employee.employeementId)) {
-        console.log("employeementid please enter valid employmentid", employee.employeementId, this.employeeObj.employeementId);
-        this.alertMessage = "Please enter valid Employment ID !!";
-        this.openAlertMod(template, this.alertMessage);
-        return false;
-      }
+    if (!this.validationService.validateEmployeementId(employee.employeementId)) {
+      this.alertMessage = "Please enter valid Employment ID !!";
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
+
     this.employeeService.checkEmployeementId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Fail") {
         this.openAlertMod(template, response.serviceResponse);
         employee.employeementId = '';
       }
-      this.employeeObj.employeementId = 'A-' + this.employeeObj.employeementId;
-      console.log("checkEmployeementId response: ", response);
+      this.employeeObj.employeementId = this.employeeIdUtilService.generateEmploymentId(
+        employee.employeementId, this.employeeObj.isApmosysProduct, this.employeeObj.isConsultant);
     });
   }
 
@@ -1149,8 +1151,8 @@ export class Employee360ProfileComponent implements OnInit {
   checkEmail(template: TemplateRef<any>) {
 
     let employee = new Employee();
-    // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
-    employee.employeementId = this.employeeObj.employeementId.substring(2);
+    employee.employeementId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId)
+      ?? this.employeeObj.employeementId;
     console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -1162,7 +1164,7 @@ export class Employee360ProfileComponent implements OnInit {
     }
 
     if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
-      this.alertMessage = "Please Enter Valid Email ID !!"
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(this.employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
       return false;
@@ -1594,6 +1596,13 @@ export class Employee360ProfileComponent implements OnInit {
       this.alertMessage = "Please enter valid email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.secondaryEmail)) {
@@ -1845,10 +1854,7 @@ if (this.deptSelected) {
     if(this.employeeObj.employmentstatus == "InActive") {
       this.reporteeList = [];
       this.reporteeList2= [];
-      let id1 = this.employeeObj?.employeementId;
-      if (typeof id1 ==="string" && id1.startsWith("A-")) {
-        this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-      }
+      this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj?.employeementId);
 
       console.log("employment id", this.employeeObj.employeementId);
 
@@ -1916,7 +1922,11 @@ if (this.deptSelected) {
 
     console.log("employee update before call ", employee);
 
-    if (this.employeeObj.employeeType === 'Consultant') {
+    if (this.employeeObj.employeeType === 'Apmosys Product Consultant') {
+      employee.isConsultant = 'true';
+      employee.isApprenticeship = 'false';
+      employee.isApmosysProduct = 'true';
+    } else if (this.employeeObj.employeeType === 'Consultant') {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
       employee.isApmosysProduct = 'false';
@@ -1935,6 +1945,11 @@ if (this.deptSelected) {
     }
 
     employee.onbenchDate = this.billableBenchDate;
+
+    const apiEmploymentId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
+    if (apiEmploymentId != null) {
+      employee.employeementId = apiEmploymentId;
+    }
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -1969,10 +1984,7 @@ if (this.deptSelected) {
     console.log(" empId in manager UI change ", this.employeeObj.name);
 
     console.log("Emplloyeement Id is", this.employeeObj.employeementId);
-    let id = this.employeeObj?.employeementId;
-    if (typeof id === "string" && id?.startsWith("A-")) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-    }
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj?.employeementId);
 
     console.log("employment id", this.employeeObj.employeementId);
     this.employeeService.getReporteesListByManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -1990,10 +2002,7 @@ if (this.deptSelected) {
     this.reporteeList2 = [];
     console.log(" empId in manager UI change ", this.employeeObj.name);
 
-    const id = this.employeeObj?.employeementId;
-    if (typeof id === "string" && id?.startsWith("A-")) {
-      this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
-    }
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeObj?.employeementId);
 
     console.log("employment id", this.employeeObj.employeementId);
     this.employeeService.getReporteesListByReportingManagerId(this.employeeObj).pipe(first()).subscribe((response: any) => {
@@ -2248,7 +2257,7 @@ if (this.deptSelected) {
     // }
 
     // employee.employeementId = this.employeeData.employeementId?.substring(2);
-    this.employeeObj.employeementId = this.employeeData.employeementId?.substring(2);
+    this.employeeObj.employeementId = this.utilityService.stripEmploymentIdPrefix(this.employeeData.employeementId);
     this.employeeService.getAllEmployeesByRole(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;

@@ -22,6 +22,7 @@ import { HelpService } from 'src/app/services/help.service';
 import { HolidayService } from 'src/app/services/holiday.service';
 import { PortalService } from 'src/app/services/portal.service';
 import { ValidationService } from 'src/app/services/validation.service';
+import { UtilityService } from 'src/app/services/utility.service';
 
 
 
@@ -131,7 +132,8 @@ export class AppreciationComponent implements OnInit {
     private helpService: HelpService,
     private datePipe: DatePipe,
     private clipboardService: ClipboardService,
-    private holidayService: HolidayService,) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
+    private holidayService: HolidayService,
+    private utilityService: UtilityService,) { this.authenticationService.currentUser.subscribe(x => this.currentUser = x); }
 
   ngOnInit(): void {
     // Dynamic Subfeature Flags
@@ -476,7 +478,8 @@ export class AppreciationComponent implements OnInit {
         this.allEmployeeList = response.serviceResponse;
         // this.allEmployeeList = this.allEmployeeList.filter(x => x.employmentstatus != 'InActive');
         this.allEmployeeList.forEach((employee) => {
-          employee.employeementId = "A-".concat(employee.employeementId)
+          this.utilityService.applyEmployeeDisplayFields(employee);
+          employee.employeementId = employee.employmentIdAcToET ?? employee.employeementId
         });
         //console.log("allEmployeeList : ", this.allEmployeeList);
       } else {
@@ -760,7 +763,8 @@ export class AppreciationComponent implements OnInit {
             this.openAlertMod(template, "No Data found")
           }
           this.allEmployeeList.forEach(employee => {
-            employee.employeementId = "A-".concat(employee.employeementId);
+            this.utilityService.applyEmployeeDisplayFields(employee);
+          employee.employeementId = employee.employmentIdAcToET ?? employee.employeementId;
           });
           //console.log("allEmployeeList : ", this.allEmployeeList)
         } else {

@@ -1048,13 +1048,11 @@ public class EmployeeCustomRepository {
     private void appendPrefixToEmploymentId(List<EmployeeDetailsDTO> results) {
         for (EmployeeDetailsDTO dto : results) {
             String employmentId = dto.getEmployeementId() != null ? dto.getEmployeementId().toString() : null;
-            if (employmentId == null)
+            if (employmentId == null) {
                 continue;
-            String prefix = "A-";
-            if ("true".equalsIgnoreCase(dto.getIsApmosysProduct())) {
-                prefix = "AP-";
             }
-            dto.setEmploymentIdAcToET(prefix + employmentId);
+            dto.setEmploymentIdAcToET(com.apmosys.employeeportal.util.EmployeeEmploymentIdUtil.formatEmploymentId(
+                    employmentId, dto.getIsConsultant(), dto.getIsApmosysProduct()));
         }
     }
 

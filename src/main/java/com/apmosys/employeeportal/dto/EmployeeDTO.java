@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.apmosys.employeeportal.model.Notification;
+import com.apmosys.employeeportal.util.PrefixedEmploymentIdDeserializer;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.time.LocalDate;
 
@@ -92,6 +94,7 @@ public class EmployeeDTO {
 
 	private Long empId;
 
+	@JsonDeserialize(using = PrefixedEmploymentIdDeserializer.class)
 	private Long employeementId;
 	private Long draftEmpId;
 	private String name;
@@ -394,6 +397,7 @@ public class EmployeeDTO {
 	private String sortColumn;
 	private String sortDirection;
 	private Map<String, String> filters;
+	@JsonDeserialize(using = PrefixedEmploymentIdDeserializer.class)
 	private Long oldEmployeementId;
 	private String oldEmployeeType;
 	private List<EmployeeSkillProficiencyDTO> employeeSkills;

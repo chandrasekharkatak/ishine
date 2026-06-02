@@ -4,6 +4,7 @@ import { Query } from 'src/app/models/query';
 import { User } from 'src/app/models/user';
 import { AuthenticationService } from 'src/app/services/authentication.service';
 import { LeaveService } from 'src/app/services/leave.service';
+import { EmployeeIdUtilService } from 'src/app/services/employee-id-util.service';
 import { debounceTime } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
 class Operator {
@@ -51,7 +52,8 @@ export class CustomFilterComponent implements OnInit {
 
   constructor(
     private authenticationService: AuthenticationService,
-    private leaveService: LeaveService
+    private leaveService: LeaveService,
+    private employeeIdUtilService: EmployeeIdUtilService
   ) {
     this.authenticationService.currentUser.subscribe(x => this.currentUser = x);
   }
@@ -89,7 +91,14 @@ export class CustomFilterComponent implements OnInit {
     this.leaveService.getValueOptionData(queryObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         const data = response.serviceResponse || [];
-        queryObjTemp.valueOptionList = [...new Map(data?.map(item => [item.name, item])).values()];
+        const column = queryObjTemp?.column;
+        queryObjTemp.valueOptionList = [...new Map(data?.map((item: any) => {
+          let name = item?.name;
+          if (column === 'employeeType' || column === 'Employee Type') {
+            name = this.employeeIdUtilService.formatEmployeeTypeLabel(name);
+          }
+          return [name, { name }];
+        })).values()];
       } else {
       }
     });

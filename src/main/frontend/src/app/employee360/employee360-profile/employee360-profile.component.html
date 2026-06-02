@@ -85,12 +85,7 @@
                                             <p class="info-label">Employee Id</p>
                                             <!-- <p class="info-text info-highlight">A-{{currentEmployeeInfo.employeementId}}</p> -->
                                             <!-- <p class="info-text info-highlight">{{ currentEmployeeInfo.isConsultant === 'true' ? 'A-CS-' : 'A-' }}{{currentEmployeeInfo.employeementId}}</p>                                               -->
-                                            <p class="info-text info-highlight">
-                                               {{
-                                        currentEmployeeInfo.isApmosysProduct === 'true'
-                                        ? ('AP-' + currentEmployeeInfo.employeementId)
-                                        : 'A-' + currentEmployeeInfo.employeementId
-                                        }}</p>
+                                            <p class="info-text info-highlight">{{ displayEmploymentId(currentEmployeeInfo) }}</p>
                                         </div>
                                     </div>
                                     <div class="col-md-4 mb-0">
@@ -964,6 +959,7 @@
                                                     <option value="Consultant">Consultant</option>
                                                     <option value="Apprentice">Apprentice</option>
                                                     <option value="Apmosys Product">Apmosys Product</option>
+                                                    <option value="Apmosys Product Consultant">Apmosys Product Consultant</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -998,7 +994,7 @@
                                                 </label>
                                                 <div class="input-group">
                                                     <div class="input-group-prepend">
-                                                        <span class="input-group-text">
+                                                        <span class="input-group-text" style="min-width: 3.5rem;">
                                                             {{ getEmpIdPrefix(employeeObj.employeeType) }}
                                                         </span>
                                                     </div>

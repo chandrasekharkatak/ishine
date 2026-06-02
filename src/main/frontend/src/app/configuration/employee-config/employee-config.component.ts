@@ -1245,14 +1245,16 @@ storePreviousStatus(){
     this.updatedCertificationList = [];
     this.updatedPreviousEmployment = [];
 
-    // employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant,employee.employeementId);
-    employee.employeementId = employee.employeementId?.substring(2)
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
 
     this.employeeService.getEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
 
         this.employeeObj = Object.assign({}, response.serviceResponse);
         this.employeeObj.reportiesFlag = 'No';
+        this.employeeObj.oldEmployeementId = this.employeeIdUtilService.toApiEmploymentId(
+          this.employeeObj.employeementId) ?? this.employeeObj.employeementId;
+        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         if (this.employeeObj.domainList != null) {
           this.getDomainSpecialization();
         }
@@ -1267,22 +1269,11 @@ storePreviousStatus(){
         //   this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
         // }
         // this.employeeObj.employeementId = "A-".concat(this.employeeObj.employeementId);
-        if (this.employeeObj.isConsultant == 'true') {
-          this.employeeObj.employeeType = 'Consultant';
-          this.isConsultant = true;
-        }
-        else if (this.employeeObj.isApprenticeship == 'true')
-          this.employeeObj.employeeType = 'Apprentice';
-        else if (this.employeeObj.isApmosysProduct == 'true') {
-          this.employeeObj.employeeType = 'Apmosys Product';
-          this.isApmosysProductUpdate = true;
-        }
-        else
-          this.employeeObj.employeeType = 'Regular';
+        this.applyEmployeeTypeFromFlags(this.employeeObj);
+        // this.employeeIdUtilService.applyEmployeeDisplayFields(this.employeeObj);
+        this.employeeObj.employeementId = this.employeeObj.employeementId ?? this.employeeObj.employeementId;
 
         console.log("employee :", this.employeeObj);
-        this.employeeObj.oldEmployeementId = this.employeeObj.employeementId;
-        this.employeeObj.oldEmployeeType = this.employeeObj.employeeType;
         // employee.employeementId = this.utilityService.appendEmployeementid(employee.employeementId);
         // Job Role
         if (this.employeeObj.departmentId) {
@@ -1311,7 +1302,7 @@ storePreviousStatus(){
     this.getAllDepartmentList();
     this.getAllDomain();
 
-    employee.employeementId = this.utilityService.substringEmployeementid(employee.isConsultant, employee.employeementId);
+    employee.employeementId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
     this.employeeService.getDraftEmployeeByEmpId(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.employeeObj = Object.assign({}, response.serviceResponse);
@@ -1512,6 +1503,13 @@ storePreviousStatus(){
       return false;
     } else if (!this.validationService.validateEmail(employeeObj.email)) {
       this.alertMessage = "Please enter valid email id !!"
+      this.openAlertMod(template, this.alertMessage);
+      return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       return false;
     }
@@ -2069,6 +2067,13 @@ storePreviousStatus(){
       this.alertMessage = "Please enter valid email id !!"
       this.openAlertMod(template, this.alertMessage);
       return false;
+    } else if (
+      (employeeObj.employeeType === 'Apmosys Product Consultant' || employeeObj.employeeType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(employeeObj.email, employeeObj.employeeType)
+    ) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(employeeObj.employeeType);
+      this.openAlertMod(template, this.alertMessage);
+      return false;
     }
 
     if (!this.validationService.validateNullUndefinedEmptyString(employeeObj.dateOfJoining)) {
@@ -2253,10 +2258,24 @@ storePreviousStatus(){
       case 'Consultant':
         return 'CS-';
       case 'Apmosys Product':
+      case 'ApMoSys Product':
         return 'AP-';
+      case 'Apmosys Product Consultant':
+      case 'ApMoSys Product Consultant':
+        return 'APCS-';
       default:
         return 'A-';
     }
+  }
+
+  applyEmployeeTypeFromFlags(employee: any): void {
+    employee.employeeType = this.employeeIdUtilService.resolveEmployeeType(
+      employee.isApmosysProduct,
+      employee.isConsultant,
+      employee.isApprenticeship
+    );
+    this.isConsultant = employee.isConsultant === 'true';
+    this.isApmosysProductUpdate = employee.isApmosysProduct === 'true';
   }
 
   checkEmployeementId(template: TemplateRef<any>) {
@@ -2369,8 +2388,8 @@ storePreviousStatus(){
   checkEmail(template: TemplateRef<any>) {
 
     let employee = new Employee();
-    // employee.employeementId = this.utilityService.getEmployeeIdSubstring(this.employeeObj);
-    employee.employeementId = this.employeeObj.employeementId.substring(2);
+    employee.employeementId = this.employeeIdUtilService.extractNumericId(this.employeeObj.employeementId)
+      ?? this.employeeObj.employeementId;
     console.error("employee.employeementId ", employee.employeementId);
     employee.email = this.employeeObj.email;
     employee.empId = this.employeeObj.empId;
@@ -2382,7 +2401,7 @@ storePreviousStatus(){
     }
 
     if (!this.validationService.validateApmosysEmail(this.employeeObj.email, this.employeeObj.employeeType)) {
-      this.alertMessage = "Please Enter Valid Email ID !!"
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(this.employeeObj.employeeType);
       this.openAlertMod(template, this.alertMessage);
       this.employeeObj.email = '';
       return false;
@@ -2661,7 +2680,11 @@ storePreviousStatus(){
 
     console.log("employee update before call ", employee);
 
-    if (this.employeeObj.employeeType === 'Consultant') {
+    if (this.employeeObj.employeeType === 'Apmosys Product Consultant') {
+      employee.isConsultant = 'true';
+      employee.isApprenticeship = 'false';
+      employee.isApmosysProduct = 'true';
+    } else if (this.employeeObj.employeeType === 'Consultant') {
       employee.isConsultant = 'true';
       employee.isApprenticeship = 'false';
       employee.isApmosysProduct = 'false';
@@ -2680,6 +2703,11 @@ storePreviousStatus(){
     }
 
     employee.onbenchDate = this.billableBenchDate;
+
+    const apiEmploymentId = this.employeeIdUtilService.toApiEmploymentId(employee.employeementId);
+    if (apiEmploymentId != null) {
+      employee.employeementId = apiEmploymentId;
+    }
 
     this.employeeService.updateEmployee(employee).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
@@ -2703,7 +2731,7 @@ storePreviousStatus(){
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.deleteEmployee(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -2895,21 +2923,19 @@ storePreviousStatus(){
           employeeObj.skillNames = skillNames;
           employeeObj.certificateNames = certificateNames;
 
-          employeeObj.employeementId = this.utilityService.appendEmployeementid(employeeObj.isConsultant, employeeObj.employeementId);
+          const formattedEmploymentId = this.employeeIdUtilService.generateEmploymentId(
+            employeeObj.employeementId, employeeObj.isApmosysProduct, employeeObj.isConsultant);
+          employeeObj.employmentIdAcToET = formattedEmploymentId;
           employeeObj.dateOfJoining = (employeeObj.dateOfJoining) ? moment(employeeObj.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.dateOfRelieving = (employeeObj.dateOfRelieving) ? moment(employeeObj.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
           employeeObj.updatedOn = (employeeObj.updatedOn) ? moment(employeeObj.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.createdOn = (employeeObj.createdOn) ? moment(employeeObj.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
           employeeObj.onRollDate = (employeeObj.onRollDate) ? moment(employeeObj.onRollDate).format(AppComponent.DATE_FORMAT) : null;
-          if (employeeObj.isConsultant == 'true')
-            employeeObj.employeeType = 'Consultant';
-          else if (employeeObj.isApprenticeship == 'true')
-            employeeObj.employeeType = 'Apprentice';
-          else if (employeeObj.isApmosysProduct == 'true')
-            employeeObj.employeeType = 'Apmosys Product';
-
-          else
+          employeeObj.employeeType = this.employeeIdUtilService.resolveEmployeeType(
+            employeeObj.isApmosysProduct, employeeObj.isConsultant, employeeObj.isApprenticeship);
+          if (employeeObj.employeeType === 'Regular') {
             employeeObj.employeeType = 'On roll';
+          }
 
           // Calculate days_left_for_full_time
           this.calculateDaysLeftForFullTime(employeeObj);
@@ -2994,16 +3020,11 @@ storePreviousStatus(){
   exportToExcel(): void {
     const onlySpecificDataArr = this.allEmployeeList.map(
       x => ({
-        "EmployeeId": x.employmentIdAcToET,
-        // "EmployeeId":(x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId,
-        "Employee Type":
-          x.isApmosysProduct === 'true'
-            ? 'Apmosys Product'
-            : x.isApprenticeship === 'true'
-              ? 'Apprentice'
-              : x.isConsultant === 'true'
-                ? 'Consultant'
-                : 'On roll',
+        "EmployeeId": this.utilityService.formatEmploymentIdForExport(x),
+        "Employee Type": (() => {
+          const label = this.employeeIdUtilService.formatEmployeeTypeLabel(x);
+          return label === 'Regular' ? 'On roll' : label;
+        })(),
         "Full Name": x.name,
         "EmailId": x.email,
         "Employment Status": x.employmentstatus,
@@ -3100,7 +3121,7 @@ storePreviousStatus(){
     // }else{
     //   this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2)
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.getAllEmployeesByRoleForManager(employeeObjManager).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         employeeList = response.serviceResponse;
@@ -3312,18 +3333,14 @@ storePreviousStatus(){
       if (response.serviceStatus == "Success") {
         this.allEmployeeList = response.serviceResponse;
         for (let x of this.allEmployeeList) {
-          x.employeementId = x.employmentIdAcToET;
-          // x.employeementId = (x.isConsultant === 'true' ? 'A-CS-' : 'A-') + x.employeementId;
+          x.employmentIdAcToET = x.employmentIdAcToET ?? this.employeeIdUtilService.generateEmploymentId(
+            x.employeementId, x.isApmosysProduct, x.isConsultant);
           x.dateOfJoining = (x.dateOfJoining) ? moment(x.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
           x.dateOfRelieving = (x.dateOfRelieving) ? moment(x.dateOfRelieving).format(AppComponent.DATE_FORMAT) : null;
-          if (x.isConsultant == 'true')
-            x.employeeType = 'Consultant';
-          else if (x.isApprenticeship == 'true')
-            x.employeeType = 'Apprentice';
-          else if (x.isApmosysProduct == 'true')
-            x.employeeType = 'Apmosys Product';
-          else
+          this.employeeIdUtilService.applyEmployeeDisplayFields(x);
+          if (x.employeeType === 'Regular') {
             x.employeeType = 'On roll';
+          }
         }
         this.allEmployeeList.forEach(draftemp => {
           draftemp.emp360 = draftemp.empId;
@@ -3587,6 +3604,11 @@ resetDefaultProjectFields() {
     this.cancelApplication();
     this.employeeObj.updateApplicationStatus = 'Approved';
     this.employeeObj.updatedBy = this.currentUser.empId;
+    if (!this.employeeObj.draftEmpId && this.employeeObj.empId) {
+      this.employeeObj.draftEmpId = this.employeeObj.empId;
+    }
+    this.employeeObj.empId = null;
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     if (this.employeeObj.documentList) {
       this.employeeObj.documentList.forEach((doc: Document) => doc.documentBytes = null);
     }
@@ -3612,7 +3634,7 @@ resetDefaultProjectFields() {
     // }else{
     //   currentEmp.employeementId = employeeObj.employeementId.substring(2);
     // }
-    currentEmp.employeementId = employeeObj.employeementId.substring(2);
+    currentEmp.employeementId = this.employeeIdUtilService.toApiEmploymentId(employeeObj.employeementId);
 
     console.log("employment id : ", currentEmp);
 
@@ -3665,7 +3687,7 @@ resetDefaultProjectFields() {
     // }else{
     // currentEmp.employeementId = currentEmp.employeementId?.substring(2);
     // }
-    currentEmp.employeementId = currentEmp.employeementId?.substring(2);
+    currentEmp.employeementId = this.employeeIdUtilService.toApiEmploymentId(employeeObj.employeementId);
     currentEmp.empId = employeeObj.empId;
     currentEmp.isDraft = false;
 
@@ -4331,14 +4353,11 @@ resetDefaultProjectFields() {
             employee.dateOfJoining = (employee.dateOfJoining) ? moment(employee.dateOfJoining).format(AppComponent.DATE_FORMAT) : null;
             employee.createdOn = (employee.createdOn) ? moment(employee.createdOn).format(AppComponent.DATETIME_FORMAT) : null;
             employee.updatedOn = (employee.updatedOn) ? moment(employee.updatedOn).format(AppComponent.DATETIME_FORMAT) : null;
-            if (employee.isConsultant == 'true')
-              employee.employeeType = 'Consultant';
-            else if (employee.isApprenticeship == 'true')
-              employee.employeeType = 'Apprentice';
-            else if (employee.isApmosysProduct == 'true')
-              employee.employeeType = 'Apmosys Product';
-            else
+            employee.employeeType = this.employeeIdUtilService.formatEmployeeTypeLabel(employee);
+            if (employee.employeeType === 'Regular') {
               employee.employeeType = 'On roll';
+            }
+            employee.employmentIdAcToET = employee.employeementId;
           });
           console.log("allEmployeeList : ", this.allEmployeeList)
         } else {
@@ -4486,7 +4505,7 @@ resetDefaultProjectFields() {
     // }else {
     //   this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
     // }
-    this.employeeObj.employeementId = this.employeeObj.employeementId.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
     this.employeeService.revokeAccount(this.employeeObj).pipe(first()).subscribe((response: any) => {
       if (response.serviceStatus == "Success") {
         this.openAlertMod(template, response.serviceResponse);
@@ -4974,6 +4993,11 @@ resetDefaultProjectFields() {
         this.employeeObj.isApprenticeship = 'false';
         this.employeeObj.isApmosysProduct = 'true';
         break;
+      case 'Apmosys Product Consultant':
+        this.employeeObj.isConsultant = 'true';
+        this.employeeObj.isApprenticeship = 'false';
+        this.employeeObj.isApmosysProduct = 'true';
+        break;
       default:
         this.employeeObj.isConsultant = null;
         this.employeeObj.isApprenticeship = null;
@@ -4986,6 +5010,13 @@ resetDefaultProjectFields() {
     else if (this.isUpdation) {
       this.isEmployeementTypeChanged=true;
       this.checkEmployeementIdWithDifferentPrefix(template);
+    }
+
+    if (this.employeeObj.email?.trim()
+      && (selectedType === 'Apmosys Product Consultant' || selectedType === 'Apmosys Product')
+      && !this.validationService.validateApmosysEmail(this.employeeObj.email, selectedType)) {
+      this.alertMessage = this.validationService.getApmosysEmailValidationMessage(selectedType);
+      this.openAlertMod(template, this.alertMessage);
     }
 
   }
@@ -5193,7 +5224,7 @@ resetDefaultProjectFields() {
 
   //added to optimize the code featch managerlist at a time and overcome from undefied employee onject
   loadManagerList(): void {
-    this.employeeObj.employeementId = this.employeeObj.employeementId?.substring(2);
+    this.employeeObj.employeementId = this.employeeIdUtilService.toApiEmploymentId(this.employeeObj.employeementId);
 
     let employeeObjManager: Partial<Employee> = {
       role: "Manager"
