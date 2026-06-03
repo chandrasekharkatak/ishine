@@ -2265,7 +2265,6 @@ public class PerformanceService {
 				employeePerformanceDetails.setHr_id(employeePerformanceDTO.getHrId());
 				employeePerformanceDetails.setHr_remarks(employeePerformanceDTO.getHrRemark());
 				employeePerformanceDetails.setHr_review_date(LocalDateTime.now());
-				employeePerformanceDetails.setHod_remarks(employeePerformanceDTO.getHodRemarks());
 				// Draft HR update: do not set Completed — only submitEmployeePerformanceHR / bulk HR accept does.
 				String hrSt = employeePerformanceDTO.getHrReviewStatus();
 				if (hrSt != null && "Accepted".equalsIgnoreCase(hrSt.trim())) {
