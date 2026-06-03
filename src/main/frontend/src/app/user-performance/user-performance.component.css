@@ -588,10 +588,328 @@ td {
     padding: 20px 24px;
     margin-bottom: 20px;
 }
+.appraisal-summary-grid {
+    display: grid;
+    grid-template-columns: minmax(360px, 420px) 1fr;
+    gap: 16px;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+.appraisal-summary-title.section-card-title {
+    margin: 0 0 14px 0;
+    padding: 0;
+    line-height: 1.3;
+    align-items: center;
+}
+.appraisal-summary-title .section-card-title-bar {
+    height: 22px;
+    align-self: center;
+    flex-shrink: 0;
+}
+.appraisal-left-card {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+}
+.appraisal-right-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 16px 16px 16px;
+    display: flex;
+    flex-direction: column;
+}
+.appraisal-right-card .role-appraisal-section--in-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.role-appraisal-section--in-card {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+.role-appraisal-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e8ecf4;
+}
+.role-appraisal-section-head {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 20px;
+    margin-bottom: 18px;
+}
+.role-appraisal-section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+.role-appraisal-employee-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+.role-appraisal-employee-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #193d8a;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.role-appraisal-employee-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+.role-appraisal-employee-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.role-appraisal-employee-id {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+.role-appraisal-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #64748b;
+    padding: 28px 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+.role-appraisal-cards-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(240px, 1fr));
+    gap: 12px;
+}
+.role-appraisal-card {
+    border: 1px solid #e8ecf4;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.role-appraisal-card:hover {
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+.role-appraisal-card--manager { border-top: 4px solid #2563eb; }
+.role-appraisal-card--hod { border-top: 4px solid #7c3aed; }
+.role-appraisal-card--hr { border-top: 4px solid #059669; }
+.role-appraisal-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px 0;
+}
+.role-appraisal-role-badge {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+.role-appraisal-role-badge--manager {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+.role-appraisal-role-badge--hod {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+.role-appraisal-role-badge--hr {
+    background: #d1fae5;
+    color: #047857;
+}
+.role-appraisal-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.role-appraisal-card-body {
+    padding: 10px 12px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+.role-appraisal-rating-block {
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+}
+.role-appraisal-rating-score {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-bottom: 8px;
+}
+.role-appraisal-rating-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+.role-appraisal-rating-max {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+}
+.role-appraisal-rating-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.role-appraisal-stars {
+    display: inline-flex;
+    gap: 2px;
+    font-size: 12px;
+}
+.role-appraisal-stars .fa-star.fas { color: #f59e0b; }
+.role-appraisal-stars .fa-star.far { color: #e2e8f0; }
+.role-appraisal-category-pill {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    color: #fff;
+    letter-spacing: 0.02em;
+}
+.role-appraisal-rater-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1px dashed #e2e8f0;
+    border-radius: 8px;
+}
+.role-appraisal-rater-icon {
+    color: #64748b;
+    font-size: 14px;
+    margin-top: 2px;
+}
+.role-appraisal-rater-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 2px;
+}
+.role-appraisal-rater-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+}
+.role-appraisal-feedback-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+.role-appraisal-feedback-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    margin-bottom: 6px;
+}
+.role-appraisal-feedback-label i {
+    font-size: 11px;
+    color: #94a3b8;
+}
+.role-appraisal-feedback {
+    margin: 0;
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #334155;
+    background: #f8fafc;
+    border-left: 3px solid #cbd5e1;
+    border-radius: 0 8px 8px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 72px;
+    overflow-y: auto;
+}
+.role-appraisal-feedback--empty {
+    color: #94a3b8;
+    font-style: italic;
+    border-left-color: #e2e8f0;
+}
+.role-appraisal-card--manager .role-appraisal-feedback { border-left-color: #2563eb; }
+.role-appraisal-card--hod .role-appraisal-feedback { border-left-color: #7c3aed; }
+.role-appraisal-card--hr .role-appraisal-feedback { border-left-color: #059669; }
+@media (max-width: 1100px) {
+    .role-appraisal-cards-row { grid-template-columns: 1fr; }
+    .role-appraisal-section-head { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 1280px) {
+    /* Keep 3 cards in one row on typical laptop widths by shrinking spacing. */
+    .role-appraisal-cards-row { gap: 10px; }
+    .role-appraisal-card-body { padding: 10px 10px 12px; }
+}
+
+@media (max-width: 1200px) {
+    .appraisal-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .appraisal-right-card {
+        padding: 14px;
+    }
+}
 .overall-rating-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
+}
+.overall-rating-grid--single {
+    grid-template-columns: 1fr;
+    gap: 16px;
 }
 .overall-rating-label { font-size: 12px; color: #6b7280; display: block; }
 .overall-rating-stars-wrap { display: flex; align-items: center; gap: 10px; margin-top: 4px; }

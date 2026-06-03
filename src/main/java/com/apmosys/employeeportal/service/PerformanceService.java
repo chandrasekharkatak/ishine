@@ -1208,14 +1208,19 @@ public class PerformanceService {
 			Object[] row = rows.get(0);
 			// Index: 0 manager_id, 1 manager_remarks, 2 final_rating, 3 manager_rating, 4 hod_rating, 5 hr_rating,
 			// 6 manager_name, 7 manager_employment_id, 8 hod_id, 9 hod_remarks, 10 hod_name, 11 hod_employment_id,
-			// 12 hr_id, 13 hr_remarks, 14 hr_name, 15 hr_employment_id
+			// 12 hr_id, 13 hr_remarks, 14 hr_name, 15 hr_employment_id,
+			// 16 manager_review_date, 17 hod_approval_date, 18 hod_rejected_date, 19 hr_review_date,
+			// 20 employee_name, 21 employee_employment_id
 			Map<String, Object> result = new HashMap<>();
+			result.put("employeeName", row[20] != null ? row[20].toString() : null);
+			result.put("employeeEmploymentId", row[21] != null ? row[21].toString() : null);
 			Map<String, Object> manager = new HashMap<>();
 			manager.put("name", row[6] != null ? row[6].toString() : null);
 			manager.put("id", row[0] != null ? Long.parseLong(row[0].toString()) : null);
 			manager.put("employmentId", row[7] != null ? row[7].toString() : null);
 			manager.put("rating", trimRating(row[3]));
 			manager.put("feedback", row[1] != null ? row[1].toString() : null);
+			manager.put("submittedOn", row[16] != null ? row[16].toString() : null);
 			manager.put("history", new ArrayList<Map<String, Object>>());
 			result.put("manager", manager);
 			Map<String, Object> hod = new HashMap<>();
@@ -1224,6 +1229,8 @@ public class PerformanceService {
 			hod.put("employmentId", row[11] != null ? row[11].toString() : null);
 			hod.put("rating", trimRating(row[4]));
 			hod.put("feedback", row[9] != null ? row[9].toString() : null);
+			hod.put("submittedOn", row[17] != null ? row[17].toString()
+					: (row[18] != null ? row[18].toString() : null));
 			hod.put("history", new ArrayList<Map<String, Object>>());
 			result.put("hod", hod);
 			Map<String, Object> hr = new HashMap<>();
@@ -1232,6 +1239,7 @@ public class PerformanceService {
 			hr.put("employmentId", row[15] != null ? row[15].toString() : null);
 			hr.put("rating", trimRating(row[5]));
 			hr.put("feedback", row[13] != null ? row[13].toString() : null);
+			hr.put("submittedOn", row[19] != null ? row[19].toString() : null);
 			hr.put("history", new ArrayList<Map<String, Object>>());
 			result.put("hr", hr);
 
@@ -1707,6 +1715,15 @@ public class PerformanceService {
 				}
 			}
 		}
+		java.util.Map<Long, Object[]> empIdToRoleExport = new java.util.HashMap<>();
+		List<Object[]> roleExportList = employeePerformanceRepository.findRoleRatingsAndRemarksByEmpIdForActiveQuarter();
+		if (roleExportList != null) {
+			for (Object[] row : roleExportList) {
+				if (row[0] != null) {
+					empIdToRoleExport.put(Long.parseLong(row[0].toString()), row);
+				}
+			}
+		}
 		List<PerformanceDTO> dtoList = new ArrayList<PerformanceDTO>();
 			if (currentStatus != null) {
 				currentStatus.forEach((object) -> {
@@ -1722,6 +1739,17 @@ public class PerformanceService {
 						performanceDTO.setManagerReviewStatus(empIdToManagerStatus.get(empId));
 						performanceDTO.setHodReviewStatus(empIdToHodStatus.get(empId));
 						performanceDTO.setHrReviewStatus(empIdToHrStatus.get(empId));
+						Object[] roleRow = empIdToRoleExport.get(empId);
+						if (roleRow != null) {
+							performanceDTO.setManagerRating(trimRating(roleRow[1]));
+							performanceDTO.setHodRating(trimRating(roleRow[2]));
+							performanceDTO.setHrRating(trimRating(roleRow[3]));
+							performanceDTO.setManagerRemarks(roleRow[4] != null ? roleRow[4].toString() : null);
+							performanceDTO.setHodRemarks(roleRow[5] != null ? roleRow[5].toString() : null);
+							performanceDTO.setHrRemarks(roleRow[6] != null ? roleRow[6].toString() : null);
+							performanceDTO.setPerformanceManagerName(roleRow[7] != null ? roleRow[7].toString() : null);
+							performanceDTO.setPerformanceHrName(roleRow[8] != null ? roleRow[8].toString() : null);
+						}
 					}
 					
 					dtoList.add(performanceDTO);
@@ -1866,7 +1894,7 @@ public class PerformanceService {
 					performanceDetails.setEmploymentstatus(object[3] != null ? object[3].toString() : null);
 					performanceDetails.setName(object[4] != null ? object[4].toString() : null);
 					performanceDetails.setDepartmentName(object[5] != null ? object[5].toString() : null);
-					performanceDetails.setManagerName(object[6] != null ? object[6].toString() : null);
+					String orgManagerName = object[6] != null ? object[6].toString() : null;
 					performanceDetails.setBillable(object[7] != null ? (object[7].toString()) : null);
 					performanceDetails
 							.setTotalExperience(object[8] != null ? Float.parseFloat(object[8].toString()) : null);
@@ -1881,6 +1909,14 @@ public class PerformanceService {
 					performanceDetails.setFinalRating(object[16] != null ? object[16].toString() : null);
 					performanceDetails.setHrRemarks(object[17] != null ? object[17].toString() : null);
 					performanceDetails.setHrReviewStatus(object[18] != null ? object[18].toString() : null);
+					performanceDetails.setManagerRemarks(object[19] != null ? object[19].toString() : null);
+					performanceDetails.setManagerRating(object[20] != null ? trimRating(object[20]) : null);
+					performanceDetails.setHodRating(object[21] != null ? trimRating(object[21]) : null);
+					performanceDetails.setHrRating(object[22] != null ? trimRating(object[22]) : null);
+					String perfManagerName = object.length > 23 && object[23] != null ? object[23].toString() : null;
+					performanceDetails.setManagerName(
+							perfManagerName != null && !perfManagerName.trim().isEmpty() ? perfManagerName : orgManagerName);
+					performanceDetails.setHrName(object.length > 24 && object[24] != null ? object[24].toString() : null);
 
 					performance.add(performanceDetails);
 
