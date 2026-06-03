@@ -4151,7 +4151,7 @@ async getLastThreeMonthsWorkingDates() {
 
           const data = response.serviceResponse;
           this.timesheetLocations.forEach(loc => {
-            loc.projects =  loc.projects.filter(project => project.projectId !== null)
+            loc.projects =  loc.projects.filter(project => project.projectId !== null && project.clientId !== null && project.clientLocationId !== null);
           })
           this.timesheetLocations.forEach(loc => {
            const project = this.createProject(null, null);
