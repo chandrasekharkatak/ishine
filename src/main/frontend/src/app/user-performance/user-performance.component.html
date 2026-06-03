@@ -769,28 +769,92 @@
                 </table>
               </div>
 
-              <!-- Overall Rating Summary: calculated from criteria ratings in the table above (updates as you rate) -->
-              <div class="overall-rating-summary">
-                <h3 class="section-card-title"><span class="section-card-title-bar"></span> Overall Rating Summary</h3>
-                <div class="overall-rating-grid">
-                  <div class="overall-rating-left">
-                    <span class="overall-rating-label">Average Rating</span>
-                    <div class="overall-rating-stars-wrap">
-                      <span class="overall-rating-stars">
-                        <i *ngFor="let s of [1,2,3,4,5]" class="fa-star" [class.fas]="s <= getFinalRatingStarsCount()" [class.far]="s > getFinalRatingStarsCount()"></i>
-                      </span>
-                      <span class="overall-rating-num">{{ getCriteriaSummaryLabel() }}</span>
-                    </div>
-                    <span class="overall-rating-label mt-2">Performance Score: {{ getPerformanceScorePercent() }}%</span>
-                    <div class="overall-rating-progress">
-                      <div class="overall-rating-progress-fill" [style.width.%]="getPerformanceScorePercent()"></div>
+              <!-- Overall Rating Summary (left card) + Role-wise Appraisal Details (right card) -->
+              <div class="appraisal-summary-grid">
+                <div class="overall-rating-summary appraisal-left-card">
+                  <h3 class="section-card-title appraisal-summary-title">
+                    <span class="section-card-title-bar"></span> Overall Rating Summary
+                  </h3>
+                  <div class="overall-rating-grid overall-rating-grid--single">
+                    <div class="overall-rating-left">
+                      <span class="overall-rating-label">Average Rating</span>
+                      <div class="overall-rating-stars-wrap">
+                        <span class="overall-rating-stars">
+                          <i *ngFor="let s of [1,2,3,4,5]" class="fa-star" [class.fas]="s <= getFinalRatingStarsCount()" [class.far]="s > getFinalRatingStarsCount()"></i>
+                        </span>
+                        <span class="overall-rating-num">{{ getCriteriaSummaryLabel() }}</span>
+                      </div>
+                      <span class="overall-rating-label mt-2">Performance Score: {{ getPerformanceScorePercent() }}%</span>
+                      <div class="overall-rating-progress">
+                        <div class="overall-rating-progress-fill" [style.width.%]="getPerformanceScorePercent()"></div>
+                      </div>
+                      <div class="mt-3">
+                        <span class="overall-rating-label">Performance Category</span>
+                        <span class="overall-rating-badge">{{ getPerformanceCategory() }}</span>
+                      </div>
+                      <div class="mt-3">
+                        <span class="overall-rating-label">Final Rating</span>
+                        <span class="overall-rating-value">{{ getFinalRatingFormatted() }}</span>
+                      </div>
                     </div>
                   </div>
-                  <div class="overall-rating-right">
-                    <span class="overall-rating-label">Performance Category</span>
-                    <span class="overall-rating-badge">{{ getPerformanceCategory() }}</span>
-                    <span class="overall-rating-label mt-2">Final Rating</span>
-                    <span class="overall-rating-value">{{ getFinalRatingFormatted() }}</span>
+                </div>
+
+                <div class="appraisal-right-card">
+                  <h3 class="section-card-title appraisal-summary-title">
+                    <span class="section-card-title-bar"></span> Role-wise Appraisal Details
+                  </h3>
+                  <div class="role-appraisal-section role-appraisal-section--in-card">
+                    <div class="role-appraisal-loading" *ngIf="roleAppraisalLoading">
+                      <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+                      <span>Loading appraisal details...</span>
+                    </div>
+                    <div class="role-appraisal-cards-row" *ngIf="!roleAppraisalLoading && roleAppraisalDetails">
+                      <article class="role-appraisal-card role-appraisal-card--{{ cfg.accent }}"
+                        *ngFor="let cfg of roleAppraisalCardConfigs"
+                        [attr.aria-label]="cfg.title">
+                        <header class="role-appraisal-card-header">
+                          <span class="role-appraisal-role-badge" [ngClass]="'role-appraisal-role-badge--' + cfg.accent">
+                            <i class="fas" [ngClass]="cfg.icon"></i>
+                          </span>
+                          <span class="role-appraisal-card-title">{{ cfg.title }}</span>
+                        </header>
+                        <div class="role-appraisal-card-body">
+                          <div class="role-appraisal-rating-block">
+                            <div class="role-appraisal-rating-score">
+                              <span class="role-appraisal-rating-value">{{ getRoleAppraisalCard(cfg.key)?.rating }}</span>
+                              <span class="role-appraisal-rating-max" *ngIf="getRoleAppraisalCard(cfg.key)?.rating !== '—'">/ 5</span>
+                            </div>
+                            <div class="role-appraisal-rating-meta">
+                              <span class="role-appraisal-stars" [attr.aria-label]="'Rating ' + getRoleAppraisalCard(cfg.key)?.rating">
+                                <i *ngFor="let s of [1,2,3,4,5]" class="fa-star"
+                                  [class.fas]="s <= getRoleAppraisalRatingStars(cfg.key)"
+                                  [class.far]="s > getRoleAppraisalRatingStars(cfg.key)"></i>
+                              </span>
+                              <span class="role-appraisal-category-pill" *ngIf="getRoleAppraisalRatingCategory(cfg.key)">
+                                {{ getRoleAppraisalRatingCategory(cfg.key) }}
+                              </span>
+                            </div>
+                          </div>
+                          <div class="role-appraisal-rater-row">
+                            <i class="fas fa-user-check role-appraisal-rater-icon" aria-hidden="true"></i>
+                            <div>
+                              <span class="role-appraisal-rater-label">Reviewed by</span>
+                              <span class="role-appraisal-rater-name">{{ getRoleAppraisalCard(cfg.key)?.raterName }}</span>
+                            </div>
+                          </div>
+                          <div class="role-appraisal-feedback-block">
+                            <span class="role-appraisal-feedback-label">
+                              <i class="fas fa-comment-alt" aria-hidden="true"></i> Feedback
+                            </span>
+                            <p class="role-appraisal-feedback"
+                              [class.role-appraisal-feedback--empty]="getRoleAppraisalCard(cfg.key)?.feedback === '—'">
+                              {{ getRoleAppraisalCard(cfg.key)?.feedback }}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -808,14 +872,27 @@
                     placeholder="Enter remarks..."></textarea>
                   <span class="manager-feedback-counter">{{ ((userMapping.performance_action_by_hr ? hrRemarks : hodRemarks) || '').length }} / 2000 characters</span>
                 </div>
+                <div class="alert alert-success py-2 px-3 mb-2 w-100" *ngIf="hrUpdateSuccessMessage">{{ hrUpdateSuccessMessage }}</div>
                 <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && !userMapping.performance_action_by_hod">
-                  <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
-                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
-                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
-                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
-                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                  <button class="btn cycle-btn cycle-btn-primary"
+                    (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())"
+                    *ngIf="isEditMode"
+                    [disabled]="hrUpdateInProgress">
+                    <span *ngIf="!hrUpdateInProgress">Update</span>
+                    <span *ngIf="hrUpdateInProgress"><span class="spinner-border spinner-border-sm" role="status"></span> Updating...</span>
+                  </button>
+                  <span class="d-inline-block"
+                    [attr.title]="(!hrDecisionUnlocked && hrReviewStatus !== 'Accepted' && hrReviewStatus !== 'Rejected') ? 'Please update the appraisal before approving or rejecting.' : null">
+                    <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                      [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected' || !hrDecisionUnlocked"
+                      (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  </span>
+                  <span class="d-inline-block"
+                    [attr.title]="(!hrDecisionUnlocked && hrReviewStatus !== 'Accepted' && hrReviewStatus !== 'Rejected') ? 'Please update the appraisal before approving or rejecting.' : null">
+                    <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                      [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected' || !hrDecisionUnlocked"
+                      (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                  </span>
                 </div>
               } @else if(userMapping.performance_action_by_hr && userMapping.performance_action_by_hod){
                 <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>
@@ -828,14 +905,27 @@
                     placeholder="Enter remarks..."></textarea>
                   <span class="manager-feedback-counter">{{ (hrRemarks || '').length }} / 2000 characters</span>
                 </div>
+                <div class="alert alert-success py-2 px-3 mb-2 w-100" *ngIf="hrUpdateSuccessMessage">{{ hrUpdateSuccessMessage }}</div>
                 <div class="d-flex justify-content-end mt-2 cycle-review-actions flex-wrap" *ngIf="(currentStatus == 'Completed' || currentStatus == 'Ongoing' || currentStatus == 'Pending') && userMapping.performance_action_by_hr && userMapping.performance_action_by_hod">
-                  <button class="btn cycle-btn cycle-btn-primary" (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())" *ngIf="isEditMode">Update</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
-                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
-                    (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
-                  <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
-                    [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected'"
-                    (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                  <button class="btn cycle-btn cycle-btn-primary"
+                    (click)="updateReviewByHr(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())"
+                    *ngIf="isEditMode"
+                    [disabled]="hrUpdateInProgress">
+                    <span *ngIf="!hrUpdateInProgress">Update</span>
+                    <span *ngIf="hrUpdateInProgress"><span class="spinner-border spinner-border-sm" role="status"></span> Updating...</span>
+                  </button>
+                  <span class="d-inline-block"
+                    [attr.title]="(!hrDecisionUnlocked && hrReviewStatus !== 'Accepted' && hrReviewStatus !== 'Rejected') ? 'Please update the appraisal before approving or rejecting.' : null">
+                    <button type="button" class="btn cycle-btn cycle-btn-primary ml-2"
+                      [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected' || !hrDecisionUnlocked"
+                      (click)="onHrAccept(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Accept</button>
+                  </span>
+                  <span class="d-inline-block"
+                    [attr.title]="(!hrDecisionUnlocked && hrReviewStatus !== 'Accepted' && hrReviewStatus !== 'Rejected') ? 'Please update the appraisal before approving or rejecting.' : null">
+                    <button type="button" class="btn cycle-btn cycle-btn-danger ml-2"
+                      [disabled]="hrReviewStatus === 'Accepted' || hrReviewStatus === 'Rejected' || !hrDecisionUnlocked"
+                      (click)="onHrReject(getSelectedQuarter(),alert_message,getSelectedQuarterIndex())">Reject</button>
+                  </span>
                 </div>
               }@else {
                 <h3 class="section-card-title"><span class="section-card-title-bar"></span> {{ getFeedbackSectionTitle() }}</h3>

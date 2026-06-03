@@ -15,6 +15,10 @@ public class ExportExcelPerformance {
 	private String email;
 	private String name;
 	private String hodRemarks;
+	private String managerRemarks;
+	private String managerRating;
+	private String hodRating;
+	private String hrRating;
 	private String reportingManagerName;
 	private String hodName;
 	private String completionStatus;
@@ -28,6 +32,8 @@ public class ExportExcelPerformance {
 	private String billable;
 	private String billableType;
 	private String managerName;
+	/** HR rater name from employee_performance.hr_id (export). */
+	private String hrName;
 	private Long  managerId;
 	private String dateOfJoining;
 	

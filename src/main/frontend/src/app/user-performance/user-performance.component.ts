@@ -13,7 +13,7 @@ import { LogService } from 'src/app/services/log.service';
 import { AuthenticationService } from '../services/authentication.service';
 import { PerformanceService } from '../services/performance.service';
 import { forkJoin, from, of, Observable } from 'rxjs';
-import { catchError, concatMap, first, map, reduce } from 'rxjs/operators';
+import { catchError, concatMap, finalize, first, map, reduce } from 'rxjs/operators';
 import { DepartmentService } from '../services/department.service';
 import { EmployeeService } from '../services/employee.service';
 import { Employee360Service } from '../services/employee360.service';
@@ -31,6 +31,13 @@ class FilterData {
   title: any;
   columns: any;
   queryList: any;
+}
+
+interface RoleAppraisalCardView {
+  rating: string;
+  feedback: string;
+  raterName: string;
+  submittedOn: string | null;
 }
 
 @Component({
@@ -110,6 +117,21 @@ export class UserPerformanceComponent implements OnInit {
   /** Popup data for Manager/HOD/HR approval details and role-wise audit history. */
   approvalDetailsPopup: { role: string; name: string; id: any; employmentId: string; rating: string; feedback: string; history: any[]; yearWiseRatings: any[]; employeeName: string; employeeEmploymentId: string } | null = null;
   approvalDetailsLoading = false;
+
+  /** Role-wise appraisal cards on review page (Manager / HOD / HR). */
+  roleAppraisalDetails: {
+    employeeName: string;
+    employeeEmploymentId: string;
+    manager: RoleAppraisalCardView;
+    hod: RoleAppraisalCardView;
+    hr: RoleAppraisalCardView;
+  } | null = null;
+  roleAppraisalLoading = false;
+  readonly roleAppraisalCardConfigs: { key: 'manager' | 'hod' | 'hr'; title: string; accent: string; icon: string }[] = [
+    { key: 'manager', title: 'Manager', accent: 'manager', icon: 'fa-user-tie' },
+    { key: 'hod', title: 'HOD', accent: 'hod', icon: 'fa-user-shield' },
+    { key: 'hr', title: 'HR', accent: 'hr', icon: 'fa-user-check' }
+  ];
   submitPerformance: Performance = new Performance();
   updatePerformanceHr :Performance = new Performance();
   sortDirection = 'asc';
@@ -122,6 +144,12 @@ export class UserPerformanceComponent implements OnInit {
   selectedBulkEmpIds: Set<number> = new Set<number>();
   bulkHrRemark: string = '';
   bulkActionInProgress = false;
+  /** HR Update button spinner/disable state. */
+  hrUpdateInProgress = false;
+  /** HR must click Update successfully before Accept/Reject. */
+  hrDecisionUnlocked = false;
+  /** Inline success message after HR Update (no redirect / no modal). */
+  hrUpdateSuccessMessage = '';
   performnace: Performance = new Performance();
   myMap: Map<string, string> = new Map();
 
@@ -263,9 +291,18 @@ export class UserPerformanceComponent implements OnInit {
       this.userDetailsForPerformanceView.empId = this.currentUser.empId;
       this.userDetailsForPerformanceView.hrvalidate = this.userMapping.performance_action_by_hr;
 
+      // HR should see "All Departments" by default (no auto-filter to their own department).
+      if (this.userMapping.performance_action_by_hr) {
+        this.currentUserdepartmentName = 'all';
+        this.selectedDepartment = 'all';
+        this.userDetailsForPerformanceView.deptId = null;
+      }
+
       await this.getALLdepartmentByEmployee();
 
-      this.getCurrentUserDepartment();
+      if (!this.userMapping.performance_action_by_hr) {
+        this.getCurrentUserDepartment();
+      }
 
       this.getAllReviveType();
       this.getAllQauterCycle();
@@ -1207,24 +1244,34 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     });
   }
 
+  /** Empty string for Excel when value is null/undefined (avoid wrong column mapping). */
+  private formatExportCell(value: any): string {
+    if (value == null || value === '') return '';
+    return String(value).trim();
+  }
+
   exportToExcel(): void {
     const list = this.getExportList();
     const onlySpecificDataArr = list.map((x: any) => ({
-      "EmployeeId": this.utilityService.formatEmploymentIdForExport(x),
-      "Full Name": x.name,
+      "Employee ID": this.utilityService.formatEmploymentIdForExport(x),
+      "Employee Name": x.name ?? '',
       "EmailId": x.email ?? '',
       "Employment Status": x.employmentstatus ?? '',
       "Department Name": x.departmentName ?? '',
       "Billable Type": x.billableType ?? '',
       "Experience": x.experienceTotalCombined ?? this.getCombinedExperienceYears(x),
-      "quarter Cycle": x.quarterycle || 'NULL',
-      "financial Year": x.financialYear || 'NULL',
-      "Current Status": x.completionStatus ?? 'NULL',
-      "hod Name": x.hodName ?? 'NULL',
-      "Final Rating": x.finalRating ?? 'NULL',
-      "Manger Remark": x.hodRemarks ?? 'NULL',
-      "Hod Remarks": x.hrRemarks ?? 'NULL',
-      "Hod Review Status": x.hrReviewStatus ?? 'NULL'
+      "Current Status": x.completionStatus ?? '',
+      "HOD Name": x.hodName ?? '',
+      "Final Rating": this.formatExportCell(x.finalRating),
+      "Manager Name": this.formatExportCell(x.performanceManagerName ?? x.managerName),
+      "Manager Rating": this.formatExportCell(x.managerRating),
+      "Manager Remarks": this.formatExportCell(x.managerRemarks),
+      "HOD Rating": this.formatExportCell(x.hodRating),
+      "HOD Remarks": this.formatExportCell(x.hodRemarks),
+      "HR Name": this.formatExportCell(x.performanceHrName),
+      "HR Rating": this.formatExportCell(x.hrRating),
+      "HR Remarks": this.formatExportCell(x.hrRemarks ?? x.hrRemark),
+      "HR Review Status": this.formatExportCell(x.hrReviewStatus)
     }));
     this.exportExcelService.exportTableDataToExcel(onlySpecificDataArr, this.name);
   }
@@ -1606,6 +1653,31 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         }
         if (staticData.hrReviewStatus != null) {
           emp.hrReviewStatus = staticData.hrReviewStatus;
+        }
+        if (staticData.managerRating != null && staticData.managerRating !== '') {
+          emp.managerRating = staticData.managerRating;
+        }
+        if (staticData.hodRating != null && staticData.hodRating !== '') {
+          emp.hodRating = staticData.hodRating;
+        }
+        if (staticData.hrRating != null && staticData.hrRating !== '') {
+          emp.hrRating = staticData.hrRating;
+        }
+        if (staticData.managerRemarks != null && String(staticData.managerRemarks).trim() !== '') {
+          emp.managerRemarks = staticData.managerRemarks;
+        }
+        if (staticData.hodRemarks != null && String(staticData.hodRemarks).trim() !== '') {
+          emp.hodRemarks = staticData.hodRemarks;
+        }
+        const hrR = staticData.hrRemarks ?? staticData.hrRemark;
+        if (hrR != null && String(hrR).trim() !== '') {
+          emp.hrRemarks = hrR;
+        }
+        if (staticData.performanceManagerName != null && String(staticData.performanceManagerName).trim() !== '') {
+          emp.performanceManagerName = staticData.performanceManagerName;
+        }
+        if (staticData.performanceHrName != null && String(staticData.performanceHrName).trim() !== '') {
+          emp.performanceHrName = staticData.performanceHrName;
         }
       };
 
@@ -2343,8 +2415,94 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
   /** Numeric rating (0–5) for approval details popup star display. */
   getApprovalDetailRatingNum(): number {
     const r = this.approvalDetailsPopup?.rating;
-    if (r == null || r === '' || r === '—') return 0;
+    return this.parseRatingToStars(r);
+  }
+
+  /** Load Manager / HOD / HR role cards for the review page (same API as approval popup). */
+  loadRoleAppraisalDetails(): void {
+    const empId = this.selectedEmployee?.empId;
+    const quarterId = this.quarterId ?? this.getSelectedQuarter()?.quarterId;
+    if (!empId || !quarterId) {
+      this.roleAppraisalDetails = null;
+      return;
+    }
+    this.roleAppraisalLoading = true;
+    this.performanceService.getApprovalDetails(empId, quarterId).pipe(first()).subscribe({
+      next: (response: any) => {
+        this.roleAppraisalLoading = false;
+        if (response?.serviceStatus === 'Success' && response?.serviceResponse) {
+          this.mapRoleAppraisalDetailsResponse(response.serviceResponse);
+        } else {
+          this.roleAppraisalDetails = this.buildEmptyRoleAppraisalDetails();
+        }
+      },
+      error: () => {
+        this.roleAppraisalLoading = false;
+        this.roleAppraisalDetails = this.buildEmptyRoleAppraisalDetails();
+      }
+    });
+  }
+
+  private buildEmptyRoleAppraisalDetails(): {
+    employeeName: string;
+    employeeEmploymentId: string;
+    manager: RoleAppraisalCardView;
+    hod: RoleAppraisalCardView;
+    hr: RoleAppraisalCardView;
+  } {
+    const empty: RoleAppraisalCardView = { rating: '—', feedback: '—', raterName: '—', submittedOn: null };
+    return {
+      employeeName: this.selectedEmployee?.name || '—',
+      employeeEmploymentId: this.selectedEmployee?.employmentIdAcToET || this.selectedEmployee?.employeementId || '—',
+      manager: { ...empty },
+      hod: { ...empty },
+      hr: { ...empty }
+    };
+  }
+
+  private mapRoleAppraisalDetailsResponse(res: any): void {
+    const empName = res?.employeeName || this.selectedEmployee?.name || '—';
+    const empId = res?.employeeEmploymentId || this.selectedEmployee?.employmentIdAcToET || this.selectedEmployee?.employeementId || '—';
+    const mapRole = (key: 'manager' | 'hod' | 'hr'): RoleAppraisalCardView => {
+      const d = res?.[key];
+      if (!d) {
+        return { rating: '—', feedback: '—', raterName: '—', submittedOn: null };
+      }
+      return {
+        rating: d.rating != null && d.rating !== '' ? String(d.rating) : '—',
+        feedback: (d.feedback != null && String(d.feedback).trim() !== '') ? String(d.feedback) : '—',
+        raterName: d.name || '—',
+        submittedOn: d.submittedOn || null
+      };
+    };
+    this.roleAppraisalDetails = {
+      employeeName: empName,
+      employeeEmploymentId: empId,
+      manager: mapRole('manager'),
+      hod: mapRole('hod'),
+      hr: mapRole('hr')
+    };
+  }
+
+  getRoleAppraisalCard(role: 'manager' | 'hod' | 'hr'): RoleAppraisalCardView | null {
+    return this.roleAppraisalDetails?.[role] ?? null;
+  }
+
+  getRoleAppraisalRatingStars(role: 'manager' | 'hod' | 'hr'): number {
+    return this.parseRatingToStars(this.getRoleAppraisalCard(role)?.rating);
+  }
+
+  /** Performance category pill for role card rating (NI, M-, M, M+, E). */
+  getRoleAppraisalRatingCategory(role: 'manager' | 'hod' | 'hr'): string {
+    const r = this.getRoleAppraisalCard(role)?.rating;
+    if (r == null || r === '' || r === '—') return '';
     const n = Number(r);
+    return isNaN(n) ? '' : this.getRatingCategory(n);
+  }
+
+  private parseRatingToStars(rating: any): number {
+    if (rating == null || rating === '' || rating === '—') return 0;
+    const n = Number(rating);
     return isNaN(n) ? 0 : Math.min(5, Math.max(0, n));
   }
 
@@ -2440,6 +2598,9 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
     this.isperformanceDsah = false;
     this.isreviewPage = true;
     this.selectedEmployee = eligiemployee;
+    this.roleAppraisalDetails = null;
+    this.hrDecisionUnlocked = false;
+    this.hrUpdateSuccessMessage = '';
     console.log("eligiemployee", eligiemployee);
     this.selectedEmployee.emp360 = eligiemployee.emp360;
     console.log("eligiemployee.emp360", eligiemployee.emp360);
@@ -2651,6 +2812,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
         const headerRows = this.filterCriteria.length > 0 ? this.filterCriteria : this.filterRatingCriteria;
         this.applyPerformanceReviewHeaderFromFirstRow(headerRows);
         this.calculateFinalRating();
+        this.loadRoleAppraisalDetails();
       } else {
         console.log('inside else part');
         this.currentStatus = 'Not Started';
@@ -2670,6 +2832,7 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           this.hodRemarks = null;
         });
         this.calculateFinalRating();
+        this.loadRoleAppraisalDetails();
       }
     });
   }
@@ -2983,6 +3146,9 @@ toggleEditMode() {
     
     this.createBackupData();
     this.isEditMode = true;
+    if (this.userMapping?.performance_action_by_hr) {
+      this.hrDecisionUnlocked = false;
+    }
     console.log("Edit mode ON - Backup created");
   }
 }
@@ -3078,18 +3244,27 @@ hasDataChanged(): boolean {
     this.updatePerformanceHr.hodRemarks = this.hodRemarks;
     this.updatePerformanceHr.hrRemark = hrFeedback;
     console.log(this.updatePerformanceHr, "performance update by hrrrr");
-   
-    this.performanceService.updateEmployeePerformanceHr(this.updatePerformanceHr).pipe(first()).subscribe((response: any) => {
-      if (response.serviceStatus == "Success") {
-        this.openAlertMod(template, response.serviceResponse, true);
-        let collapseElement = document.getElementById('collapse' + index);
-        if (collapseElement) {
-          collapseElement.classList.remove('show'); // Remove 'show' class
+
+    this.hrUpdateSuccessMessage = '';
+    this.hrUpdateInProgress = true;
+    this.performanceService.updateEmployeePerformanceHr(this.updatePerformanceHr)
+      .pipe(
+        first(),
+        finalize(() => { this.hrUpdateInProgress = false; })
+      )
+      .subscribe((response: any) => {
+        if (response.serviceStatus == "Success") {
+          this.hrDecisionUnlocked = true;
+          this.createBackupData();
+          this.hrUpdateSuccessMessage = response.serviceResponse || 'Appraisal updated successfully. You may now Accept or Reject.';
+          this.loadRoleAppraisalDetails();
+          this.cdr.detectChanges();
+        } else {
+          this.openAlertMod(template, response.serviceResponse);
         }
-      } else {
-        this.openAlertMod(template, response.serviceResponse, true);
-      }
-    });
+      }, () => {
+        this.openAlertMod(template, 'Failed to update. Please try again.');
+      });
   }
 
   /** Close the review panel (Cancel button). */

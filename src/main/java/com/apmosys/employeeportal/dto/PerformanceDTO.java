@@ -19,10 +19,19 @@ public class PerformanceDTO {
     private String completionStatus;
     private Long empId;
     private String finalRating;
+    private String managerRating;
+    private String hodRating;
+    private String hrRating;
     private String hodApprovalDate;
     private String hodRemarks;
     /** Reporting manager submit text (employee_performance.manager_remarks); not the same as hod_remarks. */
     private String managerRemarks;
+    /** HR remarks from employee_performance.hr_remarks (list/export). */
+    private String hrRemarks;
+    /** Manager/RM who submitted the appraisal (employee_performance.manager_id). */
+    private String performanceManagerName;
+    /** HR who acted on the appraisal (employee_performance.hr_id). */
+    private String performanceHrName;
     private Long hodId;
     private Long quarterId;
     private String quarterCycle;
