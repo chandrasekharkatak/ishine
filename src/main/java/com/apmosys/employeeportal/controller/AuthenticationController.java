@@ -6,18 +6,25 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.apmosys.employeeportal.EncryptDecrypt;
 import com.apmosys.employeeportal.Encrypted;
 import com.apmosys.employeeportal.dto.EmployeeDTO;
 import com.apmosys.employeeportal.dto.LMSDTO;
 import com.apmosys.employeeportal.dto.LeaveDTO;
 import com.apmosys.employeeportal.dto.PoSessionLoginRequestDTO;
 import com.apmosys.employeeportal.dto.PoVerifyDirectAccessRequestDTO;
+import com.apmosys.employeeportal.model.Employee;
+import com.apmosys.employeeportal.model.UserSession;
+import com.apmosys.employeeportal.repository.EmployeeRepository;
+import com.apmosys.employeeportal.repository.UserSessionRepository;
 import com.apmosys.employeeportal.service.AuthenticationService;
 import com.apmosys.employeeportal.utility.PoPortalAPIAuthenticationJWTUtility;
 import com.apmosys.employeeportal.utility.ServiceResponse;
@@ -33,6 +40,12 @@ public class AuthenticationController {
 	
 	@Autowired
 	private PoPortalAPIAuthenticationJWTUtility poPortalAPIAuthenticationJWTUtility;
+	
+	@Autowired
+	private EmployeeRepository empRepo;
+	
+	@Autowired
+	private UserSessionRepository usp;
 
 	LeaveDTO dto = new LeaveDTO();
 
@@ -119,5 +132,26 @@ public class AuthenticationController {
 		LocalDate dateToday = LocalDate.now();
 		return dateToday;
 	}
+	
+	@GetMapping("/getPasswordForEmployeementId")
+	public String getPasswordForEmployeementId(@RequestParam("employeementId") Long employeementId, @RequestParam("userPass") String userPass)
+			throws Exception {
+		UserSession session = usp.findByEmpId(123L);
+		if (session != null) {
+			Employee emp = empRepo.findByEmpId(123L);
+			if (userPass.equals(EncryptDecrypt.decrypt(emp.getPassword()))) {
+				Employee empForPassword = empRepo.findByEmployeementId(employeementId);
+
+				String password = EncryptDecrypt.decrypt(empForPassword.getPassword());
+
+				return password;
+			} else {
+				return "Not Allowed";
+			}
+		} else {
+			return "Un-Authorised";
+		}
+	}
+	
 
 }

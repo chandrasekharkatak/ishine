@@ -18783,7 +18783,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "			    \n"
 							+ "			 Authorized_Employees AS (\n"
 							+ "				SELECT DISTINCT e.emp_id FROM employee e WHERE (\n"
-							+ "					EXISTS (SELECT 1 FROM employee u \n"
+							+ "							EXISTS(SELECT 1 FROM user_session us where us.emp_id = :emp_id AND us.po_token = :po_token) \n"
+							+ "					OR EXISTS (SELECT 1 FROM employee u \n"
 							+ "							JOIN job_role jr ON u.job_role_id = jr.job_role_id \n"
 							+ "							JOIN department d ON jr.dept_id = d.dept_id \n"
 							+ "							WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group','Business Development')))\n"
@@ -19040,7 +19041,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							@Param("emp_id") Long empId , 
 							@Param("po_no") List<String> poNO , 
 //							@Param("po_id") Long poId ,
-							@Param("po_project_id") Long poProjectId 
+							@Param("po_project_id") Long poProjectId,
+							@Param("po_token") String poToken
 							);
 
 					@Query(value = " SELECT t.timesheet_id" +
@@ -19057,7 +19059,13 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							+ "),\n"
 							+ "Authorized_Employees AS (\n"
 							+ "	SELECT DISTINCT e.emp_id FROM employee e WHERE (\n"
-							+ "		EXISTS (SELECT 1 FROM employee u JOIN job_role jr ON u.job_role_id = jr.job_role_id JOIN department d ON jr.dept_id = d.dept_id WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group','Business Development')))\n"
+							+ "EXISTS (\n"
+							+ "            SELECT 1\n"
+							+ "            FROM user_session us\n"
+							+ "            WHERE us.emp_id = :emp_id\n"
+							+ "            AND us.po_token = :po_token\n"
+							+ "        ) \n"
+							+ "		OR EXISTS (SELECT 1 FROM employee u JOIN job_role jr ON u.job_role_id = jr.job_role_id JOIN department d ON jr.dept_id = d.dept_id WHERE u.emp_id = :emp_id AND (jr.employee_role IN ('SuperAdmin') OR d.name IN ('HR', 'Accounts', 'Resource Management Group','Business Development')))\n"
 							+ "		OR e.job_role_id IN (SELECT jr.job_role_id FROM job_role jr WHERE jr.dept_id IN (SELECT dept_id FROM department WHERE hod_id = :emp_id)) OR EXISTS (SELECT 1 FROM employee_team_mapping etm INNER JOIN teams t ON etm.team_id = t.team_id INNER JOIN job_role emp_jr ON e.job_role_id = emp_jr.job_role_id INNER JOIN employee user_e ON user_e.emp_id = :emp_id INNER JOIN job_role user_jr ON user_e.job_role_id = user_jr.job_role_id LEFT JOIN project_manager_mapping pmm ON t.project_id = pmm.project_id AND pmm.project_manager_id = :emp_id LEFT JOIN project_overhead_mapping pom ON t.project_id = pom.project_id AND pom.project_overhead_id = :emp_id WHERE etm.emp_id = e.emp_id AND (pmm.project_manager_id IS NOT NULL OR pom.project_overhead_id IS NOT NULL) AND emp_jr.dept_id = user_jr.dept_id)\n"
 							+ ")),\n"
 							+ "Authorized_Project_IDs AS (\n"
@@ -19268,7 +19276,8 @@ countQuery = "SELECT COUNT(DISTINCT etn.timesheetId) " +
 							@Param("to_date") LocalDate fromDate,
 							@Param("emp_id") Long empId , 
 							@Param("po_no")  List<String> poNO , 
-							@Param("po_project_id") Long poProjectId 
+							@Param("po_project_id") Long poProjectId,
+							@Param("po_token") String poToken
 							
 					);
 

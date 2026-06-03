@@ -144,14 +144,16 @@ maxYear!: Date;
   this.maxYear = new Date(currentYear, 11, 31);
     this.route.queryParams.subscribe(params => {
       this.projectId = params['projectId'];
+      const rotatedToken = params['rotatedToken'];
       this.poProjectId = params['poProjectId'];
       this.queryPoNo = (params['poNo'] ?? '').toString().trim() || null;
       this.formattedMonthLabel = params['formattedMonthLabel'];
       this.isClientDashboard = params['isClientDashboard'] === 'true';
       this.queryFromDate = this.normalizeIncomingDate(params['fromDate']);
       this.queryToDate = this.normalizeIncomingDate(params['toDate']);
-      this.loadTimesheetFromQueryParams();
+      this.loadTimesheetFromQueryParams(rotatedToken);
       console.log('Received projectId from query param:', this.projectId);
+      console.log('Received rotatedToken from query param:', rotatedToken);
       console.log('Received poProjectId from query param:', this.poProjectId);
       console.log('Received poNo from query param:', this.queryPoNo);
       console.log('Received month from query param:', this.formattedMonthLabel);
@@ -168,7 +170,7 @@ maxYear!: Date;
     }
   }
 
-  private loadTimesheetFromQueryParams(): void {
+  private loadTimesheetFromQueryParams(rotatedToken?: string): void {
     const parsedProjectId = this.resolveProjectIdFromParams();
     if (parsedProjectId !== null) {
       this.projectId = parsedProjectId;
@@ -177,14 +179,14 @@ maxYear!: Date;
     }
 
     if (this.queryPoNo) {
-      this.resolveProjectIdUsingPoNoAndContinue(this.queryPoNo);
+      this.resolveProjectIdUsingPoNoAndContinue(this.queryPoNo, rotatedToken);
       return;
     }
 
     console.warn("projectId is missing in query params.");
   }
 
-  private resolveProjectIdUsingPoNoAndContinue(poNo: string): void {
+  private resolveProjectIdUsingPoNoAndContinue(poNo: string, rotatedToken?: string): void {
     this.resourceManagementService.getProjectIdByPoNo(poNo)
       .pipe(first())
       .subscribe({
@@ -199,7 +201,7 @@ maxYear!: Date;
             if (!this.poProjectId && poProjectId !== undefined && poProjectId !== null && poProjectId !== '') {
               this.poProjectId = poProjectId;
             }
-            this.continueTimesheetLoadFlow();
+            this.continueTimesheetLoadFlow(rotatedToken);
           } else {
             this.openAlertMod(response?.serviceResponse || 'Project not found for provided PO No.');
           }
@@ -226,7 +228,7 @@ maxYear!: Date;
     return null;
   }
 
-  private extractClientDashboardFlagFromPoLookupResponse(response: any): boolean {
+  private extractClientDashboardFlagFromPoLookupResponse(response: any, rotatedToken?: string): boolean {
     const payload = response?.serviceResponse;
 
     // Expected contract: serviceResponse object contains hasClientSideId
@@ -238,7 +240,7 @@ maxYear!: Date;
     return this.isClientDashboard;
   }
 
-  private continueTimesheetLoadFlow(): void {
+  private continueTimesheetLoadFlow(rotatedToken?: string): void {
     if (!this.projectId) {
       return;
     }
@@ -264,11 +266,11 @@ maxYear!: Date;
     this.applyIncomingDateRangeToMonthContext();
     this.initializeDateRange();
     this.loadPoOptionsFromApi(() => {
-      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year);
+      this.getEmployeeTimesheetAsCalenderByProjectId(this.projectId, this.month, this.year, rotatedToken);
     });
   }
 
-  getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any): void {
+  getEmployeeTimesheetAsCalenderByProjectId(projectId:any,month:any,year:any,rotatedToken?: string): void {
     const resolvedProjectId = this.resolveProjectIdFromParams();
     const resolvedPoProjectId = this.resolvePoProjectIdFromParams();
 
@@ -285,6 +287,7 @@ maxYear!: Date;
     this.timesheetAsCalenderByProjectId.toDate = this.effectiveToDateFilter || this.toDateFilter || undefined;
     this.timesheetAsCalenderByProjectId.poNo = this.resolveSelectedPoNo();
     this.timesheetAsCalenderByProjectId.poProjectId = resolvedPoProjectId;
+    this.timesheetAsCalenderByProjectId.rotatedToken = rotatedToken? rotatedToken : null;
     // Always refresh list from latest API response.
     this.timesheetData = [];
     this.filteredTimesheetData = [];
