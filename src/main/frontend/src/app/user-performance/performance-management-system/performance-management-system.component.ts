@@ -653,14 +653,18 @@ userDetailsForPerformanceView:HrHodMangerApiForPerformnace=new HrHodMangerApiFor
           "Department Name": x.departmentName,
           "Billable Type": x.billableType,
           "Experience" :x.calculatedExperience ?? x.totalExperience,
-          "quarter Cycle":x.quarterycle || 'NULL',
-          "financial Year": x.financialYear || 'NULL' ,
           "Current Status":x.completionStatus,
           "hod Name":x.hodName,
-          "Final Rating":x.finalRating || 'NULL',
-          "Manger Remark":x.hodRemarks || 'NULL',
-          "Hod Remarks":x.hrRemarks || 'NULL',
-          "Hod Review Status":x.hrReviewStatus || 'NULL'
+          "Final Rating": x.finalRating ?? '',
+          "Manager Name": x.managerName ?? '',
+          "Manager Rating": x.managerRating ?? '',
+          "Manager Remarks": x.managerRemarks ?? '',
+          "HOD Rating": x.hodRating ?? '',
+          "HOD Remarks": x.hodRemarks ?? '',
+          "HR Name": x.hrName ?? '',
+          "HR Rating": x.hrRating ?? '',
+          "HR Remarks": x.hrRemarks ?? '',
+          "HR Review Status": x.hrReviewStatus ?? ''
 
 
 
