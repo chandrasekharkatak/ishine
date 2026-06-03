@@ -1673,6 +1673,7 @@ public class TimesheetDashboardService {
 		    	List<String> poNoFilters = normalizePoNoFilters(object.getPoNo());
 		    	LocalDate resolvedFromDate = object.getFromDate();
 		    	LocalDate resolvedToDate = object.getToDate();
+		    	String poToken = object.getRotatedToken();
 		    	if (resolvedFromDate == null || resolvedToDate == null) {
 		    		if (object.getYear() != null && object.getMonth() != null) {
 		    			YearMonth yearMonth = YearMonth.of(object.getYear(), object.getMonth());
@@ -1693,10 +1694,10 @@ public class TimesheetDashboardService {
 		    	}
 		    	if(object.getAllEmp()) {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectIdForAllEmp(object.getProjectId(),
-		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId());
+		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId(), poToken);
 		    	} else {
 		    		empTimesheet= timesheetsNewRepository.getEmployeeTimesheetAsCalenderByProjectId(object.getProjectId(),
-		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId());
+		    				resolvedFromDate,resolvedToDate,object.getEmpId(),poNoFilters,object.getPoProjectId(), poToken);
 		    	}
  			
 		    	List<GetEmployeeTimesheetAsCalenderDTO> dtoList = new ArrayList<>();

@@ -19,5 +19,6 @@ public class GetEmployeeTimesheetAsCalenderByProjectIdDTO {
 	private LocalDate toDate;
 	private Object poNo;
 	private Long poProjectId;
+	private String rotatedToken;
 
 }

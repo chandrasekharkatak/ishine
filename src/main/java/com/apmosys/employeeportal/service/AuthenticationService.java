@@ -1420,7 +1420,7 @@ public class AuthenticationService {
 			}
 			userLogInfoList.put(employee.getEmpId(), logInfo);
 
-			Object[] object = new Object[9];
+			Object[] object = new Object[10];
 			object[0] = currentEmployeeDto;
 			object[1] = tabResponse.getServiceResponse();
 			object[2] = userSession.getSessionKey();
@@ -1430,6 +1430,7 @@ public class AuthenticationService {
 			object[6] = logInfo;
 			object[7] = currentEventDto;
 			object[8] = deepLink;
+			object[9] = userSession.getPoToken();
 
 			response.setServiceStatus(ServiceResponse.STATUS_SUCCESS);
 			response.setServiceResponse(object);

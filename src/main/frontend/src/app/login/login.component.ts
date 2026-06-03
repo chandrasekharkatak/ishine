@@ -359,6 +359,8 @@ this.user.otp = encryptedOtp;
     log.empId = user.empId;
     this.enableAppreciation = responseObj[7];
     const requestedDeepLink = responseObj[8];
+    const rotatedToken = responseObj[9];
+    console.log('Received rotatedToken:', rotatedToken);
 
     sessionStorage.setItem('token', this.authenticationService.sessionString);
 
@@ -435,7 +437,7 @@ this.user.otp = encryptedOtp;
     this.authenticationService.startUserSessionCheck();
 
     if (requestedDeepLink) {
-      const normalizedDeepLink = this.normalizeRedirectTarget(requestedDeepLink);
+      const normalizedDeepLink = this.normalizeRedirectTarget(requestedDeepLink, rotatedToken);
       this.router.navigateByUrl(normalizedDeepLink || '/home');
       return;
     }
@@ -718,7 +720,7 @@ this.user.otp = encryptedOtp;
     return true;
   }
 
-  private normalizeRedirectTarget(rawTarget: string | null): string | null {
+  private normalizeRedirectTarget(rawTarget: string | null, rotatedToken?: string): string | null {
     if (!rawTarget) return null;
     let target = rawTarget.trim();
     if (!target) return null;
@@ -749,6 +751,17 @@ this.user.otp = encryptedOtp;
     if (!target.startsWith('/')) {
       target = `/${target}`;
     }
+
+     if (
+    rotatedToken &&
+    rotatedToken !== 'null' &&
+    rotatedToken !== 'undefined' &&
+    !target.includes('rotatedToken=')
+  ) {
+    target += target.includes('?')
+      ? `&rotatedToken=${encodeURIComponent(rotatedToken)}`
+      : `?rotatedToken=${encodeURIComponent(rotatedToken)}`;
+  }
     return target;
   }
 
