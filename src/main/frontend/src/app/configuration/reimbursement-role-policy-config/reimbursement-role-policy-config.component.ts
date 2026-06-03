@@ -30,6 +30,7 @@ export interface RmbRolePolicyListRow {
   ]
 })
 export class ReimbursementRolePolicyConfigComponent implements OnInit, OnChanges {
+  readonly foodTeamMealLimitKey = 'Food (Team meal)';
   @Input() expenditureTypeList: any[] = [];
   @Input() travelModeList: any[] = [];
   @Input() vehicleTypeList: any[] = [];
@@ -300,6 +301,10 @@ export class ReimbursementRolePolicyConfigComponent implements OnInit, OnChanges
       const key = this.expenditureTypeName(e).toLowerCase();
       return key && !ReimbursementRolePolicyConfigComponent.EXCLUDED_AMOUNT_LIMIT_TYPES.has(key);
     });
+  }
+
+  hasFoodAmountLimit(): boolean {
+    return this.nonTravelExpenditureTypes().some(e => this.expenditureTypeName(e).toLowerCase() === 'food');
   }
 
   hasSelectedRoles(): boolean {
@@ -650,6 +655,16 @@ export class ReimbursementRolePolicyConfigComponent implements OnInit, OnChanges
         }
         policies.push({ policyCategory: 'AMOUNT_LIMIT', itemName: name, maxAmount: amt, allowed: true });
       }
+    }
+
+    // Optional: separate Team meal / working lunch limit (per member per day).
+    const teamMealRaw = String(this.amountLimits[this.foodTeamMealLimitKey] || '').trim();
+    if (teamMealRaw) {
+      const amt = this.parsePositiveAmount(teamMealRaw, `Team meal / working lunch max per member per day`);
+      if (amt === false) {
+        return null;
+      }
+      policies.push({ policyCategory: 'AMOUNT_LIMIT', itemName: this.foodTeamMealLimitKey, maxAmount: amt, allowed: true });
     }
     for (const [name, rawLimit] of Object.entries(this.travelModeDailyLimits)) {
       if (this.isPersonalVehicleTravelMode(name)) {

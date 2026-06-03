@@ -365,14 +365,20 @@
 
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyClientForProject() && !isManualProjectSelected()">
                             <label class="rmb-label" for="rmbReadonlyClient">Client</label>
-                            <input id="rmbReadonlyClient" type="text" class="form-control rmb-control rmb-control--readonly"
-                                [value]="reimbursementObj.displayClientName || '—'" disabled readonly />
+                            <div
+                                id="rmbReadonlyClient"
+                                class="form-control rmb-control rmb-control--readonly rmb-readonly-multiline"
+                                [attr.title]="reimbursementObj.displayClientName || ''">
+                                {{ reimbursementObj.displayClientName || '—' }}
+                            </div>
                         </div>
+                        <!-- PO No is hidden in UI; still stored via backend.
                         <div class="col-md-6 col-lg-3 mb-3" *ngIf="showReadonlyPoNoForProject()">
                             <label class="rmb-label" for="rmbReadonlyPoNo">PO No.</label>
                             <input id="rmbReadonlyPoNo" type="text" class="form-control rmb-control rmb-control--readonly"
                                 [value]="reimbursementObj.displayPoNo || '—'" disabled readonly />
                         </div>
+                        -->
                         </div>
                     </div>
 

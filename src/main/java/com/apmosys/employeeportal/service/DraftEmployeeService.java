@@ -814,6 +814,7 @@ public class DraftEmployeeService {
 				List<EmployeeDTO> dtoList = new ArrayList<EmployeeDTO>();
 				allEmployeeList.forEach((object) -> {
 					EmployeeDTO empDTO = new EmployeeDTO();
+					empDTO.setEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setDraftEmpId(object[0] != null ? Long.parseLong(object[0].toString()) : null);
 					empDTO.setName(object[1] != null ? object[1].toString() : null);
 					empDTO.setEmail(object[2] != null ? object[2].toString() : null);
