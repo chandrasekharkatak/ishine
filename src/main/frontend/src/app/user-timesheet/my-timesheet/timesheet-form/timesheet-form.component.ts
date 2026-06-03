@@ -1296,6 +1296,7 @@ export class TimesheetFormComponent implements OnInit, OnChanges, OnDestroy {
     //   // });
     //   this.resetForm();
     // }
+    // console.log(this.timesheetLocations);
 
     if(this.fromDate != null){
       if(this.dayType == 9){
@@ -4149,7 +4150,9 @@ async getLastThreeMonthsWorkingDates() {
         if (response?.serviceStatus === "Success" && response?.serviceResponse) {
 
           const data = response.serviceResponse;
-
+          this.timesheetLocations.forEach(loc => {
+            loc.projects =  loc.projects.filter(project => project.projectId !== null)
+          })
           this.timesheetLocations.forEach(loc => {
            const project = this.createProject(null, null);
             project.projectId = data.projectId;
@@ -4161,8 +4164,10 @@ async getLastThreeMonthsWorkingDates() {
           this.noProjectEmployee = true;
           if(this.isUpdation){
             this.updateTimesheet();
+            this.noProjectEmployee = false;
           }else{
             this.createTimesheet();
+            this.noProjectEmployee = false;
           }
           
         } else {
