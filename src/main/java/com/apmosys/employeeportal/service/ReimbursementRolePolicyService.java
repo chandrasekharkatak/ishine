@@ -47,6 +47,32 @@ import com.apmosys.employeeportal.utility.ServiceResponse;
 public class ReimbursementRolePolicyService {
 
 	private static final String FOOD_EXPENDITURE = "Food";
+	/** Per-member per-day cap for Team meal / Working lunch claims. */
+	private static final String FOOD_TEAM_MEAL_LIMIT_KEY = "Food (Team meal)";
+
+	private BigDecimal resolveTeamMealPerMemberPerDayLimit(ReimbursementRolePolicyResolveDTO policy) {
+		if (policy == null || policy.getAmountLimits() == null || policy.getAmountLimits().isEmpty()) {
+			return null;
+		}
+		BigDecimal direct = policy.getAmountLimits().get(FOOD_TEAM_MEAL_LIMIT_KEY);
+		if (direct != null && direct.compareTo(BigDecimal.ZERO) > 0) {
+			return direct;
+		}
+		// Accept variant labels (case/spacing/punctuation) containing food + team meal/working lunch.
+		for (Map.Entry<String, BigDecimal> e : policy.getAmountLimits().entrySet()) {
+			String key = e.getKey();
+			if (!StringUtils.hasText(key) || e.getValue() == null) {
+				continue;
+			}
+			String nk = key.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
+			if (nk.contains("food") && (nk.contains("teammeal") || nk.contains("workinglunch"))
+					&& e.getValue().compareTo(BigDecimal.ZERO) > 0) {
+				return e.getValue();
+			}
+		}
+		// Fallback to regular Food limit.
+		return policy.getAmountLimits().get(FOOD_EXPENDITURE);
+	}
 
 	@Autowired
 	private ReimbursementRolePolicyRepository policyRepository;
@@ -477,7 +503,7 @@ public class ReimbursementRolePolicyService {
 					&& isTeamMealFoodAllowanceType(c.getFoodAllowanceType());
 			boolean sharedPoolFood = FOOD_EXPENDITURE.equalsIgnoreCase(exp) && !teamMeal;
 			if (!sharedPoolFood) {
-				BigDecimal perDayLimit = policy.getAmountLimits().get(exp);
+				BigDecimal perDayLimit = teamMeal ? resolveTeamMealPerMemberPerDayLimit(policy) : policy.getAmountLimits().get(exp);
 				if (perDayLimit != null && c.getAmount() != null) {
 					long days = countInclusiveDays(c.getFromDate(), c.getToDate());
 					if (days <= 0) {
@@ -579,17 +605,6 @@ public class ReimbursementRolePolicyService {
 			dailyTotals.merge(cursor, perDay, BigDecimal::add);
 			cursor = cursor.plusDays(1);
 		}
-	}
-
-	private boolean isCombinedDailyFoodAllowanceType(String foodAllowanceType) {
-		if (isTeamMealFoodAllowanceType(foodAllowanceType)) {
-			return false;
-		}
-		if (!StringUtils.hasText(foodAllowanceType)) {
-			return false;
-		}
-		String normalized = foodAllowanceType.trim().toLowerCase(Locale.ROOT);
-		return normalized.contains("breakfast") || normalized.contains("lunch") || normalized.contains("dinner");
 	}
 
 	private boolean isTeamMealFoodAllowanceType(String foodAllowanceType) {

@@ -328,6 +328,38 @@ rolePolicy: any = null;
     return Number.isFinite(n) && n > 0 ? n : null;
   }
 
+  /** Team meal / working lunch limit (per member per day). Falls back to regular Food per-day limit. */
+  getRoleTeamMealPerMemberPerDayLimit(): number | null {
+    const limits = this.rolePolicy?.amountLimits;
+    if (limits) {
+      // Prefer exact key, but also support legacy / variant labels.
+      const direct = limits['Food (Team meal)'];
+      const tryParse = (v: any): number | null => {
+        const n = Number(v);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      };
+      const parsedDirect = tryParse(direct);
+      if (parsedDirect != null) {
+        return parsedDirect;
+      }
+      const norm = (s: any) =>
+        String(s ?? '')
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '');
+      for (const [k, v] of Object.entries(limits)) {
+        const nk = norm(k);
+        if (nk.includes('food') && (nk.includes('teammeal') || nk.includes('workinglunch'))) {
+          const parsed = tryParse(v);
+          if (parsed != null) {
+            return parsed;
+          }
+        }
+      }
+    }
+    return this.getRoleAmountLimit('Food');
+  }
+
   /** Per-day cap for the selected travel mode (Cab, Train, etc.). Not used for Own/Personal Vehicle (₹/km rate applies). */
   getRoleTravelModeDailyLimit(travelMode: string | null | undefined): number | null {
     const mode = travelMode ? String(travelMode).trim() : '';
@@ -399,7 +431,11 @@ rolePolicy: any = null;
       if (members == null || members < 2) {
         return null;
       }
-      return perDay * days * members;
+      const perMemberPerDay = this.getRoleTeamMealPerMemberPerDayLimit();
+      if (perMemberPerDay == null) {
+        return null;
+      }
+      return perMemberPerDay * days * members;
     }
     return perDay * days;
   }
@@ -451,7 +487,7 @@ rolePolicy: any = null;
     if (!this.isTeamMealFoodAllowanceType(foodAllowanceType)) {
       return null;
     }
-    const perDay = this.getRoleAmountLimit('Food');
+    const perDay = this.getRoleTeamMealPerMemberPerDayLimit();
     if (perDay == null) {
       return null;
     }
@@ -467,11 +503,10 @@ rolePolicy: any = null;
     const maxTotal = Math.round(perDay * members * dayFactor * 100) / 100;
     const perMemberPerDay = Math.round((amount / (members * dayFactor)) * 100) / 100;
     if (amount > maxTotal + 0.009) {
-      const excess = Math.round((amount - maxTotal) * 100) / 100;
       if (days <= 0) {
-        return `Team meal exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per member per day × ${members} member(s) = ₹ ${Math.round(perDay * members * 100) / 100} per day. Your claim ₹ ${amount.toLocaleString('en-IN')} (₹ ${perMemberPerDay.toLocaleString('en-IN')} per member/day). Excess: ₹ ${excess.toLocaleString('en-IN')}. Select From and To dates or reduce the amount.`;
+        return `Team meal exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per member per day.`;
       }
-      return `Team meal exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per member per day × ${members} member(s) × ${days} day(s) = ₹ ${maxTotal.toLocaleString('en-IN')}. Your claim: ₹ ${amount.toLocaleString('en-IN')} (₹ ${perMemberPerDay.toLocaleString('en-IN')} per member/day). Excess: ₹ ${excess.toLocaleString('en-IN')}.`;
+      return `Team meal exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per member per day.`;
     }
     return null;
   }
@@ -578,45 +613,11 @@ rolePolicy: any = null;
     if (!failingDays.length) {
       return null;
     }
-    failingDays.sort((a, b) => a.day.localeCompare(b.day));
-    const first = failingDays[0];
-    const excessDay = Math.round((first.total - perDay) * 100) / 100;
     const parts: string[] = [
       'Food claims in this ticket exceed your eligible daily limit.',
       `Allowed: ₹ ${perDay.toLocaleString('en-IN')} per day shared across all food claims (except team meals).`
     ];
-    if (draft?.fromDate && draft?.toDate && draft.amount != null) {
-      const claimDays = this.countClaimInclusiveDays(draft.fromDate, draft.toDate);
-      const claimAmount = Number(draft.amount);
-      if (claimDays > 0 && Number.isFinite(claimAmount) && claimAmount > 0) {
-        const grossMax = Math.round(perDay * claimDays * 100) / 100;
-        const remainingMax = this.maxSharedFoodAmountForDateRange(
-          draft.fromDate,
-          draft.toDate,
-          claims,
-          excludeIndex
-        );
-        const perDayApplied = Math.round((claimAmount / claimDays) * 100) / 100;
-        const dateLabel = `${this.formatClaimDayLabel(String(draft.fromDate))} to ${this.formatClaimDayLabel(String(draft.toDate))}`;
-        if (remainingMax != null && remainingMax < grossMax - 0.009) {
-          const excessTotal = Math.round((claimAmount - remainingMax) * 100) / 100;
-          parts.push(
-            `Your ${claimDays} day(s) (${dateLabel}): maximum remaining ₹ ${remainingMax.toLocaleString('en-IN')} after other food claims in this ticket (gross limit ₹ ${grossMax.toLocaleString('en-IN')} = ₹ ${perDay.toLocaleString('en-IN')}/day × ${claimDays} day(s)), your claim ₹ ${claimAmount.toLocaleString('en-IN')} (₹ ${perDayApplied.toLocaleString('en-IN')}/day), excess ₹ ${excessTotal.toLocaleString('en-IN')}.`
-          );
-        } else {
-          const excessTotal = Math.round((claimAmount - grossMax) * 100) / 100;
-          parts.push(
-            `Your ${claimDays} day(s) (${dateLabel}): eligible maximum ₹ ${grossMax.toLocaleString('en-IN')}, your claim ₹ ${claimAmount.toLocaleString('en-IN')} (₹ ${perDayApplied.toLocaleString('en-IN')}/day), excess ₹ ${excessTotal.toLocaleString('en-IN')}.`
-          );
-        }
-      }
-    }
-    parts.push(
-      `On ${this.formatClaimDayLabel(first.day)}: applied ₹ ${first.total.toLocaleString('en-IN')} vs ₹ ${perDay.toLocaleString('en-IN')} allowed — ₹ ${excessDay.toLocaleString('en-IN')} over the daily cap.`
-    );
-    if (failingDays.length > 1) {
-      parts.push(`Daily cap exceeded on ${failingDays.length} day(s) in this ticket.`);
-    }
+    // Keep message short (no per-day breakdown / totals).
     return parts.join(' ');
   }
 
@@ -657,12 +658,23 @@ rolePolicy: any = null;
     return this.validateSharedFoodDailyLimitsForTicket(claims, draft, excludeIndex);
   }
 
+  /** Per-day limit for current claim fields (team meal uses separate policy key). */
+  private resolvePerDayLimitForCurrentClaim(): number | null {
+    const exp = this.reimbursementObj?.expenditureType;
+    const isTravel = String(exp || '').trim().toLowerCase() === 'travel';
+    if (isTravel) {
+      return this.getRoleTravelModeDailyLimit(this.reimbursementObj?.travelMode);
+    }
+    if (exp === 'Food' && this.isTeamMealFoodAllowanceType()) {
+      return this.getRoleTeamMealPerMemberPerDayLimit();
+    }
+    return this.getRoleAmountLimit(exp);
+  }
+
   roleAmountLimitHint(): string {
     const exp = this.reimbursementObj?.expenditureType;
     const isTravel = String(exp || '').trim().toLowerCase() === 'travel';
-    const perDay = isTravel
-      ? this.getRoleTravelModeDailyLimit(this.reimbursementObj?.travelMode)
-      : this.getRoleAmountLimit(exp);
+    const perDay = this.resolvePerDayLimitForCurrentClaim();
     if (perDay == null) {
       if (isTravel && this.reimbursementObj?.travelMode) {
         return 'No per-day limit configured for this travel mode.';
@@ -676,14 +688,12 @@ rolePolicy: any = null;
       const members = this.parsedTeamMemberCount();
       const days = this.countClaimInclusiveDays(this.reimbursementObj?.fromDate, this.reimbursementObj?.toDate);
       if (members != null && members >= 2 && days > 0) {
-        const total = Math.round(perDay * members * days * 100) / 100;
-        return `Team meal limit: ₹ ${perDay.toLocaleString('en-IN')} per member per day × ${members} member(s) × ${days} day(s) = ₹ ${total.toLocaleString('en-IN')} maximum.`;
+        return `Team meal limit: ₹ ${perDay.toLocaleString('en-IN')} per member per day.`;
       }
       if (members != null && members >= 2) {
-        const perDayTotal = Math.round(perDay * members * 100) / 100;
-        return `Team meal limit: ₹ ${perDay.toLocaleString('en-IN')} per member per day × ${members} member(s) = ₹ ${perDayTotal.toLocaleString('en-IN')} per day (select From and To dates for total).`;
+        return `Team meal limit: ₹ ${perDay.toLocaleString('en-IN')} per member per day.`;
       }
-      return `Team meal: enter member count. Limit is ₹ ${perDay.toLocaleString('en-IN')} per member per day as configured in Expense Policy.`;
+      return `Team meal limit: ₹ ${perDay.toLocaleString('en-IN')} per member per day.`;
     }
     if (exp === 'Food' && !this.isTeamMealFoodAllowanceType()) {
       const days = this.countClaimInclusiveDays(this.reimbursementObj?.fromDate, this.reimbursementObj?.toDate);
@@ -748,9 +758,7 @@ rolePolicy: any = null;
       );
     }
     const isTravel = String(exp).trim().toLowerCase() === 'travel';
-    const perDay = isTravel
-      ? this.getRoleTravelModeDailyLimit(this.reimbursementObj?.travelMode)
-      : this.getRoleAmountLimit(exp);
+    const perDay = this.resolvePerDayLimitForCurrentClaim();
     if (perDay == null) {
       return null;
     }
@@ -760,13 +768,13 @@ rolePolicy: any = null;
       : `your job role (${exp})`;
     if (days <= 0) {
       if (amount > perDay + 0.009) {
-        return `Amount exceeds eligible limit of ₹ ${perDay.toLocaleString('en-IN')} per day for ${scope}. Reduce the amount or select From and To dates.`;
+        return `Amount exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per day for ${scope}.`;
       }
       return null;
     }
     const maxTotal = perDay * days;
     if (amount > maxTotal + 0.009) {
-      return `Amount exceeds eligible limit of ₹ ${maxTotal.toLocaleString('en-IN')} (₹ ${perDay.toLocaleString('en-IN')} per day × ${days} day(s)) for ${scope}.`;
+      return `Amount exceeds eligible limit. Allowed: ₹ ${perDay.toLocaleString('en-IN')} per day for ${scope}.`;
     }
     return null;
   }

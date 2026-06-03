@@ -14850,6 +14850,9 @@ public class ResourceManagementService {
 				LocalDate winStart = m.getStartDate() != null ? m.getStartDate().toLocalDate() : null;
 				LocalDate winEnd   = m.getEndDate() != null ? m.getEndDate().toLocalDate() : null;
 				
+				if (winEnd != null && winEnd.isBefore(startDate)) continue;
+				if (winStart != null && winStart.isAfter(endDate)) continue;
+				
 				if (!empRoleWindowMap.containsKey(key)) {
 					empRoleWindowMap.put(key, new ArrayList<>());
 				}

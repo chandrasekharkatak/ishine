@@ -2420,8 +2420,8 @@ public class ProjectService {
 
         if ("P".equalsIgnoreCase(dto.getReport())) {
             // === Project Query ===
-            query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name as projManager, ")
-                 .append("GROUP_CONCAT(DISTINCT ppd.po_no SEPARATOR ', ') AS po_no, p.po_project_type, GROUP_CONCAT(DISTINCT ppd.po_start_date SEPARATOR ', ') AS po_start_date, GROUP_CONCAT(DISTINCT ppd.po_end_date SEPARATOR ', ') AS po_end_date, GROUP_CONCAT(DISTINCT ppd.client_rm SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm SEPARATOR ', ') AS apmosysrm , ")
+            query.append("SELECT distinct p.project_id, p.po_project_id, p.project_name, p.project_manager_id, 	GROUP_CONCAT(DISTINCT ep.name order by ppd.po_start_date , ppd.po_id SEPARATOR ', ') as projManager, ")
+                 .append("GROUP_CONCAT(DISTINCT ppd.po_no ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_no, p.po_project_type, GROUP_CONCAT(DISTINCT ppd.po_start_date ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_start_date, GROUP_CONCAT(DISTINCT ppd.po_end_date ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS po_end_date, GROUP_CONCAT(DISTINCT ppd.client_rm ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS clientrm, GROUP_CONCAT(DISTINCT ppd.apmosys_rm ORDER BY ppd.po_start_date , ppd.po_id SEPARATOR ', ') AS apmosysrm , ")
                  .append("t.team_id, team_name, etm.emp_id, e.name, etm.start_date, j.name as jobRole, d.name as deptName, e.billable_type, ")
                  .append("e.billable, e.mobile_no, e.email, ")
                  .append(EmployeeEmploymentIdUtil.sqlCaseFormattedEmploymentId("e", "employeement_id"))
@@ -2447,19 +2447,18 @@ public class ProjectService {
                  		+ "				and leave_type_master_id = 5 \n"
                  		+ "				and curdate() between date(el.from_date) and date(el.to_date) \n"
                  		+ "		) eld on eld.emp_id = e.emp_id \n")
-                 .append("WHERE ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active != 0 ) AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
+                 .append("WHERE ((etm.active = 0 AND DATE(etm.start_date) > CURDATE()) OR etm.active = 1 ) AND t.is_active != 'N' AND p.active != 'false' and e.emp_id not between 1 and 6  ")
                  .append(buildInnerWhereClause(poProjectType, flag))
                  .append(buildOuterWhereClause(billableType, deptIds, hideMaternityLeaveEmps))
 				 .append(
    						 " GROUP BY " +
- 						 "p.project_id, p.po_project_id, p.project_name, p.project_manager_id, ep.name, " +
+ 						 "p.project_id, p.po_project_id, p.project_name," +
    						 "p.po_project_type, " +
    						 "t.team_id, t.team_name, " +
    						 "etm.emp_id, e.name, etm.start_date, " +
     					 "j.name, d.name, " +
    						 "e.billable_type, e.billable, e.mobile_no, e.email, " +
-   						 "p.client_id, p.dept_id, p.state, p.created_on, " +
-   						 "p.status, p.project_completion_date, p.project_status, p.internal_project_type"
+   						 "e.is_apmosys_product, e.is_consultant, e.employeement_id, e.experience , e.date_of_joining "
 );
             
         } else if ("EC".equalsIgnoreCase(dto.getReport())) {
