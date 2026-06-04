@@ -18,11 +18,7 @@
 	<properties>
 		<java.version>11</java.version>
 	</properties>
-	<properties>
-  <sonar.projectKey>ishine_employeeportal_revamp_7fbc928b-967c-4e43-ab5e-05761e4ea19d</sonar.projectKey>
-  <sonar.projectName>EmployeePortal_revamp</sonar.projectName>
-  <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
