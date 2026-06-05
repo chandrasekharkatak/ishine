@@ -311,6 +311,14 @@
 						<goals>
 							<goal>report</goal>
 						</goals>
+
+						<configuration>
+							<excludes>
+								<exclude>models/**</exclude>
+								<exclude>**/*.bin</exclude>
+							</excludes>
+						</configuration>
+
 					</execution>
 				</executions>
 			</plugin>
